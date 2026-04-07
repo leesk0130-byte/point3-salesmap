@@ -182,6 +182,10 @@
       <input type="text" id="signup-username" placeholder="아이디" required autocomplete="username">
     </div>
     <div class="field">
+      <input type="email" id="signup-email" placeholder="이메일" required autocomplete="email">
+      <span style="font-size:11px;color:#94a3b8;margin-top:4px;display:block;">승인 알림이 발송됩니다. 정확한 이메일을 입력하세요.</span>
+    </div>
+    <div class="field">
       <input type="password" id="signup-password" placeholder="비밀번호 (4자 이상)" minlength="4" required autocomplete="new-password">
     </div>
     <div class="field">
@@ -245,16 +249,17 @@
     hideAlert();
     var name = document.getElementById('signup-name').value.trim();
     var username = document.getElementById('signup-username').value.trim();
+    var email = document.getElementById('signup-email').value.trim();
     var password = document.getElementById('signup-password').value;
     var confirm = document.getElementById('signup-password-confirm').value;
-    if (!name || !username || !password) { showAlert('모든 항목을 입력하세요.', 'error'); return false; }
+    if (!name || !username || !email || !password) { showAlert('모든 항목을 입력하세요.', 'error'); return false; }
     if (password.length < 4) { showAlert('비밀번호는 4자 이상이어야 합니다.', 'error'); return false; }
     if (password !== confirm) { showAlert('비밀번호가 일치하지 않습니다.', 'error'); return false; }
     try {
       var res = await fetch('/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name, username: username, password: password })
+        body: JSON.stringify({ name: name, username: username, email: email, password: password })
       });
       var data = await res.json();
       if (res.ok) {

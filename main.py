@@ -216,10 +216,11 @@ def login_page():
 def auth_signup():
     data = request.get_json()
     username = (data.get("username") or "").strip()
+    email = (data.get("email") or "").strip().lower()
     password = (data.get("password") or "")
     name = (data.get("name") or "").strip()
 
-    if not username or not password or not name:
+    if not username or not password or not name or not email:
         return jsonify({"error": "모든 필드를 입력하세요."}), 400
     if len(password) < 4:
         return jsonify({"error": "비밀번호는 4자 이상이어야 합니다."}), 400
@@ -231,6 +232,7 @@ def auth_signup():
     user = {
         "id": str(uuid.uuid4()),
         "username": username,
+        "email": email,
         "password": hash_pw(password),
         "name": name,
         "teamName": "",
@@ -373,7 +375,7 @@ def approve_page():
 def admin_pending_users():
     users = load_users()
     pending = [{"id": u["id"], "name": u["name"], "username": u["username"],
-                "teamName": u.get("teamName", ""), "created_at": u.get("created_at", "")}
+                "email": u.get("email", ""), "teamName": u.get("teamName", ""), "created_at": u.get("created_at", "")}
                for u in users if not u.get("isApproved") and u.get("teamName")]
     return jsonify(pending)
 
@@ -383,7 +385,7 @@ def admin_pending_users():
 def admin_approved_users():
     users = load_users()
     approved = [{"id": u["id"], "name": u["name"], "username": u["username"],
-                 "teamName": u.get("teamName", ""), "role": u.get("role", "user")}
+                 "email": u.get("email", ""), "teamName": u.get("teamName", ""), "role": u.get("role", "user")}
                 for u in users if u.get("isApproved")]
     return jsonify(approved)
 
