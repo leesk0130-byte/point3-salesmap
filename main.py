@@ -28,6 +28,7 @@ CORS(app)
 
 # ── 최고 관리자 설정 ──
 SUPERADMIN_USERNAME = "leesk0130"
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "734818849350-qlm4r3mlbksfrv41hm38l78vscu29biu.apps.googleusercontent.com")
 
 # ── 데이터 파일 경로 설정 ──
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -208,7 +209,7 @@ def geocode_address(address):
 def login_page():
     if get_current_user():
         return redirect("/")
-    return render_template("login.html")
+    return render_template("login.html", google_client_id=GOOGLE_CLIENT_ID)
 
 
 @app.route("/auth/signup", methods=["POST"])
@@ -256,6 +257,47 @@ def auth_login():
             return jsonify({"message": "로그인 성공"})
 
     return jsonify({"error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
+
+
+@app.route("/auth/google", methods=["POST"])
+def auth_google():
+    data = request.get_json()
+    credential = data.get("credential")
+    if not credential:
+        return jsonify({"error": "Google 인증 정보가 없습니다."}), 400
+
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        idinfo = id_token.verify_oauth2_token(credential, google_requests.Request(), GOOGLE_CLIENT_ID)
+        email = idinfo["email"].lower()
+        name = idinfo.get("name", email.split("@")[0])
+    except Exception as e:
+        return jsonify({"error": f"Google 인증 실패: {str(e)}"}), 401
+
+    users = load_users()
+    # 기존 유저 찾기
+    for u in users:
+        if u.get("email") == email or u.get("username") == email:
+            session["user_id"] = u["id"]
+            return jsonify({"message": "Google 로그인 성공", "needTeam": not u.get("teamName")})
+
+    # 새 유저 생성
+    user = {
+        "id": str(uuid.uuid4()),
+        "username": email,
+        "password": "",
+        "name": name,
+        "email": email,
+        "teamName": "",
+        "isApproved": False,
+        "role": "user",
+        "created_at": datetime.now().isoformat(),
+    }
+    users.append(user)
+    save_users(users)
+    session["user_id"] = user["id"]
+    return jsonify({"message": "Google 회원가입 완료", "needTeam": True})
 
 
 @app.route("/auth/logout")

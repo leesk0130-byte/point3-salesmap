@@ -150,6 +150,27 @@
       <input type="password" id="login-password" placeholder="비밀번호" required autocomplete="current-password">
     </div>
     <button type="submit" class="btn">로그인</button>
+    <div id="google-section" style="display:none;">
+      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
+        <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+        <span style="font-size:12px;color:#94a3b8;">또는</span>
+        <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+      </div>
+      <div id="g_id_onload"
+        data-client_id=""
+        data-callback="handleGoogleLogin"
+        data-auto_prompt="false">
+      </div>
+      <div class="g_id_signin"
+        data-type="standard"
+        data-size="large"
+        data-theme="outline"
+        data-text="signin_with"
+        data-shape="rectangular"
+        data-width="350"
+        data-logo_alignment="left">
+      </div>
+    </div>
   </form>
 
   <!-- 회원가입 폼 -->
@@ -246,7 +267,36 @@
     }
     return false;
   }
+
+  // ── Google 로그인 ──
+  async function handleGoogleLogin(response) {
+    try {
+      const res = await fetch('/auth/google', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({credential: response.credential})
+      });
+      const data = await res.json();
+      if (res.ok) {
+        location.href = data.needTeam ? '/team-setup' : '/';
+      } else {
+        showAlert(data.error || 'Google 로그인 실패', 'error');
+      }
+    } catch (err) {
+      showAlert('서버에 연결할 수 없습니다.', 'error');
+    }
+  }
+
+  // Google Client ID 설정
+  (function() {
+    var clientId = '{{ google_client_id }}';
+    if (clientId) {
+      document.getElementById('g_id_onload').setAttribute('data-client_id', clientId);
+      document.getElementById('google-section').style.display = 'block';
+    }
+  })();
 </script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 </body>
 </html>
