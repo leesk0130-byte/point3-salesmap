@@ -333,15 +333,20 @@
         }
 
         let html = '<div class="table-wrap"><table><thead><tr>';
-        html += '<th>이름</th><th>아이디</th><th>팀이름</th><th>상태</th>';
+        html += '<th>이름</th><th>아이디</th><th>이메일</th><th>팀이름</th><th>관리</th>';
         html += '</tr></thead><tbody>';
 
         users.forEach(u => {
           html += '<tr>';
-          html += '<td>' + esc(u.name || u.displayName || '-') + '</td>';
-          html += '<td>' + esc(u.username || u.id || '-') + '</td>';
-          html += '<td>' + esc(u.teamName || '-') + '</td>';
-          html += '<td><span class="status-tag">승인됨</span></td>';
+          html += '<td>' + esc(u.name || '-') + '</td>';
+          html += '<td>' + esc(u.username || '-') + '</td>';
+          html += '<td style="font-size:12px;color:#6b7280;">' + esc(u.email || '-') + '</td>';
+          html += '<td><span class="team-edit" onclick="editTeam(\'' + esc(u.id) + '\',\'' + esc(u.teamName || '') + '\')" style="cursor:pointer;padding:4px 10px;background:#eef2ff;color:#4f46e5;border-radius:6px;font-size:12px;font-weight:600;">' + esc(u.teamName || '-') + ' ✎</span></td>';
+          if (u.role === 'superadmin') {
+            html += '<td><span style="font-size:11px;color:#94a3b8;">관리자</span></td>';
+          } else {
+            html += '<td><button onclick="deleteUser(\'' + esc(u.id) + '\',\'' + esc(u.name) + '\')" style="padding:6px 12px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">삭제</button></td>';
+          }
           html += '</tr>';
         });
 
@@ -384,6 +389,35 @@
       } catch (e) {
         showToast('거절 처리에 실패했습니다.', 'error');
       }
+    }
+
+    // 사용자 삭제
+    async function deleteUser(userId, name) {
+      if (!confirm(`"${name}" 사용자를 삭제하시겠습니까?`)) return;
+      try {
+        const res = await fetch('/api/admin/delete-user', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({userId})
+        });
+        if (!res.ok) throw new Error();
+        showToast(name + ' 삭제 완료', 'success');
+        loadApproved();
+      } catch(e) { showToast('삭제 실패', 'error'); }
+    }
+
+    // 팀명 수정
+    async function editTeam(userId, currentTeam) {
+      const newTeam = prompt('새 팀 이름을 입력하세요:', currentTeam);
+      if (!newTeam || newTeam.trim() === currentTeam) return;
+      try {
+        const res = await fetch('/api/admin/update-team', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({userId, teamName: newTeam.trim()})
+        });
+        if (!res.ok) throw new Error();
+        showToast('팀명 변경 완료', 'success');
+        loadApproved();
+      } catch(e) { showToast('팀명 변경 실패', 'error'); }
     }
 
     // XSS 방지

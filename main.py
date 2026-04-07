@@ -518,6 +518,35 @@ def admin_reject():
     return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
 
 
+@app.route("/api/admin/delete-user", methods=["POST"])
+@superadmin_required
+def admin_delete_user():
+    """승인된 사용자 삭제"""
+    data = request.get_json()
+    uid = data.get("userId")
+    if uid and fs_delete_doc("users", uid):
+        return jsonify({"message": "삭제 완료"})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/admin/update-team", methods=["POST"])
+@superadmin_required
+def admin_update_team():
+    """사용자 팀명 수정"""
+    data = request.get_json()
+    uid = data.get("userId")
+    new_team = (data.get("teamName") or "").strip()
+    if not uid or not new_team:
+        return jsonify({"error": "userId와 teamName이 필요합니다."}), 400
+    users = load_users()
+    for u in users:
+        if u["id"] == uid:
+            u["teamName"] = new_team
+            save_user(u)
+            return jsonify({"message": f"팀명 '{new_team}'으로 변경 완료"})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+
 # ══════════════════════════════════════════
 #  페이지 라우트 (로그인+승인 필수)
 # ══════════════════════════════════════════
