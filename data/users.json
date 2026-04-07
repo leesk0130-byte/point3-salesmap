@@ -1,0 +1,12 @@
+[
+  {
+    "id": "a3dc65e1-c750-4807-968a-ce39ed1e627f",
+    "username": "leesk0130",
+    "password": "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5",
+    "name": "관리자",
+    "teamName": "Point3",
+    "isApproved": true,
+    "role": "superadmin",
+    "created_at": "2026-04-07T22:25:23.537322"
+  }
+]

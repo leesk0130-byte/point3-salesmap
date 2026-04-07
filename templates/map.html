@@ -869,6 +869,10 @@
                     <div class="sb-title">Point3 CRM</div>
                 </div>
                 <div class="sb-header-actions">
+                    <a href="/approve" class="icon-btn" id="approveBtn" title="팀원 승인" style="display:none;color:var(--primary);font-size:11px;font-weight:600;width:auto;padding:0 8px;gap:4px;">
+                        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 100 10A5 5 0 008 1zM1 14c0-2.2 3.1-4 7-4s7 1.8 7 4"/></svg>
+                        승인
+                    </a>
                     <button class="icon-btn" id="refreshBtn" title="새로고침">
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 018 2c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" fill="currentColor"/></svg>
                     </button>
@@ -992,6 +996,9 @@
         <a href="/admin" class="map-ctrl-btn" title="가맹점 등록">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><path d="M8 3v10M3 8h10"/></svg>
             등록
+        </a>
+        <a href="/auth/logout" class="map-ctrl-btn" title="로그아웃" style="color:var(--danger);">
+            로그아웃
         </a>
     </div>
 
@@ -1566,6 +1573,10 @@
         if (isMobile) { sidebarOpen = false; bsState = 'peek'; }
         updateSidebarState();
         loadStores();
+        // superadmin이면 승인 버튼 표시
+        fetch('/auth/me').then(r=>r.json()).then(u=>{
+            if(u.role==='superadmin') document.getElementById('approveBtn').style.display='flex';
+        }).catch(()=>{});
     </script>
 
     <button id="gpsBtn" style="position:fixed;bottom:90px;right:20px;z-index:99999;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(79,70,229,.45),0 1px 3px rgba(0,0,0,.12);" title="내 위치 찾기">

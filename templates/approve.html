@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Point3 CRM — 팀원 관리</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+    }
+
+    /* 헤더 */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: #4f46e5;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: #818cf8; font-weight: 600; }
+    .header-sub {
+      font-size: 14px;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .back-link {
+      font-size: 14px;
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #4338ca; }
+
+    /* 메인 */
+    .main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    /* 섹션 */
+    .section {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .section-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 12px;
+    }
+    .badge-pending {
+      background: #fef3c7;
+      color: #d97706;
+    }
+    .badge-approved {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    /* 테이블 */
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: #f8fafc;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #334155;
+      border-top: 1px solid #f1f5f9;
+      white-space: nowrap;
+    }
+    tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .status-tag {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      background: #dcfce7;
+      color: #16a34a;
+    }
+
+    /* 버튼 */
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-sm:active { transform: scale(0.96); }
+    .btn-approve {
+      background: #4f46e5;
+      color: #fff;
+    }
+    .btn-approve:hover { background: #4338ca; }
+    .btn-reject {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .btn-reject:hover { background: #fecaca; }
+
+    .empty-row {
+      padding: 40px 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    /* 로딩 */
+    .loading {
+      padding: 40px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    /* 토스트 */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+      max-width: 320px;
+    }
+    .toast-success { background: #16a34a; }
+    .toast-error { background: #dc2626; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    @media (max-width: 640px) {
+      .header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
+      .main { padding: 20px 12px 40px; }
+      .section-header { padding: 16px; }
+      thead th, tbody td { padding: 10px 12px; font-size: 13px; }
+      .action-btns { flex-direction: column; gap: 4px; }
+      .btn-sm { padding: 8px 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">Point3 <span>CRM</span></div>
+      <div class="header-sub">팀원 관리</div>
+    </div>
+    <a href="/" class="back-link">← 지도로 돌아가기</a>
+  </div>
+
+  <div class="main">
+    <!-- 대기 중 팀원 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">승인 대기 중</div>
+        <div class="badge badge-pending" id="pendingCount">0</div>
+      </div>
+      <div id="pendingBody">
+        <div class="loading">불러오는 중...</div>
+      </div>
+    </div>
+
+    <!-- 승인된 팀원 -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">승인된 팀원</div>
+        <div class="badge badge-approved" id="approvedCount">0</div>
+      </div>
+      <div id="approvedBody">
+        <div class="loading">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // 토스트
+    function showToast(message, type) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // 날짜 포맷
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return y + '.' + m + '.' + day;
+    }
+
+    // 대기 목록 로드
+    async function loadPending() {
+      const body = document.getElementById('pendingBody');
+      const badge = document.getElementById('pendingCount');
+      try {
+        const res = await fetch('/api/admin/pending-users');
+        if (!res.ok) throw new Error();
+        const users = await res.json();
+        badge.textContent = users.length;
+
+        if (users.length === 0) {
+          body.innerHTML = '<div class="empty-row">대기 중인 팀원이 없습니다.</div>';
+          return;
+        }
+
+        let html = '<div class="table-wrap"><table><thead><tr>';
+        html += '<th>이름</th><th>아이디</th><th>팀이름</th><th>가입일</th><th>관리</th>';
+        html += '</tr></thead><tbody>';
+
+        users.forEach(u => {
+          html += '<tr>';
+          html += '<td>' + esc(u.name || u.displayName || '-') + '</td>';
+          html += '<td>' + esc(u.username || u.id || '-') + '</td>';
+          html += '<td>' + esc(u.teamName || '-') + '</td>';
+          html += '<td>' + formatDate(u.createdAt || u.joinedAt) + '</td>';
+          html += '<td><div class="action-btns">';
+          html += '<button class="btn-sm btn-approve" onclick="approve(\'' + esc(u.id || u.userId) + '\')">승인</button>';
+          html += '<button class="btn-sm btn-reject" onclick="reject(\'' + esc(u.id || u.userId) + '\')">거절</button>';
+          html += '</div></td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        body.innerHTML = html;
+      } catch (e) {
+        body.innerHTML = '<div class="empty-row" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
+      }
+    }
+
+    // 승인 목록 로드
+    async function loadApproved() {
+      const body = document.getElementById('approvedBody');
+      const badge = document.getElementById('approvedCount');
+      try {
+        const res = await fetch('/api/admin/approved-users');
+        if (!res.ok) throw new Error();
+        const users = await res.json();
+        badge.textContent = users.length;
+
+        if (users.length === 0) {
+          body.innerHTML = '<div class="empty-row">승인된 팀원이 없습니다.</div>';
+          return;
+        }
+
+        let html = '<div class="table-wrap"><table><thead><tr>';
+        html += '<th>이름</th><th>아이디</th><th>팀이름</th><th>상태</th>';
+        html += '</tr></thead><tbody>';
+
+        users.forEach(u => {
+          html += '<tr>';
+          html += '<td>' + esc(u.name || u.displayName || '-') + '</td>';
+          html += '<td>' + esc(u.username || u.id || '-') + '</td>';
+          html += '<td>' + esc(u.teamName || '-') + '</td>';
+          html += '<td><span class="status-tag">승인됨</span></td>';
+          html += '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        body.innerHTML = html;
+      } catch (e) {
+        body.innerHTML = '<div class="empty-row" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
+      }
+    }
+
+    // 승인
+    async function approve(userId) {
+      try {
+        const res = await fetch('/api/admin/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+        if (!res.ok) throw new Error();
+        showToast('승인 완료', 'success');
+        loadPending();
+        loadApproved();
+      } catch (e) {
+        showToast('승인 처리에 실패했습니다.', 'error');
+      }
+    }
+
+    // 거절
+    async function reject(userId) {
+      try {
+        const res = await fetch('/api/admin/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+        if (!res.ok) throw new Error();
+        showToast('거절 완료', 'success');
+        loadPending();
+        loadApproved();
+      } catch (e) {
+        showToast('거절 처리에 실패했습니다.', 'error');
+      }
+    }
+
+    // XSS 방지
+    function esc(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // 초기 로드
+    loadPending();
+    loadApproved();
+  </script>
+</body>
+</html>

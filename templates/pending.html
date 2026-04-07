@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Point3 CRM — 승인 대기</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 440px;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 52px 36px 40px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: #4f46e5;
+      margin-bottom: 36px;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: #818cf8; font-weight: 600; }
+
+    /* CSS 시계 아이콘 */
+    .clock-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 28px;
+      position: relative;
+      border: 4px solid #a5b4fc;
+      border-radius: 50%;
+      background: #eef2ff;
+    }
+    .clock-icon::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3px;
+      height: 22px;
+      background: #4f46e5;
+      border-radius: 2px;
+      transform-origin: bottom center;
+      transform: translate(-50%, -100%) rotate(0deg);
+    }
+    .clock-icon::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 3px;
+      height: 16px;
+      background: #6366f1;
+      border-radius: 2px;
+      transform-origin: bottom center;
+      transform: translate(-50%, -100%) rotate(90deg);
+    }
+    .clock-dot {
+      width: 6px;
+      height: 6px;
+      background: #4f46e5;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .clock-icon { animation: pulse 2.5s ease-in-out infinite; }
+
+    .main-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .sub-text {
+      font-size: 14px;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      color: #fff;
+      background: #4f46e5;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover { background: #4338ca; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    .status-msg {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #f59e0b;
+      min-height: 20px;
+      font-weight: 500;
+    }
+    .status-msg.error { color: #ef4444; }
+
+    .logout-link {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .logout-link:hover { color: #64748b; }
+
+    .footer-text {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #cbd5e1;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 40px 24px 32px; }
+      .main-text { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">Point3 <span>CRM</span></div>
+
+      <div class="clock-icon">
+        <div class="clock-dot"></div>
+      </div>
+
+      <div class="main-text">관리자의 팀 승인을<br>기다려주세요.</div>
+      <div class="sub-text">승인이 완료되면 서비스를 이용할 수 있습니다.</div>
+
+      <button class="btn" id="checkBtn" onclick="checkApproval()">승인 확인</button>
+      <div class="status-msg" id="statusMsg"></div>
+
+      <a href="/auth/logout" class="logout-link">로그아웃</a>
+
+      <div class="footer-text">문의: 관리자에게 연락하세요</div>
+    </div>
+  </div>
+
+  <script>
+    const checkBtn = document.getElementById('checkBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    async function checkApproval() {
+      checkBtn.disabled = true;
+      checkBtn.textContent = '확인 중...';
+      statusMsg.textContent = '';
+      statusMsg.className = 'status-msg';
+
+      try {
+        const res = await fetch('/auth/me');
+        if (!res.ok) throw new Error('서버 오류가 발생했습니다.');
+
+        const data = await res.json();
+
+        if (data.isApproved) {
+          location.href = '/';
+        } else {
+          statusMsg.textContent = '아직 승인되지 않았습니다.';
+        }
+      } catch (err) {
+        statusMsg.textContent = err.message;
+        statusMsg.className = 'status-msg error';
+      } finally {
+        checkBtn.disabled = false;
+        checkBtn.textContent = '승인 확인';
+      }
+    }
+  </script>
+</body>
+</html>

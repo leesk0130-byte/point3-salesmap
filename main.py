@@ -8,10 +8,12 @@ import re
 import uuid
 import csv
 import io
+import hashlib
 from datetime import datetime
 from urllib.parse import quote
+from functools import wraps
 
-from flask import Flask, request, jsonify, render_template, Response, send_file
+from flask import Flask, request, jsonify, render_template, Response, send_file, redirect, session
 from flask_cors import CORS
 import requests
 import openpyxl
@@ -21,12 +23,17 @@ from openpyxl.styles import Font, PatternFill, Alignment
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
+app.secret_key = os.environ.get("SECRET_KEY", "point3-crm-2026-secret")
 CORS(app)
+
+# ── 최고 관리자 설정 ──
+SUPERADMIN_USERNAME = "leesk0130"
 
 # ── 데이터 파일 경로 설정 ──
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 STORES_FILE = os.path.join(DATA_DIR, "stores.json")
+USERS_FILE = os.path.join(DATA_DIR, "users.json")
 
 # ── 데이터 디렉토리 및 파일 자동 생성 ──
 if not os.path.exists(DATA_DIR):
@@ -34,7 +41,100 @@ if not os.path.exists(DATA_DIR):
 if not os.path.exists(STORES_FILE):
     with open(STORES_FILE, "w", encoding="utf-8") as f:
         json.dump([], f, ensure_ascii=False)
+if not os.path.exists(USERS_FILE):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f, ensure_ascii=False)
 
+
+# ══════════════════════════════════════════
+#  인증 시스템
+# ══════════════════════════════════════════
+
+def hash_pw(pw):
+    return hashlib.sha256(pw.encode()).hexdigest()
+
+
+def load_users():
+    with open(USERS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_users(users):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, ensure_ascii=False, indent=2)
+
+
+def get_current_user():
+    """세션에서 현재 로그인 유저 반환. 없으면 None"""
+    uid = session.get("user_id")
+    if not uid:
+        return None
+    users = load_users()
+    for u in users:
+        if u["id"] == uid:
+            return u
+    return None
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = get_current_user()
+        if not user:
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "로그인이 필요합니다."}), 401
+            return redirect("/login")
+        # 팀 미설정 → 팀 설정 페이지로
+        if not user.get("teamName") and request.path not in ("/team-setup", "/auth/set-team", "/auth/logout"):
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "팀 설정이 필요합니다."}), 403
+            return redirect("/team-setup")
+        # 미승인 → 대기 페이지로
+        if not user.get("isApproved") and request.path not in ("/pending", "/auth/me", "/auth/logout"):
+            if request.path.startswith("/api/"):
+                return jsonify({"error": "승인 대기 중입니다."}), 403
+            return redirect("/pending")
+        return f(*args, **kwargs)
+    return decorated
+
+
+def superadmin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = get_current_user()
+        if not user or user.get("role") != "superadmin":
+            return jsonify({"error": "권한이 없습니다."}), 403
+        return f(*args, **kwargs)
+    return decorated
+
+
+# ── 초기 관리자 계정 자동 생성 ──
+def ensure_superadmin():
+    users = load_users()
+    for u in users:
+        if u["username"] == SUPERADMIN_USERNAME:
+            return
+    admin = {
+        "id": str(uuid.uuid4()),
+        "username": SUPERADMIN_USERNAME,
+        "password": hash_pw("12345"),
+        "name": "관리자",
+        "teamName": "Point3",
+        "isApproved": True,
+        "role": "superadmin",
+        "created_at": datetime.now().isoformat(),
+    }
+    users.append(admin)
+    save_users(users)
+    # 기존 매장에 teamName 할당
+    stores = load_stores()
+    changed = False
+    for s in stores:
+        if not s.get("teamName"):
+            s["teamName"] = "Point3"
+            changed = True
+    if changed:
+        save_stores(stores)
 
 def load_stores():
     """stores.json에서 매장 목록 로드 (항상 파일에서 읽기)"""
@@ -101,36 +201,207 @@ def geocode_address(address):
 
 
 # ══════════════════════════════════════════
-#  페이지 라우트
+#  인증 라우트
+# ══════════════════════════════════════════
+
+@app.route("/login")
+def login_page():
+    if get_current_user():
+        return redirect("/")
+    return render_template("login.html")
+
+
+@app.route("/auth/signup", methods=["POST"])
+def auth_signup():
+    data = request.get_json()
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "")
+    name = (data.get("name") or "").strip()
+
+    if not username or not password or not name:
+        return jsonify({"error": "모든 필드를 입력하세요."}), 400
+    if len(password) < 4:
+        return jsonify({"error": "비밀번호는 4자 이상이어야 합니다."}), 400
+
+    users = load_users()
+    if any(u["username"] == username for u in users):
+        return jsonify({"error": "이미 사용 중인 아이디입니다."}), 409
+
+    user = {
+        "id": str(uuid.uuid4()),
+        "username": username,
+        "password": hash_pw(password),
+        "name": name,
+        "teamName": "",
+        "isApproved": False,
+        "role": "user",
+        "created_at": datetime.now().isoformat(),
+    }
+    users.append(user)
+    save_users(users)
+    session["user_id"] = user["id"]
+    return jsonify({"message": "회원가입 완료"})
+
+
+@app.route("/auth/login", methods=["POST"])
+def auth_login():
+    data = request.get_json()
+    username = (data.get("username") or "").strip()
+    password = (data.get("password") or "")
+
+    users = load_users()
+    for u in users:
+        if u["username"] == username and u["password"] == hash_pw(password):
+            session["user_id"] = u["id"]
+            return jsonify({"message": "로그인 성공"})
+
+    return jsonify({"error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
+
+
+@app.route("/auth/logout")
+def auth_logout():
+    session.clear()
+    return redirect("/login")
+
+
+@app.route("/auth/me")
+def auth_me():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "로그인 필요"}), 401
+    return jsonify({
+        "id": user["id"], "name": user["name"], "username": user["username"],
+        "teamName": user.get("teamName", ""), "isApproved": user.get("isApproved", False),
+        "role": user.get("role", "user"),
+    })
+
+
+@app.route("/team-setup")
+def team_setup_page():
+    user = get_current_user()
+    if not user:
+        return redirect("/login")
+    if user.get("teamName"):
+        return redirect("/pending" if not user.get("isApproved") else "/")
+    return render_template("team-setup.html")
+
+
+@app.route("/auth/set-team", methods=["POST"])
+def auth_set_team():
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "로그인 필요"}), 401
+    data = request.get_json()
+    team = (data.get("teamName") or "").strip()
+    if not team:
+        return jsonify({"error": "팀 이름을 입력하세요."}), 400
+
+    users = load_users()
+    for u in users:
+        if u["id"] == user["id"]:
+            u["teamName"] = team
+            break
+    save_users(users)
+    return jsonify({"message": "팀 설정 완료"})
+
+
+@app.route("/pending")
+def pending_page():
+    user = get_current_user()
+    if not user:
+        return redirect("/login")
+    if user.get("isApproved"):
+        return redirect("/")
+    return render_template("pending.html")
+
+
+@app.route("/approve")
+@login_required
+def approve_page():
+    user = get_current_user()
+    if user.get("role") != "superadmin":
+        return redirect("/")
+    return render_template("approve.html")
+
+
+# ── 관리자 API ──
+
+@app.route("/api/admin/pending-users")
+@superadmin_required
+def admin_pending_users():
+    users = load_users()
+    pending = [{"id": u["id"], "name": u["name"], "username": u["username"],
+                "teamName": u.get("teamName", ""), "created_at": u.get("created_at", "")}
+               for u in users if not u.get("isApproved") and u.get("teamName")]
+    return jsonify(pending)
+
+
+@app.route("/api/admin/approved-users")
+@superadmin_required
+def admin_approved_users():
+    users = load_users()
+    approved = [{"id": u["id"], "name": u["name"], "username": u["username"],
+                 "teamName": u.get("teamName", ""), "role": u.get("role", "user")}
+                for u in users if u.get("isApproved")]
+    return jsonify(approved)
+
+
+@app.route("/api/admin/approve", methods=["POST"])
+@superadmin_required
+def admin_approve():
+    data = request.get_json()
+    uid = data.get("userId")
+    users = load_users()
+    for u in users:
+        if u["id"] == uid:
+            u["isApproved"] = True
+            save_users(users)
+            return jsonify({"message": f"{u['name']} 승인 완료"})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/admin/reject", methods=["POST"])
+@superadmin_required
+def admin_reject():
+    data = request.get_json()
+    uid = data.get("userId")
+    users = load_users()
+    users = [u for u in users if u["id"] != uid]
+    save_users(users)
+    return jsonify({"message": "거절 완료"})
+
+
+# ══════════════════════════════════════════
+#  페이지 라우트 (로그인+승인 필수)
 # ══════════════════════════════════════════
 
 @app.route("/")
+@login_required
 def index():
-    """메인 지도 페이지"""
     return render_template("map.html")
 
 
 @app.route("/admin")
-def admin():
-    """가맹점 등록 페이지"""
+@login_required
+def admin_page():
     return render_template("admin.html")
 
 
 @app.route("/dashboard")
+@login_required
 def dashboard():
-    """영업 통계 대시보드"""
     return render_template("dashboard.html")
 
 
 @app.route("/calendar")
+@login_required
 def calendar():
-    """방문 캘린더 페이지"""
     return render_template("calendar.html")
 
 
 @app.route("/stores")
+@login_required
 def stores_page():
-    """가맹점 목록 페이지"""
     return render_template("stores.html")
 
 
@@ -139,18 +410,23 @@ def stores_page():
 # ══════════════════════════════════════════
 
 @app.route("/api/stores", methods=["GET"])
+@login_required
 def get_stores():
-    """모든 매장 목록 조회"""
+    """현재 유저의 팀 매장 목록 조회"""
+    user = get_current_user()
     stores = load_stores()
-    return jsonify(stores)
+    team = user.get("teamName", "")
+    my_stores = [s for s in stores if s.get("teamName") == team]
+    return jsonify(my_stores)
 
 
 @app.route("/api/stores", methods=["POST"])
+@login_required
 def add_store():
     """새 매장 추가"""
+    user = get_current_user()
     data = request.get_json()
 
-    # 필수 필드 검증
     if not data or not data.get("name") or not data.get("address"):
         return jsonify({"error": "매장명과 주소는 필수입니다."}), 400
 
@@ -164,6 +440,7 @@ def add_store():
         "district": extract_district(address),
         "memo": data.get("memo", ""),
         "visits": [],
+        "teamName": user.get("teamName", ""),
         "created_at": datetime.now().isoformat(),
     }
 
@@ -181,6 +458,7 @@ def add_store():
 
 
 @app.route("/api/stores/<store_id>", methods=["PUT"])
+@login_required
 def update_store(store_id):
     """매장 정보 수정"""
     data = request.get_json()
@@ -203,6 +481,7 @@ def update_store(store_id):
 
 
 @app.route("/api/stores/<store_id>", methods=["DELETE"])
+@login_required
 def delete_store(store_id):
     """매장 삭제"""
     stores = load_stores()
@@ -221,6 +500,7 @@ def delete_store(store_id):
 # ══════════════════════════════════════════
 
 @app.route("/api/upload-excel", methods=["POST"])
+@login_required
 def upload_excel():
     """
     엑셀(.xlsx) 파일 업로드 후 매장 일괄 등록
@@ -305,6 +585,7 @@ def upload_excel():
 # ══════════════════════════════════════════
 
 @app.route("/api/stores/<store_id>/visits", methods=["GET"])
+@login_required
 def get_visits(store_id):
     """매장의 방문 기록 조회"""
     stores = load_stores()
@@ -315,6 +596,7 @@ def get_visits(store_id):
 
 
 @app.route("/api/stores/<store_id>/visits", methods=["POST"])
+@login_required
 def add_visit(store_id):
     """매장에 방문 기록 추가"""
     data = request.get_json()
@@ -340,6 +622,7 @@ def add_visit(store_id):
 
 
 @app.route("/api/stores/<store_id>/visits/<visit_id>", methods=["DELETE"])
+@login_required
 def delete_visit(store_id, visit_id):
     """매장의 방문 기록 삭제"""
     stores = load_stores()
@@ -364,6 +647,7 @@ def delete_visit(store_id, visit_id):
 # ══════════════════════════════════════════
 
 @app.route("/api/districts", methods=["GET"])
+@login_required
 def get_districts():
     """모든 매장의 지역구 목록과 개수 조회"""
     stores = load_stores()
@@ -382,6 +666,7 @@ def get_districts():
 # ══════════════════════════════════════════
 
 @app.route("/api/geocode", methods=["GET"])
+@login_required
 def geocode():
     """주소를 위도/경도로 변환"""
     address = request.args.get("address", "")
@@ -400,6 +685,7 @@ def geocode():
 # ══════════════════════════════════════════
 
 @app.route("/api/address-search", methods=["GET"])
+@login_required
 def address_search():
     """주소 자동완성 (카카오 로컬 API 사용)"""
     query = request.args.get("q", "").strip()
@@ -431,6 +717,7 @@ def address_search():
 # ══════════════════════════════════════════
 
 @app.route("/api/stores/<store_id>/star", methods=["POST"])
+@login_required
 def toggle_star(store_id):
     """매장 즐겨찾기 토글 (starred 필드 true/false)"""
     stores = load_stores()
@@ -453,6 +740,7 @@ def toggle_star(store_id):
 # ══════════════════════════════════════════
 
 @app.route("/api/stores/bulk-delete", methods=["POST"])
+@login_required
 def bulk_delete_stores():
     """매장 일괄 삭제 (body: {"ids": ["id1", "id2", ...]})"""
     data = request.get_json()
@@ -483,6 +771,7 @@ def bulk_delete_stores():
 # ══════════════════════════════════════════
 
 @app.route("/api/export/csv")
+@login_required
 def export_csv():
     """가맹점 목록을 BOM 포함 UTF-8 CSV로 내보내기"""
     stores = load_stores()
@@ -532,6 +821,7 @@ def export_csv():
 # ══════════════════════════════════════════
 
 @app.route("/api/export/excel")
+@login_required
 def export_excel():
     """가맹점 목록을 .xlsx로 내보내기 (시트1: 목록, 시트2: 방문기록)"""
     stores = load_stores()
@@ -612,6 +902,7 @@ def export_excel():
 # ══════════════════════════════════════════
 
 @app.route("/api/backup")
+@login_required
 def backup_json():
     """stores.json 파일 그대로 다운로드"""
     if not os.path.exists(STORES_FILE):
@@ -627,6 +918,8 @@ def backup_json():
     )
 
 
-# ── 서버 실행 ──
+# ── 초기화 + 서버 실행 ──
+ensure_superadmin()
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "true").lower() == "true")

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Point3 CRM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+    background: #f8fafc;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 400px;
+    padding: 36px 32px 32px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: #4f46e5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo-icon svg { width: 20px; height: 20px; }
+  .logo-text {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  /* 알림 배너 */
+  .alert {
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .alert.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+  .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  /* 탭 */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 24px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s;
+  }
+  .tab.active {
+    color: #4f46e5;
+    border-bottom-color: #4f46e5;
+  }
+  /* 폼 */
+  .form { display: none; }
+  .form.active { display: block; }
+  .field { margin-bottom: 14px; }
+  .field input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #1e293b;
+    background: #f8fafc;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field input:focus {
+    border-color: #4f46e5;
+    background: #fff;
+  }
+  .field input::placeholder { color: #94a3b8; }
+  .btn {
+    width: 100%;
+    height: 48px;
+    background: #4f46e5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    margin-top: 6px;
+    transition: background .2s;
+  }
+  .btn:hover { background: #4338ca; }
+  .btn:active { background: #3730a3; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <!-- 로고 -->
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+    </div>
+    <span class="logo-text">Point3 CRM</span>
+  </div>
+
+  <!-- 알림 -->
+  <div id="alert" class="alert"></div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <div class="tab active" data-tab="login">로그인</div>
+    <div class="tab" data-tab="signup">회원가입</div>
+  </div>
+
+  <!-- 로그인 폼 -->
+  <form id="form-login" class="form active" onsubmit="return handleLogin(event)">
+    <div class="field">
+      <input type="text" id="login-username" placeholder="아이디" required autocomplete="username">
+    </div>
+    <div class="field">
+      <input type="password" id="login-password" placeholder="비밀번호" required autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn">로그인</button>
+  </form>
+
+  <!-- 회원가입 폼 -->
+  <form id="form-signup" class="form" onsubmit="return handleSignup(event)">
+    <div class="field">
+      <input type="text" id="signup-name" placeholder="이름" required>
+    </div>
+    <div class="field">
+      <input type="text" id="signup-username" placeholder="아이디" required autocomplete="username">
+    </div>
+    <div class="field">
+      <input type="password" id="signup-password" placeholder="비밀번호 (4자 이상)" minlength="4" required autocomplete="new-password">
+    </div>
+    <div class="field">
+      <input type="password" id="signup-password-confirm" placeholder="비밀번호 확인" minlength="4" required autocomplete="new-password">
+    </div>
+    <button type="submit" class="btn">회원가입</button>
+  </form>
+</div>
+
+<script>
+  /* 탭 전환 */
+  document.querySelectorAll('.tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+      document.querySelectorAll('.form').forEach(function(f) { f.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('form-' + tab.dataset.tab).classList.add('active');
+      hideAlert();
+    });
+  });
+
+  /* 알림 */
+  var alertEl = document.getElementById('alert');
+  function showAlert(msg, type) {
+    alertEl.textContent = msg;
+    alertEl.className = 'alert ' + type;
+    alertEl.style.display = 'block';
+  }
+  function hideAlert() {
+    alertEl.style.display = 'none';
+  }
+
+  /* 로그인 */
+  async function handleLogin(e) {
+    e.preventDefault();
+    hideAlert();
+    var username = document.getElementById('login-username').value.trim();
+    var password = document.getElementById('login-password').value;
+    if (!username || !password) { showAlert('아이디와 비밀번호를 입력하세요.', 'error'); return false; }
+    try {
+      var res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      });
+      var data = await res.json();
+      if (res.ok) {
+        location.href = '/';
+      } else {
+        showAlert(data.error || '로그인에 실패했습니다.', 'error');
+      }
+    } catch (err) {
+      showAlert('서버에 연결할 수 없습니다.', 'error');
+    }
+    return false;
+  }
+
+  /* 회원가입 */
+  async function handleSignup(e) {
+    e.preventDefault();
+    hideAlert();
+    var name = document.getElementById('signup-name').value.trim();
+    var username = document.getElementById('signup-username').value.trim();
+    var password = document.getElementById('signup-password').value;
+    var confirm = document.getElementById('signup-password-confirm').value;
+    if (!name || !username || !password) { showAlert('모든 항목을 입력하세요.', 'error'); return false; }
+    if (password.length < 4) { showAlert('비밀번호는 4자 이상이어야 합니다.', 'error'); return false; }
+    if (password !== confirm) { showAlert('비밀번호가 일치하지 않습니다.', 'error'); return false; }
+    try {
+      var res = await fetch('/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name, username: username, password: password })
+      });
+      var data = await res.json();
+      if (res.ok) {
+        location.href = '/team-setup';
+      } else {
+        showAlert(data.error || '회원가입에 실패했습니다.', 'error');
+      }
+    } catch (err) {
+      showAlert('서버에 연결할 수 없습니다.', 'error');
+    }
+    return false;
+  }
+</script>
+
+</body>
+</html>
