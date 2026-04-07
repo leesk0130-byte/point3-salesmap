@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Point3 - 가맹점 목록</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard Variable', Pretendard, Inter, 'Noto Sans KR', -apple-system, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      background: #fff;
+      height: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 24px;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+    .header-brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #4f46e5;
+      letter-spacing: -0.5px;
+    }
+    .header-nav {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .nav-link {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      text-decoration: none;
+      transition: all .15s;
+    }
+    .nav-link:hover { background: #f1f5f9; color: #334155; }
+    .nav-link.active {
+      background: #eef2ff;
+      color: #4f46e5;
+      font-weight: 600;
+    }
+
+    /* ── 메인 컨테이너 ── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px 24px 60px;
+    }
+
+    /* ── 상단 요약 바 ── */
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 20px;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #64748b;
+      flex-wrap: wrap;
+    }
+    .summary-bar .stat {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .summary-bar .stat-value {
+      font-weight: 700;
+      color: #1e293b;
+      font-size: 15px;
+    }
+    .summary-bar .dot { color: #cbd5e1; }
+
+    /* ── 필터 바 ── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-bar input[type="text"] {
+      flex: 1;
+      min-width: 180px;
+      padding: 8px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+      background: #f8fafc;
+    }
+    .filter-bar input[type="text"]:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,.08);
+    }
+    .filter-bar select {
+      padding: 8px 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: #f8fafc;
+      color: #334155;
+      cursor: pointer;
+    }
+    .filter-bar select:focus {
+      border-color: #4f46e5;
+    }
+    .btn-export {
+      padding: 8px 16px;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+    }
+    .btn-export:hover { background: #e2e8f0; color: #1e293b; }
+    .export-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 4px);
+      right: 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      min-width: 140px;
+      z-index: 50;
+      overflow: hidden;
+    }
+    .export-menu.show { display: block; }
+    .export-menu a {
+      display: block;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #334155;
+      text-decoration: none;
+      transition: background .1s;
+    }
+    .export-menu a:hover { background: #f1f5f9; }
+
+    /* ── 일괄 작업 바 ── */
+    .bulk-bar {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #991b1b;
+    }
+    .bulk-bar.show { display: flex; }
+    .bulk-bar .btn-bulk-delete {
+      padding: 6px 14px;
+      background: #ef4444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .bulk-bar .btn-bulk-delete:hover { background: #dc2626; }
+    .bulk-bar .btn-bulk-cancel {
+      padding: 6px 14px;
+      background: transparent;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    /* ── 테이블 래퍼 ── */
+    .table-wrapper {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    thead th {
+      background: #f8fafc;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+    }
+    tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background .1s;
+    }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td {
+      padding: 10px 12px;
+      vertical-align: middle;
+      color: #334155;
+    }
+    .col-check { width: 36px; text-align: center; }
+    .col-num { width: 40px; text-align: center; color: #94a3b8; font-size: 12px; }
+    .col-name { font-weight: 600; color: #1e293b; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .col-addr { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #64748b; font-size: 12px; }
+    .col-district { white-space: nowrap; }
+    .col-memo { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #64748b; font-size: 12px; }
+
+    /* ── 상태 배지 ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-미방문 { background: #fef2f2; color: #dc2626; }
+    .badge-명함전달 { background: #eef2ff; color: #4f46e5; }
+    .badge-미팅완료 { background: #ecfdf5; color: #059669; }
+    .badge-부재중 { background: #fffbeb; color: #d97706; }
+    .badge-계약성사 { background: #f5f3ff; color: #7c3aed; }
+    .badge-실패 { background: #f1f5f9; color: #64748b; }
+    .badge-기타 { background: #f1f5f9; color: #64748b; }
+
+    /* ── 경과일 ── */
+    .days-red { color: #dc2626; font-weight: 600; }
+    .days-orange { color: #ea580c; font-weight: 600; }
+    .days-green { color: #16a34a; font-weight: 500; }
+    .days-gray { color: #94a3b8; }
+
+    /* ── 즐겨찾기 ── */
+    .star-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px;
+      color: #cbd5e1;
+      transition: color .15s;
+    }
+    .star-btn.active { color: #f59e0b; }
+
+    /* ── 액션 버튼 ── */
+    .actions { display: flex; gap: 4px; flex-wrap: nowrap; }
+    .btn-sm {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .15s;
+    }
+    .btn-map { background: #dbeafe; color: #1d4ed8; }
+    .btn-map:hover { background: #bfdbfe; }
+    .btn-visit { background: #eef2ff; color: #4f46e5; }
+    .btn-visit:hover { background: #e0e7ff; }
+    .btn-edit { background: #f1f5f9; color: #475569; }
+    .btn-edit:hover { background: #e2e8f0; }
+    .btn-quick { background: #ecfdf5; color: #059669; }
+    .btn-quick:hover { background: #d1fae5; }
+
+    /* ── 빠른방문 메뉴 ── */
+    .quick-menu {
+      display: none;
+      position: fixed;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      min-width: 150px;
+      z-index: 300;
+      overflow: hidden;
+    }
+    .quick-menu.show { display: block; }
+    .quick-menu-title {
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+    }
+    .quick-menu button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-family: inherit;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #334155;
+      transition: background .1s;
+    }
+    .quick-menu button:hover { background: #f1f5f9; }
+
+    /* ── 모달 ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.4);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.15);
+      width: 520px;
+      max-width: 95vw;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .modal-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+    .modal-close:hover { color: #475569; }
+    .modal-body { padding: 20px 24px; }
+
+    /* 방문 추가 폼 */
+    .visit-form {
+      display: flex;
+      gap: 8px;
+      align-items: end;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .visit-form .vf-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .visit-form label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+    }
+    .visit-form input,
+    .visit-form select,
+    .visit-form textarea {
+      padding: 8px 10px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+    .visit-form input:focus,
+    .visit-form select:focus,
+    .visit-form textarea:focus {
+      border-color: #4f46e5;
+    }
+    .visit-form textarea {
+      resize: vertical;
+      min-height: 36px;
+      width: 100%;
+    }
+    .btn-add-visit {
+      padding: 8px 16px;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-add-visit:hover { background: #4338ca; }
+
+    /* 방문 리스트 */
+    .visit-list { list-style: none; }
+    .visit-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+      gap: 12px;
+    }
+    .visit-item:last-child { border-bottom: none; }
+    .visit-info { flex: 1; }
+    .visit-date { font-size: 12px; color: #64748b; margin-bottom: 2px; }
+    .visit-result {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .visit-memo { font-size: 13px; color: #475569; margin-top: 4px; }
+    .visit-delete {
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      flex-shrink: 0;
+    }
+    .visit-delete:hover { color: #ef4444; }
+    .empty-visits {
+      text-align: center;
+      padding: 30px 0;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    /* ── 토스트 ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      animation: toastIn .3s ease;
+      max-width: 360px;
+    }
+    .toast.success { background: #059669; }
+    .toast.error { background: #dc2626; }
+    .toast.info { background: #4f46e5; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #94a3b8;
+    }
+    .empty-state p { font-size: 15px; margin-bottom: 8px; }
+    .empty-state small { font-size: 12px; }
+
+    /* ── 반응형 ── */
+    @media (max-width: 900px) {
+      .col-addr, .col-memo, .col-district { display: none; }
+      .filter-bar { gap: 6px; }
+      .container { padding: 12px 12px 40px; }
+    }
+    @media (max-width: 600px) {
+      .header { padding: 0 12px; }
+      .header-nav { gap: 2px; }
+      .nav-link { padding: 6px 8px; font-size: 12px; }
+      .summary-bar { font-size: 12px; gap: 8px; }
+      .col-num, .col-check { display: none; }
+      table { font-size: 12px; }
+    }
+
+    /* ── 체크박스 커스텀 ── */
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #4f46e5;
+      cursor: pointer;
+    }
+
+    /* 로딩 */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<header class="header">
+  <a href="/" class="header-brand">
+    <h1>Point3</h1>
+  </a>
+  <nav class="header-nav">
+    <a href="/" class="nav-link">지도</a>
+    <a href="/admin" class="nav-link">가맹점 등록</a>
+    <a href="/stores" class="nav-link active">가맹점 목록</a>
+    <a href="/dashboard" class="nav-link">대시보드</a>
+    <a href="/calendar" class="nav-link">캘린더</a>
+  </nav>
+</header>
+
+<div class="container">
+
+  <!-- 상단 요약 바 -->
+  <div class="summary-bar" id="summaryBar">
+    <span class="stat">전체 <span class="stat-value" id="statTotal">-</span>개</span>
+    <span class="dot">&middot;</span>
+    <span class="stat">방문 <span class="stat-value" id="statVisited">-</span>개</span>
+    <span class="dot">&middot;</span>
+    <span class="stat">미방문 <span class="stat-value" id="statUnvisited">-</span>개</span>
+    <span class="dot">&middot;</span>
+    <span class="stat">방문율 <span class="stat-value" id="statRate">-</span>%</span>
+  </div>
+
+  <!-- 필터 바 -->
+  <div class="filter-bar">
+    <input type="text" id="searchInput" placeholder="매장명 / 주소 / 메모 검색...">
+    <select id="statusFilter">
+      <option value="">상태: 전체</option>
+      <option value="미방문">미방문</option>
+      <option value="명함전달">명함전달</option>
+      <option value="미팅완료">미팅완료</option>
+      <option value="부재중">부재중</option>
+      <option value="계약성사">계약성사</option>
+      <option value="실패">실패</option>
+    </select>
+    <select id="districtFilter">
+      <option value="">지역구: 전체</option>
+    </select>
+    <select id="sortSelect">
+      <option value="default">기본순</option>
+      <option value="name">이름순</option>
+      <option value="oldest">오래된순</option>
+      <option value="recent_visit">최근방문순</option>
+    </select>
+    <div style="position:relative;">
+      <button class="btn-export" id="exportBtn">내보내기 &#9662;</button>
+      <div class="export-menu" id="exportMenu">
+        <a href="#" onclick="exportCSV(); return false;">CSV 다운로드</a>
+        <a href="#" onclick="exportExcel(); return false;">엑셀 다운로드</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 일괄 작업 바 -->
+  <div class="bulk-bar" id="bulkBar">
+    <span id="bulkCount">0</span>개 선택됨
+    <button class="btn-bulk-delete" onclick="bulkDelete()">선택 삭제</button>
+    <button class="btn-bulk-cancel" onclick="clearSelection()">선택 해제</button>
+  </div>
+
+  <!-- 테이블 -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" id="checkAll"></th>
+          <th class="col-num">#</th>
+          <th>매장명</th>
+          <th class="col-addr">주소</th>
+          <th class="col-district">지역구</th>
+          <th>상태</th>
+          <th>최근방문</th>
+          <th class="col-memo">방문메모</th>
+          <th>경과일</th>
+          <th>방문수</th>
+          <th>즐겨찾기</th>
+          <th>액션</th>
+        </tr>
+      </thead>
+      <tbody id="storeBody">
+        <tr><td colspan="12" class="loading">데이터 불러오는 중...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- 빠른방문 메뉴 -->
+<div class="quick-menu" id="quickMenu">
+  <div class="quick-menu-title" id="quickMenuTitle">빠른 방문등록</div>
+  <button onclick="quickVisit('명함전달')">명함전달</button>
+  <button onclick="quickVisit('미팅완료')">미팅완료</button>
+  <button onclick="quickVisit('부재중')">부재중</button>
+  <button onclick="quickVisit('계약성사')">계약성사</button>
+  <button onclick="quickVisit('실패')">실패</button>
+  <button onclick="quickVisit('기타')">기타</button>
+</div>
+
+<!-- 방문기록 모달 -->
+<div class="modal-overlay" id="visitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="visitModalTitle">방문기록</h2>
+      <button class="modal-close" onclick="closeVisitModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="visit-form">
+        <div class="vf-group">
+          <label>날짜</label>
+          <input type="date" id="vfDate">
+        </div>
+        <div class="vf-group">
+          <label>결과</label>
+          <select id="vfResult">
+            <option value="명함전달">명함전달</option>
+            <option value="미팅완료">미팅완료</option>
+            <option value="부재중">부재중</option>
+            <option value="계약성사">계약성사</option>
+            <option value="실패">실패</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+        <div class="vf-group" style="flex:1; min-width: 120px;">
+          <label>메모</label>
+          <input type="text" id="vfMemo" placeholder="메모 (선택)">
+        </div>
+        <button class="btn-add-visit" onclick="addVisit()">추가</button>
+      </div>
+      <ul class="visit-list" id="visitList"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ============================
+   State
+   ============================ */
+let allStores = [];
+let selectedIds = new Set();
+let currentQuickStoreId = null;
+let currentVisitStoreId = null;
+
+/* ============================
+   Init
+   ============================ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadStores();
+  document.getElementById('searchInput').addEventListener('input', render);
+  document.getElementById('statusFilter').addEventListener('change', render);
+  document.getElementById('districtFilter').addEventListener('change', render);
+  document.getElementById('sortSelect').addEventListener('change', render);
+  document.getElementById('checkAll').addEventListener('change', toggleCheckAll);
+
+  // 내보내기 토글
+  const exportBtn = document.getElementById('exportBtn');
+  const exportMenu = document.getElementById('exportMenu');
+  exportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportMenu.classList.toggle('show');
+  });
+
+  // 모달 외부 클릭
+  document.getElementById('visitModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeVisitModal();
+  });
+
+  // 빠른메뉴/내보내기 메뉴 닫기
+  document.addEventListener('click', () => {
+    document.getElementById('quickMenu').classList.remove('show');
+    exportMenu.classList.remove('show');
+  });
+
+  // 오늘 날짜 기본값
+  document.getElementById('vfDate').value = new Date().toISOString().slice(0, 10);
+});
+
+/* ============================
+   Data
+   ============================ */
+async function loadStores() {
+  try {
+    const res = await fetch('/api/stores', { cache: 'no-store' });
+    allStores = await res.json();
+    buildDistrictFilter();
+    render();
+  } catch (e) {
+    toast('데이터 로딩 실패', 'error');
+  }
+}
+
+function buildDistrictFilter() {
+  const sel = document.getElementById('districtFilter');
+  const districts = {};
+  allStores.forEach(s => {
+    const d = s.district || '기타';
+    districts[d] = (districts[d] || 0) + 1;
+  });
+  // 기존 옵션 유지 (전체)
+  sel.innerHTML = '<option value="">지역구: 전체</option>';
+  Object.entries(districts)
+    .sort((a, b) => b[1] - a[1])
+    .forEach(([name, count]) => {
+      sel.innerHTML += `<option value="${esc(name)}">${esc(name)} (${count})</option>`;
+    });
+}
+
+/* ============================
+   Helpers
+   ============================ */
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function escAttr(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getLastVisit(store) {
+  const visits = store.visits || [];
+  if (!visits.length) return null;
+  return visits.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
+}
+
+function getStatus(store) {
+  const last = getLastVisit(store);
+  return last ? (last.result || '기타') : '미방문';
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 86400000);
+  return diff;
+}
+
+function daysClass(days) {
+  if (days === null) return 'days-gray';
+  if (days >= 30) return 'days-red';
+  if (days >= 14) return 'days-orange';
+  return 'days-green';
+}
+
+/* ============================
+   Filter / Sort / Render
+   ============================ */
+function getFilteredStores() {
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const status = document.getElementById('statusFilter').value;
+  const district = document.getElementById('districtFilter').value;
+  const sort = document.getElementById('sortSelect').value;
+
+  let list = allStores.filter(s => {
+    // search
+    if (query) {
+      const hay = `${s.name} ${s.address} ${s.memo || ''} ${(s.visits||[]).map(v=>v.memo||'').join(' ')}`.toLowerCase();
+      if (!hay.includes(query)) return false;
+    }
+    // status
+    if (status) {
+      if (getStatus(s) !== status) return false;
+    }
+    // district
+    if (district) {
+      if ((s.district || '기타') !== district) return false;
+    }
+    return true;
+  });
+
+  // sort
+  if (sort === 'name') {
+    list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  } else if (sort === 'oldest') {
+    list.sort((a, b) => (a.created_at || '').localeCompare(b.created_at || ''));
+  } else if (sort === 'recent_visit') {
+    list.sort((a, b) => {
+      const la = getLastVisit(a);
+      const lb = getLastVisit(b);
+      const da = la ? la.date : '';
+      const db = lb ? lb.date : '';
+      return db.localeCompare(da);
+    });
+  }
+
+  return list;
+}
+
+function render() {
+  const list = getFilteredStores();
+  const body = document.getElementById('storeBody');
+
+  // summary
+  const total = allStores.length;
+  const visited = allStores.filter(s => (s.visits || []).length > 0).length;
+  const unvisited = total - visited;
+  const rate = total > 0 ? Math.round(visited / total * 100) : 0;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statVisited').textContent = visited;
+  document.getElementById('statUnvisited').textContent = unvisited;
+  document.getElementById('statRate').textContent = rate;
+
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="12"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
+    return;
+  }
+
+  let html = '';
+  list.forEach((s, idx) => {
+    const last = getLastVisit(s);
+    const status = getStatus(s);
+    const visitCount = (s.visits || []).length;
+    const lastDate = last ? last.date : '-';
+    const lastMemo = last ? (last.memo || '') : '';
+    const days = last ? daysSince(last.date) : null;
+    const daysText = days !== null ? `${days}일` : '-';
+    const starred = s.starred ? true : false;
+    const checked = selectedIds.has(s.id) ? 'checked' : '';
+
+    html += `<tr>
+      <td class="col-check"><input type="checkbox" data-id="${escAttr(s.id)}" ${checked} onchange="toggleCheck(this)"></td>
+      <td class="col-num">${idx + 1}</td>
+      <td class="col-name" title="${escAttr(s.name)}">${esc(s.name)}</td>
+      <td class="col-addr" title="${escAttr(s.address)}">${esc(s.address)}</td>
+      <td class="col-district">${esc(s.district || '기타')}</td>
+      <td><span class="badge badge-${escAttr(status)}">${esc(status)}</span></td>
+      <td style="white-space:nowrap; font-size:12px;">${esc(lastDate)}</td>
+      <td class="col-memo" title="${escAttr(lastMemo)}">${esc(lastMemo)}</td>
+      <td><span class="${daysClass(days)}">${daysText}</span></td>
+      <td style="text-align:center;">${visitCount}</td>
+      <td style="text-align:center;"><button class="star-btn ${starred ? 'active' : ''}" onclick="toggleStar('${escAttr(s.id)}')">${starred ? '\u2605' : '\u2606'}</button></td>
+      <td>
+        <div class="actions">
+          <button class="btn-sm btn-map" onclick="viewOnMap('${escAttr(s.id)}')">지도</button>
+          <button class="btn-sm btn-visit" onclick="openVisitModal('${escAttr(s.id)}')">방문${visitCount > 0 ? '(' + visitCount + ')' : ''}</button>
+          <button class="btn-sm btn-quick" onclick="showQuickMenu('${escAttr(s.id)}', '${escAttr(s.name)}', event)">빠른</button>
+          <button class="btn-sm btn-edit" onclick="editStore('${escAttr(s.id)}')">수정</button>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  body.innerHTML = html;
+  updateBulkBar();
+}
+
+/* ============================
+   Checkbox / Bulk
+   ============================ */
+function toggleCheck(el) {
+  const id = el.dataset.id;
+  if (el.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateBulkBar();
+}
+
+function toggleCheckAll(e) {
+  const checked = e.target.checked;
+  const list = getFilteredStores();
+  selectedIds.clear();
+  if (checked) {
+    list.forEach(s => selectedIds.add(s.id));
+  }
+  render();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  document.getElementById('checkAll').checked = false;
+  render();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulkBar');
+  const count = selectedIds.size;
+  if (count > 0) {
+    bar.classList.add('show');
+    document.getElementById('bulkCount').textContent = count;
+  } else {
+    bar.classList.remove('show');
+  }
+}
+
+async function bulkDelete() {
+  if (!selectedIds.size) return;
+  if (!confirm(`${selectedIds.size}개 매장을 삭제하시겠습니까?`)) return;
+
+  try {
+    const res = await fetch('/api/stores/bulk-delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: Array.from(selectedIds) }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast(`${data.deleted_count}개 매장 삭제 완료`, 'success');
+      selectedIds.clear();
+      document.getElementById('checkAll').checked = false;
+      await loadStores();
+    } else {
+      toast(data.error || '삭제 실패', 'error');
+    }
+  } catch (e) {
+    toast('삭제 요청 실패', 'error');
+  }
+}
+
+/* ============================
+   Star
+   ============================ */
+async function toggleStar(id) {
+  try {
+    const res = await fetch(`/api/stores/${id}/star`, { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      const s = allStores.find(s => s.id === id);
+      if (s) s.starred = data.starred;
+      render();
+    }
+  } catch (e) {
+    toast('즐겨찾기 실패', 'error');
+  }
+}
+
+/* ============================
+   Quick Visit
+   ============================ */
+function showQuickMenu(id, name, event) {
+  event.stopPropagation();
+  currentQuickStoreId = id;
+  const menu = document.getElementById('quickMenu');
+  document.getElementById('quickMenuTitle').textContent = `${name} - 빠른 방문등록`;
+
+  // 위치 계산
+  const rect = event.target.getBoundingClientRect();
+  let top = rect.bottom + 4;
+  let left = rect.left;
+
+  // 화면 밖 방지
+  menu.classList.add('show');
+  const menuRect = menu.getBoundingClientRect();
+  if (left + menuRect.width > window.innerWidth) left = window.innerWidth - menuRect.width - 8;
+  if (top + menuRect.height > window.innerHeight) top = rect.top - menuRect.height - 4;
+
+  menu.style.top = top + 'px';
+  menu.style.left = left + 'px';
+}
+
+async function quickVisit(result) {
+  document.getElementById('quickMenu').classList.remove('show');
+  if (!currentQuickStoreId) return;
+
+  try {
+    const res = await fetch(`/api/stores/${currentQuickStoreId}/visits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date: new Date().toISOString().slice(0, 10),
+        result: result,
+        memo: '',
+      }),
+    });
+    if (res.ok) {
+      toast(`빠른 방문등록: ${result}`, 'success');
+      await loadStores();
+    } else {
+      toast('등록 실패', 'error');
+    }
+  } catch (e) {
+    toast('요청 실패', 'error');
+  }
+}
+
+/* ============================
+   Visit Modal
+   ============================ */
+async function openVisitModal(storeId) {
+  currentVisitStoreId = storeId;
+  const store = allStores.find(s => s.id === storeId);
+  if (!store) return;
+
+  document.getElementById('visitModalTitle').textContent = `${store.name} - 방문기록`;
+  document.getElementById('vfDate').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('vfResult').value = '명함전달';
+  document.getElementById('vfMemo').value = '';
+
+  renderVisitList(store.visits || []);
+  document.getElementById('visitModal').classList.add('active');
+}
+
+function closeVisitModal() {
+  document.getElementById('visitModal').classList.remove('active');
+  currentVisitStoreId = null;
+}
+
+function renderVisitList(visits) {
+  const ul = document.getElementById('visitList');
+  if (!visits.length) {
+    ul.innerHTML = '<div class="empty-visits">방문 기록이 없습니다</div>';
+    return;
+  }
+  const sorted = visits.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  ul.innerHTML = sorted.map(v => `
+    <li class="visit-item">
+      <div class="visit-info">
+        <div class="visit-date">${esc(v.date || '')}</div>
+        <span class="visit-result badge badge-${escAttr(v.result || '기타')}">${esc(v.result || '기타')}</span>
+        ${v.memo ? `<div class="visit-memo">${esc(v.memo)}</div>` : ''}
+      </div>
+      <button class="visit-delete" onclick="deleteVisit('${escAttr(v.id)}')" title="삭제">&times;</button>
+    </li>
+  `).join('');
+}
+
+async function addVisit() {
+  if (!currentVisitStoreId) return;
+  const date = document.getElementById('vfDate').value;
+  const result = document.getElementById('vfResult').value;
+  const memo = document.getElementById('vfMemo').value.trim();
+
+  if (!date) { toast('날짜를 선택하세요', 'error'); return; }
+
+  try {
+    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, result, memo }),
+    });
+    if (res.ok) {
+      toast('방문 기록 추가 완료', 'success');
+      // reload stores & re-open modal
+      await loadStores();
+      const store = allStores.find(s => s.id === currentVisitStoreId);
+      if (store) {
+        renderVisitList(store.visits || []);
+        document.getElementById('vfMemo').value = '';
+      }
+    } else {
+      toast('추가 실패', 'error');
+    }
+  } catch (e) {
+    toast('요청 실패', 'error');
+  }
+}
+
+async function deleteVisit(visitId) {
+  if (!currentVisitStoreId) return;
+  try {
+    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits/${visitId}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      toast('방문 기록 삭제됨', 'info');
+      await loadStores();
+      const store = allStores.find(s => s.id === currentVisitStoreId);
+      if (store) renderVisitList(store.visits || []);
+    } else {
+      toast('삭제 실패', 'error');
+    }
+  } catch (e) {
+    toast('요청 실패', 'error');
+  }
+}
+
+/* ============================
+   Navigation
+   ============================ */
+function viewOnMap(id) {
+  const store = allStores.find(s => s.id === id);
+  if (store && store.lat && store.lng) {
+    window.location.href = `/?lat=${store.lat}&lng=${store.lng}&zoom=17&highlight=${id}`;
+  } else {
+    toast('좌표 정보가 없습니다', 'error');
+  }
+}
+
+function editStore(id) {
+  window.location.href = `/admin?edit=${id}`;
+}
+
+/* ============================
+   Export
+   ============================ */
+function exportCSV() {
+  window.location = '/api/export/csv';
+}
+function exportExcel() {
+  window.location = '/api/export/excel';
+}
+
+/* ============================
+   Toast
+   ============================ */
+function toast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transition = 'opacity .3s';
+    setTimeout(() => el.remove(), 300);
+  }, 2500);
+}
+</script>
+</body>
+</html>

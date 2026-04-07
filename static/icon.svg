@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#4f46e5"/>
+  <g transform="translate(256,220)">
+    <!-- 핀 몸체 -->
+    <path d="M0-120 C-66-120 -120-66 -120,0 C-120,66 0,180 0,180 C0,180 120,66 120,0 C120-66 66-120 0-120Z" fill="white"/>
+    <!-- 핀 내부 원 -->
+    <circle cx="0" cy="0" r="45" fill="#4f46e5"/>
+  </g>
+</svg>

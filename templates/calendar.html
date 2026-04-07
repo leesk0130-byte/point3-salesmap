@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Point3 CRM - 캘린더</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard Variable', 'Pretendard', 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      background: #fff;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .header-brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #6366f1;
+    }
+    .header-brand .subtitle {
+      font-size: 12px;
+      font-weight: 500;
+      color: #6366f1;
+      padding: 3px 10px;
+      background: #eef2ff;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .btn-nav {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-nav:hover { background: #e5e7eb; color: #111827; border-color: #d1d5db; }
+
+    /* ── 레이아웃 ── */
+    .main-layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+      display: flex;
+      gap: 24px;
+    }
+    .calendar-section { flex: 1; min-width: 0; }
+    .side-panel { width: 360px; flex-shrink: 0; }
+
+    /* ── 카드 ── */
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .card-header {
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .card-body { padding: 20px 24px 24px; }
+
+    /* ── 월 네비게이션 ── */
+    .month-nav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .month-nav .month-label {
+      font-size: 18px;
+      font-weight: 700;
+      color: #111827;
+      min-width: 160px;
+      text-align: center;
+    }
+    .month-nav button {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #374151;
+      transition: all .2s;
+    }
+    .month-nav button:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+    .btn-today {
+      font-size: 12px !important;
+      width: auto !important;
+      padding: 0 12px !important;
+      font-weight: 500;
+      color: #4f46e5 !important;
+      border-color: #c7d2fe !important;
+      background: #eef2ff !important;
+    }
+    .btn-today:hover {
+      background: #e0e7ff !important;
+    }
+
+    /* ── 캘린더 그리드 ── */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .cal-weekday {
+      padding: 10px 4px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .cal-weekday:nth-child(1) { color: #ef4444; }
+    .cal-weekday:nth-child(7) { color: #3b82f6; }
+
+    .cal-cell {
+      min-height: 80px;
+      padding: 6px 8px;
+      border-right: 1px solid #f3f4f6;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: background .15s;
+      position: relative;
+    }
+    .cal-cell:nth-child(7n) { border-right: none; }
+    .cal-cell:hover { background: #f9fafb; }
+    .cal-cell.other-month { background: #fafafa; }
+    .cal-cell.other-month .cal-date { color: #d1d5db; }
+    .cal-cell.today { background: #eef2ff; }
+    .cal-cell.today .cal-date {
+      background: #4f46e5;
+      color: #fff;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cal-cell.selected {
+      outline: 2px solid #4f46e5;
+      outline-offset: -2px;
+      z-index: 1;
+    }
+
+    .cal-date {
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cal-cell:nth-child(7n+1) .cal-date { color: #ef4444; }
+    .cal-cell:nth-child(7n) .cal-date { color: #3b82f6; }
+    .cal-cell.other-month:nth-child(7n+1) .cal-date,
+    .cal-cell.other-month:nth-child(7n) .cal-date { color: #d1d5db; }
+    .cal-cell.today .cal-date { color: #fff !important; }
+
+    .cal-dots {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+      padding: 0 2px;
+    }
+    .cal-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-indigo { background: #6366f1; }
+    .dot-emerald { background: #10b981; }
+    .dot-amber { background: #f59e0b; }
+    .dot-violet { background: #8b5cf6; }
+
+    /* ── 월간 요약 ── */
+    .summary-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      padding: 6px 14px;
+      background: #f9fafb;
+      border-radius: 20px;
+      border: 1px solid #e5e7eb;
+    }
+    .summary-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .summary-total {
+      font-weight: 700;
+      color: #4f46e5;
+      background: #eef2ff;
+      border-color: #c7d2fe;
+    }
+
+    /* ── 사이드 패널 ── */
+    .panel-date {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .panel-date span {
+      font-weight: 400;
+      color: #6b7280;
+      font-size: 13px;
+      margin-left: 6px;
+    }
+    .visit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .visit-item {
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid #f3f4f6;
+      background: #fafafa;
+      transition: all .15s;
+    }
+    .visit-item:hover {
+      border-color: #e5e7eb;
+      background: #f3f4f6;
+    }
+    .visit-store {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .visit-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .badge-indigo { background: #eef2ff; color: #4338ca; }
+    .badge-emerald { background: #ecfdf5; color: #047857; }
+    .badge-amber { background: #fffbeb; color: #b45309; }
+    .badge-violet { background: #f5f3ff; color: #6d28d9; }
+    .badge-gray { background: #f3f4f6; color: #6b7280; }
+
+    .visit-memo {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #9ca3af;
+    }
+    .empty-state .empty-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      opacity: .5;
+    }
+    .empty-state p {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .empty-state .empty-sub {
+      font-size: 12px;
+      color: #d1d5db;
+      margin-top: 4px;
+    }
+
+    /* ── 반응형 ── */
+    @media (max-width: 900px) {
+      .header { padding: 0 16px; }
+      .main-layout {
+        flex-direction: column;
+        padding: 16px 12px 40px;
+        gap: 16px;
+      }
+      .side-panel { width: 100%; }
+      .cal-cell { min-height: 60px; padding: 4px; }
+      .cal-date { font-size: 12px; width: 24px; height: 24px; }
+      .cal-dot { width: 5px; height: 5px; }
+      .month-nav .month-label { font-size: 15px; min-width: 130px; }
+      .summary-bar { gap: 8px; }
+      .summary-item { font-size: 12px; padding: 4px 10px; }
+    }
+
+    @media (max-width: 480px) {
+      .header-brand h1 { font-size: 17px; }
+      .btn-nav { padding: 6px 12px; font-size: 12px; }
+      .cal-cell { min-height: 48px; }
+      .card-header { padding: 14px 16px 12px; }
+      .card-body { padding: 14px 16px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── 헤더 ── -->
+  <header class="header">
+    <div class="header-brand">
+      <h1>Point3 CRM</h1>
+      <span class="subtitle">캘린더</span>
+    </div>
+    <div class="header-right">
+      <a href="/" class="btn-nav">지도</a>
+      <a href="/admin" class="btn-nav">가맹점 등록</a>
+      <a href="/stores" class="btn-nav">가맹점 목록</a>
+      <a href="/dashboard" class="btn-nav">대시보드</a>
+    </div>
+  </header>
+
+  <!-- ── 메인 ── -->
+  <div class="main-layout">
+
+    <!-- 캘린더 영역 -->
+    <div class="calendar-section">
+      <div class="card">
+        <div class="card-header">
+          <div class="month-nav">
+            <button id="prevMonth" title="이전 달">&#8249;</button>
+            <div class="month-label" id="monthLabel"></div>
+            <button id="nextMonth" title="다음 달">&#8250;</button>
+            <button class="btn-today" id="todayBtn">오늘</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="calendar-grid" id="calendarGrid"></div>
+          <div class="summary-bar" id="summaryBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 사이드 패널 -->
+    <div class="side-panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="panel-date" id="panelDate">날짜를 선택하세요</div>
+        </div>
+        <div class="card-body">
+          <div id="visitList">
+            <div class="empty-state">
+              <div class="empty-icon">&#128197;</div>
+              <p>날짜를 클릭하면</p>
+              <p class="empty-sub">해당일 방문 기록이 표시됩니다</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ══════════════════════════════════════
+    // 데이터 & 상태
+    // ══════════════════════════════════════
+    let allVisits = [];       // { date, result, memo, storeName }
+    let visitsByDate = {};    // "YYYY-MM-DD" -> [...]
+    let currentYear, currentMonth;
+    let selectedDate = null;
+
+    const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+    const STATUS_MAP = {
+      '명함전달': { dot: 'dot-indigo',   badge: 'badge-indigo' },
+      '미팅완료': { dot: 'dot-emerald',  badge: 'badge-emerald' },
+      '부재중':   { dot: 'dot-amber',    badge: 'badge-amber' },
+      '계약성사': { dot: 'dot-violet',   badge: 'badge-violet' },
+    };
+
+    function getStatusStyle(result) {
+      return STATUS_MAP[result] || { dot: 'dot-indigo', badge: 'badge-gray' };
+    }
+
+    // ══════════════════════════════════════
+    // 데이터 로드
+    // ══════════════════════════════════════
+    async function loadData() {
+      try {
+        const res = await fetch('/api/stores', {cache: 'no-store'});
+        const stores = await res.json();
+        allVisits = [];
+        stores.forEach(store => {
+          const visits = store.visits || [];
+          visits.forEach(v => {
+            allVisits.push({
+              date: v.date,
+              result: v.result,
+              memo: v.memo || '',
+              storeName: store.name || '이름 없음'
+            });
+          });
+        });
+        groupByDate();
+        renderCalendar();
+        renderSummary();
+      } catch (e) {
+        console.error('데이터 로드 실패:', e);
+      }
+    }
+
+    function groupByDate() {
+      visitsByDate = {};
+      allVisits.forEach(v => {
+        if (!visitsByDate[v.date]) visitsByDate[v.date] = [];
+        visitsByDate[v.date].push(v);
+      });
+    }
+
+    // ══════════════════════════════════════
+    // 캘린더 렌더링
+    // ══════════════════════════════════════
+    function renderCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      const label = document.getElementById('monthLabel');
+      label.textContent = currentYear + '년 ' + (currentMonth + 1) + '월';
+
+      let html = '';
+
+      // 요일 헤더
+      WEEKDAYS.forEach(d => {
+        html += '<div class="cal-weekday">' + d + '</div>';
+      });
+
+      const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const prevDays = new Date(currentYear, currentMonth, 0).getDate();
+
+      const today = new Date();
+      const todayStr = formatDate(today);
+
+      // 이전 달 채우기
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const d = prevDays - i;
+        html += '<div class="cal-cell other-month"><div class="cal-date">' + d + '</div></div>';
+      }
+
+      // 이번 달
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = formatDate(new Date(currentYear, currentMonth, d));
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === selectedDate;
+
+        let cls = 'cal-cell';
+        if (isToday) cls += ' today';
+        if (isSelected) cls += ' selected';
+
+        let dots = '';
+        const dayVisits = visitsByDate[dateStr];
+        if (dayVisits && dayVisits.length > 0) {
+          // 상태별 중복 제거 도트
+          const statuses = [...new Set(dayVisits.map(v => v.result))];
+          dots = '<div class="cal-dots">';
+          statuses.forEach(s => {
+            const style = getStatusStyle(s);
+            dots += '<div class="cal-dot ' + style.dot + '"></div>';
+          });
+          dots += '</div>';
+        }
+
+        html += '<div class="' + cls + '" data-date="' + dateStr + '">'
+              + '<div class="cal-date">' + d + '</div>'
+              + dots
+              + '</div>';
+      }
+
+      // 다음 달 채우기
+      const totalCells = firstDay + daysInMonth;
+      const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+      for (let d = 1; d <= remaining; d++) {
+        html += '<div class="cal-cell other-month"><div class="cal-date">' + d + '</div></div>';
+      }
+
+      grid.innerHTML = html;
+
+      // 셀 클릭 이벤트
+      grid.querySelectorAll('.cal-cell:not(.other-month)').forEach(cell => {
+        cell.addEventListener('click', () => {
+          const date = cell.dataset.date;
+          selectDate(date);
+        });
+      });
+    }
+
+    function selectDate(dateStr) {
+      selectedDate = dateStr;
+      renderCalendar();
+      renderVisitPanel(dateStr);
+    }
+
+    // ══════════════════════════════════════
+    // 사이드 패널
+    // ══════════════════════════════════════
+    function renderVisitPanel(dateStr) {
+      const panelDate = document.getElementById('panelDate');
+      const visitList = document.getElementById('visitList');
+
+      const d = new Date(dateStr + 'T00:00:00');
+      const dayName = WEEKDAYS[d.getDay()];
+      panelDate.innerHTML = (d.getMonth() + 1) + '월 ' + d.getDate() + '일'
+                          + '<span>' + dayName + '요일</span>';
+
+      const visits = visitsByDate[dateStr];
+
+      if (!visits || visits.length === 0) {
+        visitList.innerHTML = '<div class="empty-state">'
+          + '<div class="empty-icon">&#128203;</div>'
+          + '<p>방문 기록이 없습니다</p>'
+          + '<p class="empty-sub">이 날짜에 기록된 방문이 없어요</p>'
+          + '</div>';
+        return;
+      }
+
+      let html = '<div class="visit-list">';
+      visits.forEach(v => {
+        const style = getStatusStyle(v.result);
+        html += '<div class="visit-item">'
+              + '<div class="visit-store">' + escapeHtml(v.storeName) + '</div>'
+              + '<div class="visit-meta">'
+              + '<span class="badge ' + style.badge + '">' + escapeHtml(v.result || '기타') + '</span>'
+              + '</div>'
+              + (v.memo ? '<div class="visit-memo">' + escapeHtml(v.memo) + '</div>' : '')
+              + '</div>';
+      });
+      html += '</div>';
+      visitList.innerHTML = html;
+    }
+
+    // ══════════════════════════════════════
+    // 월간 요약
+    // ══════════════════════════════════════
+    function renderSummary() {
+      const bar = document.getElementById('summaryBar');
+      const monthPrefix = currentYear + '-' + String(currentMonth + 1).padStart(2, '0');
+
+      const monthVisits = allVisits.filter(v => v.date && v.date.startsWith(monthPrefix));
+      const total = monthVisits.length;
+
+      const counts = {};
+      monthVisits.forEach(v => {
+        const r = v.result || '기타';
+        counts[r] = (counts[r] || 0) + 1;
+      });
+
+      let html = '<div class="summary-item summary-total">총 방문 ' + total + '건</div>';
+
+      Object.keys(STATUS_MAP).forEach(key => {
+        if (counts[key]) {
+          const style = STATUS_MAP[key];
+          html += '<div class="summary-item">'
+                + '<div class="summary-dot ' + style.dot + '"></div>'
+                + key + ' ' + counts[key]
+                + '</div>';
+        }
+      });
+
+      // STATUS_MAP에 없는 기타 상태
+      Object.keys(counts).forEach(key => {
+        if (!STATUS_MAP[key]) {
+          html += '<div class="summary-item">'
+                + '<div class="summary-dot" style="background:#9ca3af"></div>'
+                + key + ' ' + counts[key]
+                + '</div>';
+        }
+      });
+
+      bar.innerHTML = html;
+    }
+
+    // ══════════════════════════════════════
+    // 유틸
+    // ══════════════════════════════════════
+    function formatDate(d) {
+      return d.getFullYear() + '-'
+           + String(d.getMonth() + 1).padStart(2, '0') + '-'
+           + String(d.getDate()).padStart(2, '0');
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // ══════════════════════════════════════
+    // 이벤트
+    // ══════════════════════════════════════
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      currentMonth--;
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      selectedDate = null;
+      renderCalendar();
+      renderSummary();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      currentMonth++;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      selectedDate = null;
+      renderCalendar();
+      renderSummary();
+    });
+
+    document.getElementById('todayBtn').addEventListener('click', () => {
+      const now = new Date();
+      currentYear = now.getFullYear();
+      currentMonth = now.getMonth();
+      selectedDate = formatDate(now);
+      renderCalendar();
+      renderSummary();
+      renderVisitPanel(selectedDate);
+    });
+
+    // ══════════════════════════════════════
+    // 초기화
+    // ══════════════════════════════════════
+    (function init() {
+      const now = new Date();
+      currentYear = now.getFullYear();
+      currentMonth = now.getMonth();
+      loadData();
+    })();
+  </script>
+</body>
+</html>

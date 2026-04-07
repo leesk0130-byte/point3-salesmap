@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Point3 CRM - 가맹점 등록</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      min-height: 100vh;
+    }
+
+    /* ── 헤더 ── */
+    .header {
+      background: #fff;
+      color: #111827;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-brand {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    .header-brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #6366f1;
+    }
+    .header-brand h1 .brand-accent {
+      color: #6366f1;
+    }
+    .header-brand .subtitle {
+      font-size: 12px;
+      font-weight: 500;
+      color: #6366f1;
+      padding: 3px 10px;
+      background: #eef2ff;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+    .header-right { display: flex; gap: 10px; align-items: center; }
+    .btn-nav {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-nav:hover { background: #e5e7eb; color: #111827; border-color: #d1d5db; }
+
+    /* ── 레이아웃 ── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+
+    /* ── 카드 공통 ── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      transition: box-shadow .2s;
+    }
+    .card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: #6366f1;
+      border-radius: 2px;
+    }
+
+    /* ── 폼 ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+    }
+    .form-group label .required { color: #f43f5e; margin-left: 2px; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      background: #fff;
+      color: #111827;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+
+    .addr-row { display: flex; gap: 8px; position: relative; }
+    .addr-row input { flex: 1; cursor: pointer; background: #f9fafb; }
+    .addr-row input:read-only:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+    .btn-addr-search {
+      background: #6366f1;
+      color: #fff;
+      font-weight: 600;
+      white-space: nowrap;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-addr-search:hover { background: #4f46e5; }
+
+    .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    /* ── 버튼 ── */
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: #6366f1; color: #fff; }
+    .btn-primary:hover { background: #4f46e5; box-shadow: 0 4px 12px rgba(99,102,241,.25); }
+    .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-danger { background: #fff1f2; color: #f43f5e; border: 1px solid #fecdd3; }
+    .btn-danger:hover { background: #ffe4e6; }
+    .btn-success { background: #10b981; color: #fff; }
+    .btn-success:hover { background: #059669; box-shadow: 0 4px 12px rgba(16,185,129,.25); }
+    .btn-sm { padding: 7px 14px; font-size: 13px; border-radius: 8px; }
+    .btn-geocode { background: #6366f1; color: #fff; white-space: nowrap; }
+    .btn-geocode:hover { background: #4f46e5; }
+    .btn-visit { background: #8b5cf6; color: #fff; }
+    .btn-visit:hover { background: #7c3aed; box-shadow: 0 4px 12px rgba(139,92,246,.25); }
+
+    .store-count {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+      background: #f3f4f6;
+      padding: 6px 14px;
+      border-radius: 20px;
+    }
+
+    /* ── 방문결과 배지 ── */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: -0.2px;
+    }
+    .badge-명함전달 { background: #eef2ff; color: #6366f1; }
+    .badge-미팅완료 { background: #ecfdf5; color: #10b981; }
+    .badge-부재중 { background: #fffbeb; color: #f59e0b; }
+    .badge-실패 { background: #f1f5f9; color: #94a3b8; }
+    .badge-계약성사 { background: #f5f3ff; color: #8b5cf6; }
+    .badge-기타 { background: #f1f5f9; color: #94a3b8; }
+    .badge-미방문 { background: #f3f4f6; color: #d1d5db; }
+
+    .recent-visit { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .recent-visit .date { color: #6b7280; font-size: 12px; }
+
+    /* ── 방문기록 모달 ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 60px 20px;
+      overflow-y: auto;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.06);
+      width: 100%;
+      max-width: 560px;
+      animation: modalIn .25s ease;
+      overflow: hidden;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(-20px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .modal-header h2 { font-size: 16px; font-weight: 700; color: #111827; }
+    .modal-close {
+      width: 32px; height: 32px;
+      border: none;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+    }
+    .modal-close:hover { background: #e5e7eb; color: #111827; }
+
+    .modal-body { padding: 24px; }
+
+    .visit-form {
+      display: grid;
+      grid-template-columns: 130px 130px 1fr;
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+    .visit-form .vf-group { display: flex; flex-direction: column; gap: 5px; }
+    .visit-form .vf-group label { font-size: 12px; font-weight: 600; color: #374151; }
+    .visit-form .vf-group input,
+    .visit-form .vf-group select {
+      padding: 9px 10px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      background: #fff;
+      color: #111827;
+    }
+    .visit-form .vf-group input:focus,
+    .visit-form .vf-group select:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+    .visit-memo-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .visit-memo-row input {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      background: #fff;
+      color: #111827;
+    }
+    .visit-memo-row input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+
+    .visit-list { max-height: 340px; overflow-y: auto; }
+    .visit-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      transition: background .15s;
+    }
+    .visit-item:hover { background: #f3f4f6; }
+    .visit-item:last-child { margin-bottom: 0; }
+    .visit-item .vi-date { font-size: 13px; color: #374151; min-width: 90px; font-weight: 500; }
+    .visit-item .vi-memo { flex: 1; font-size: 13px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .visit-item .vi-delete {
+      border: none;
+      background: none;
+      color: #f43f5e;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    .visit-item .vi-delete:hover { background: #fff1f2; }
+    .visit-empty { text-align: center; padding: 36px 0; color: #9ca3af; font-size: 14px; }
+
+    /* ── 엑셀 업로드 ── */
+    .upload-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+      border: 1.5px dashed #d1d5db;
+    }
+    .upload-area input[type="file"] {
+      font-size: 13px;
+      font-family: inherit;
+      color: #374151;
+    }
+    .upload-result {
+      margin-top: 14px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      line-height: 1.7;
+      display: none;
+    }
+    .upload-result.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .upload-result.error { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
+    .template-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 14px;
+      font-size: 13px;
+      color: #6366f1;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .template-link:hover { color: #4f46e5; text-decoration: underline; }
+
+    .upload-progress {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #374151;
+    }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2.5px solid #e5e7eb;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── 토스트 ── */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 14px 22px 14px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      animation: toastIn .3s ease, toastOut .3s ease 2.7s forwards;
+      max-width: 400px;
+      background: #fff;
+      color: #111827;
+    }
+    .toast.success { border-left: 4px solid #10b981; color: #065f46; }
+    .toast.error { border-left: 4px solid #f43f5e; color: #9f1239; }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(40px); } }
+
+    /* ── 반응형 ── */
+    @media (max-width: 768px) {
+      .header { padding: 0 16px; height: 56px; }
+      .header-brand h1 { font-size: 17px; }
+      .header-brand .subtitle { font-size: 11px; padding: 2px 8px; }
+      .container { padding: 16px 12px 40px; }
+      .card { padding: 20px 16px; border-radius: 12px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full { grid-column: 1; }
+      .form-actions { grid-column: 1; }
+      .visit-form { grid-template-columns: 1fr 1fr; }
+      .modal { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 헤더 ── -->
+<div class="header">
+  <div class="header-brand">
+    <h1><span class="brand-accent">Point3</span> CRM</h1>
+    <span class="subtitle">가맹점 등록</span>
+  </div>
+  <div class="header-right">
+    <a href="/stores" class="btn-nav">가맹점 목록</a>
+    <a href="/dashboard" class="btn-nav">대시보드</a>
+    <a href="/calendar" class="btn-nav">캘린더</a>
+    <a href="/" class="btn-nav">지도</a>
+  </div>
+</div>
+
+<!-- ── 토스트 컨테이너 ── -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ── 방문기록 모달 ── -->
+<div class="modal-overlay" id="visitModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="visitModalTitle">방문기록</h2>
+      <button class="modal-close" onclick="closeVisitModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="visit-form">
+        <div class="vf-group">
+          <label>날짜</label>
+          <input type="date" id="visitDate">
+        </div>
+        <div class="vf-group">
+          <label>결과</label>
+          <select id="visitResult">
+            <option value="명함전달">명함전달</option>
+            <option value="미팅완료">미팅완료</option>
+            <option value="부재중">부재중</option>
+            <option value="실패">실패</option>
+            <option value="계약성사">계약성사</option>
+            <option value="기타">기타</option>
+          </select>
+        </div>
+      </div>
+      <div class="visit-memo-row">
+        <input type="text" id="visitMemo" placeholder="메모 (선택)">
+        <button class="btn btn-primary btn-sm" onclick="addVisit()">추가</button>
+      </div>
+      <div class="visit-list" id="visitList">
+        <div class="visit-empty">방문기록이 없습니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══ 가맹점 등록/수정 폼 ══ -->
+  <div class="card">
+    <div class="card-title" id="formTitle">가맹점 등록</div>
+    <form id="storeForm" onsubmit="handleSubmit(event)">
+      <input type="hidden" id="editId" value="">
+      <input type="hidden" id="storeLat" value="">
+      <input type="hidden" id="storeLng" value="">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>가맹점명 <span class="required">*</span></label>
+          <input type="text" id="storeName" placeholder="예) 맘스터치 강남점" required>
+        </div>
+        <div class="form-group full">
+          <label>주소 <span class="required">*</span></label>
+          <div class="addr-row">
+            <input type="text" id="storeAddress" placeholder="클릭하여 주소 검색..." required readonly onclick="openDaumPostcode()" autocomplete="off">
+            <button type="button" class="btn-addr-search" onclick="openDaumPostcode()">주소 검색</button>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label>메모</label>
+          <textarea id="storeMemo" placeholder="특이사항, 참고 내용 등"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn">저장</button>
+          <button type="button" class="btn btn-secondary" onclick="resetForm()" id="cancelBtn" style="display:none;">취소</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ══ 최근 등록 + 가맹점 목록 바로가기 ══ -->
+  <div class="card">
+    <div class="card-title">등록된 가맹점</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div class="store-count" id="storeCount" style="font-size:15px;padding:8px 18px;">총 0개</div>
+      <a href="/stores" class="btn btn-primary" style="text-decoration:none;">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+        가맹점 목록 보기
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ 엑셀 업로드 ══ -->
+  <div class="card">
+    <div class="card-title">엑셀 일괄 등록</div>
+    <div class="upload-area">
+      <input type="file" id="excelFile" accept=".xlsx">
+      <button class="btn btn-success" onclick="uploadExcel()">업로드</button>
+    </div>
+    <div class="upload-progress" id="uploadProgress">
+      <div class="spinner"></div>
+      <span>업로드 및 지오코딩 처리 중... (주소 수에 따라 시간이 소요됩니다)</span>
+    </div>
+    <div class="upload-result" id="uploadResult"></div>
+    <a class="template-link" onclick="downloadTemplate()">샘플 엑셀 템플릿 다운로드</a>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   전역 상태
+   ══════════════════════════════════════ */
+let stores = [];
+let currentVisitStoreId = null;
+let currentVisits = [];
+
+/* ══════════════════════════════════════
+   초기 로드
+   ══════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('visitDate').valueAsDate = new Date();
+  loadStores();
+  document.getElementById('visitModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeVisitModal();
+  });
+});
+
+/* ══════════════════════════════════════
+   API 호출
+   ══════════════════════════════════════ */
+async function loadStores() {
+  try {
+    const res = await fetch('/api/stores', {cache: 'no-store'});
+    stores = await res.json();
+    document.getElementById('storeCount').textContent = `총 ${stores.length}개`;
+  } catch (e) {
+    showToast('매장 목록을 불러오지 못했습니다.', 'error');
+  }
+}
+
+/* ══════════════════════════════════════
+   주소 검색 (카카오 우편번호 서비스)
+   ══════════════════════════════════════ */
+function openDaumPostcode() {
+  new daum.Postcode({
+    oncomplete: function(data) {
+      // 도로명주소 우선, 없으면 지번주소
+      const address = data.roadAddress || data.jibunAddress;
+      document.getElementById('storeAddress').value = address;
+      showToast('주소 선택 완료', 'success');
+
+      // 선택된 주소로 자동 좌표 변환
+      autoGeocode(address);
+    }
+  }).open();
+}
+
+async function autoGeocode(address) {
+  try {
+    const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+    const data = await res.json();
+    if (res.ok) {
+      document.getElementById('storeLat').value = data.lat;
+      document.getElementById('storeLng').value = data.lng;
+      showToast('좌표 자동 입력 완료', 'success');
+    } else {
+      document.getElementById('storeLat').value = '';
+      document.getElementById('storeLng').value = '';
+      showToast('좌표 변환 실패 — 저장 후 수동 확인 필요', 'warning');
+    }
+  } catch (e) {
+    showToast('좌표 변환 요청 실패', 'error');
+  }
+}
+
+async function handleSubmit(e) {
+  e.preventDefault();
+
+  const editId = document.getElementById('editId').value;
+  const payload = {
+    name: document.getElementById('storeName').value.trim(),
+    address: document.getElementById('storeAddress').value.trim(),
+    memo: document.getElementById('storeMemo').value.trim(),
+    lat: document.getElementById('storeLat').value ? parseFloat(document.getElementById('storeLat').value) : null,
+    lng: document.getElementById('storeLng').value ? parseFloat(document.getElementById('storeLng').value) : null,
+  };
+
+  if (!payload.name || !payload.address) {
+    showToast('가맹점명과 주소는 필수입니다.', 'error');
+    return;
+  }
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.textContent = '저장 중...';
+  submitBtn.disabled = true;
+
+  try {
+    let res;
+    if (editId) {
+      res = await fetch(`/api/stores/${editId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    } else {
+      res = await fetch('/api/stores', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    }
+
+    if (res.ok) {
+      showToast(editId ? '수정 완료' : '등록 완료', 'success');
+      resetForm();
+      await loadStores();
+    } else {
+      const data = await res.json();
+      showToast(data.error || '저장 실패', 'error');
+    }
+  } catch (e) {
+    showToast('서버 요청 실패', 'error');
+  } finally {
+    submitBtn.textContent = '저장';
+    submitBtn.disabled = false;
+  }
+}
+
+async function deleteStore(id, name) {
+  if (!confirm(`"${name}" 가맹점을 삭제하시겠습니까?`)) return;
+
+  try {
+    const res = await fetch(`/api/stores/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('삭제 완료', 'success');
+      await loadStores();
+    } else {
+      showToast('삭제 실패', 'error');
+    }
+  } catch (e) {
+    showToast('서버 요청 실패', 'error');
+  }
+}
+
+function editStore(id) {
+  const store = stores.find(s => s.id === id);
+  if (!store) return;
+
+  document.getElementById('editId').value = store.id;
+  document.getElementById('storeName').value = store.name || '';
+  document.getElementById('storeAddress').value = store.address || '';
+  document.getElementById('storeMemo').value = store.memo || '';
+  document.getElementById('storeLat').value = store.lat || '';
+  document.getElementById('storeLng').value = store.lng || '';
+
+  document.getElementById('formTitle').textContent = '가맹점 수정';
+  document.getElementById('submitBtn').textContent = '수정';
+  document.getElementById('cancelBtn').style.display = '';
+
+  document.getElementById('storeForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetForm() {
+  document.getElementById('storeForm').reset();
+  document.getElementById('editId').value = '';
+  document.getElementById('storeLat').value = '';
+  document.getElementById('storeLng').value = '';
+  document.getElementById('formTitle').textContent = '가맹점 등록';
+  document.getElementById('submitBtn').textContent = '저장';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+/* ══════════════════════════════════════
+   방문기록 모달
+   ══════════════════════════════════════ */
+async function openVisitModal(storeId) {
+  const store = stores.find(s => s.id === storeId);
+  if (!store) return;
+
+  currentVisitStoreId = storeId;
+  document.getElementById('visitModalTitle').textContent = `${store.name} - 방문기록`;
+  document.getElementById('visitDate').valueAsDate = new Date();
+  document.getElementById('visitResult').value = '명함전달';
+  document.getElementById('visitMemo').value = '';
+  document.getElementById('visitModal').classList.add('active');
+
+  await loadVisits();
+}
+
+function closeVisitModal() {
+  document.getElementById('visitModal').classList.remove('active');
+  currentVisitStoreId = null;
+  currentVisits = [];
+  // 테이블 새로고침 (최근방문 업데이트용)
+  loadStores();
+}
+
+async function loadVisits() {
+  if (!currentVisitStoreId) return;
+
+  try {
+    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits`);
+    if (res.ok) {
+      currentVisits = await res.json();
+    } else {
+      currentVisits = [];
+    }
+  } catch (e) {
+    currentVisits = [];
+  }
+  renderVisitList();
+}
+
+function renderVisitList() {
+  const container = document.getElementById('visitList');
+
+  if (!currentVisits.length) {
+    container.innerHTML = '<div class="visit-empty">방문기록이 없습니다.</div>';
+    return;
+  }
+
+  // 날짜 내림차순 정렬
+  const sorted = [...currentVisits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  container.innerHTML = sorted.map(v => `
+    <div class="visit-item">
+      <span class="vi-date">${escapeHtml(v.date)}</span>
+      <span class="badge badge-${escapeHtml(v.result)}">${escapeHtml(v.result)}</span>
+      <span class="vi-memo" title="${escapeAttr(v.memo)}">${escapeHtml(v.memo || '')}</span>
+      <button class="vi-delete" onclick="deleteVisit('${escapeAttr(v.id)}')" title="삭제">&times;</button>
+    </div>
+  `).join('');
+}
+
+async function addVisit() {
+  if (!currentVisitStoreId) return;
+
+  const date = document.getElementById('visitDate').value;
+  const result = document.getElementById('visitResult').value;
+  const memo = document.getElementById('visitMemo').value.trim();
+
+  if (!date) {
+    showToast('날짜를 선택해주세요.', 'error');
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, result, memo }),
+    });
+    if (res.ok) {
+      showToast('방문기록 추가 완료', 'success');
+      document.getElementById('visitMemo').value = '';
+      await loadVisits();
+    } else {
+      const data = await res.json();
+      showToast(data.error || '추가 실패', 'error');
+    }
+  } catch (e) {
+    showToast('서버 요청 실패', 'error');
+  }
+}
+
+async function deleteVisit(visitId) {
+  if (!currentVisitStoreId) return;
+  if (!confirm('이 방문기록을 삭제하시겠습니까?')) return;
+
+  try {
+    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits/${visitId}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('방문기록 삭제 완료', 'success');
+      await loadVisits();
+    } else {
+      showToast('삭제 실패', 'error');
+    }
+  } catch (e) {
+    showToast('서버 요청 실패', 'error');
+  }
+}
+
+/* ══════════════════════════════════════
+   엑셀 업로드
+   ══════════════════════════════════════ */
+async function uploadExcel() {
+  const fileInput = document.getElementById('excelFile');
+  if (!fileInput.files.length) {
+    showToast('엑셀 파일을 선택해주세요.', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+
+  const progress = document.getElementById('uploadProgress');
+  const result = document.getElementById('uploadResult');
+  progress.style.display = 'flex';
+  result.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/upload-excel', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (res.ok) {
+      let html = `<strong>${data.message}</strong>`;
+      if (data.errors && data.errors.length) {
+        html += `<br><br><strong>오류 목록:</strong><br>` + data.errors.map(e => `- ${e}`).join('<br>');
+      }
+      result.className = 'upload-result success';
+      result.innerHTML = html;
+      result.style.display = 'block';
+      showToast(data.message, 'success');
+      fileInput.value = '';
+      await loadStores();
+    } else {
+      result.className = 'upload-result error';
+      result.innerHTML = `<strong>오류:</strong> ${data.error}`;
+      result.style.display = 'block';
+      showToast(data.error || '업로드 실패', 'error');
+    }
+  } catch (e) {
+    result.className = 'upload-result error';
+    result.innerHTML = '<strong>서버 요청 실패</strong>';
+    result.style.display = 'block';
+    showToast('서버 요청 실패', 'error');
+  } finally {
+    progress.style.display = 'none';
+  }
+}
+
+function downloadTemplate() {
+  const header = '가맹점명,주소,메모';
+  const sample1 = '맘스터치 강남점,서울특별시 강남구 테헤란로 123,월요일 휴무';
+  const sample2 = '스타벅스 역삼점,서울특별시 강남구 역삼로 45,2층 매장';
+  const csv = '\uFEFF' + [header, sample1, sample2].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '가맹점_템플릿.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('템플릿 다운로드 완료 (CSV 형식, 엑셀에서 열 수 있습니다)', 'success');
+}
+
+/* ══════════════════════════════════════
+   유틸리티 (등록 페이지용)
+   ══════════════════════════════════════ */
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escapeAttr(str) {
+  if (!str) return '';
+  return str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function showToast(msg, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 3000);
+}
+</script>
+</body>
+</html>
