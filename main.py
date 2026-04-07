@@ -50,7 +50,9 @@ def _fs_to_dict(fields):
     """Firestore 필드 → 파이썬 dict 변환"""
     result = {}
     for k, v in fields.items():
-        if "stringValue" in v:
+        if not v or not isinstance(v, dict):
+            result[k] = None
+        elif "stringValue" in v:
             result[k] = v["stringValue"]
         elif "booleanValue" in v:
             result[k] = v["booleanValue"]
@@ -61,13 +63,14 @@ def _fs_to_dict(fields):
         elif "nullValue" in v:
             result[k] = None
         elif "arrayValue" in v:
+            values = v["arrayValue"].get("values", [])
             result[k] = [_fs_to_dict(item.get("mapValue", {}).get("fields", {})) if "mapValue" in item else
                          item.get("stringValue", item.get("booleanValue", item.get("integerValue", "")))
-                         for item in v["arrayValue"].get("values", [])]
+                         for item in values]
         elif "mapValue" in v:
             result[k] = _fs_to_dict(v["mapValue"].get("fields", {}))
         else:
-            result[k] = str(v)
+            result[k] = None
     return result
 
 
@@ -248,16 +251,6 @@ def ensure_superadmin():
     if changed:
         save_stores(stores)
 
-def load_stores():
-    """stores.json에서 매장 목록 로드 (항상 파일에서 읽기)"""
-    with open(STORES_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_stores(stores):
-    """매장 목록을 stores.json에 저장"""
-    with open(STORES_FILE, "w", encoding="utf-8") as f:
-        json.dump(stores, f, ensure_ascii=False, indent=2)
 
 
 def extract_district(address):
