@@ -30,21 +30,142 @@ CORS(app)
 SUPERADMIN_USERNAME = "leesk0130"
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "734818849350-qlm4r3mlbksfrv41hm38l78vscu29biu.apps.googleusercontent.com")
 
-# ── 데이터 파일 경로 설정 ──
+# ── Firestore 설정 ──
+FIREBASE_PROJECT_ID = "point3-salesmap99"
+FIRESTORE_BASE = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents"
+FIREBASE_API_KEY = "AIzaSyA7u_44ljLdf5yxyihKO0qU51DkMZyiV_w"
+
+# 로컬 폴백용 경로
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
-STORES_FILE = os.path.join(DATA_DIR, "stores.json")
-USERS_FILE = os.path.join(DATA_DIR, "users.json")
-
-# ── 데이터 디렉토리 및 파일 자동 생성 ──
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
-if not os.path.exists(STORES_FILE):
-    with open(STORES_FILE, "w", encoding="utf-8") as f:
-        json.dump([], f, ensure_ascii=False)
-if not os.path.exists(USERS_FILE):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump([], f, ensure_ascii=False)
+
+
+# ══════════════════════════════════════════
+#  Firestore 헬퍼 함수
+# ══════════════════════════════════════════
+
+def _fs_to_dict(fields):
+    """Firestore 필드 → 파이썬 dict 변환"""
+    result = {}
+    for k, v in fields.items():
+        if "stringValue" in v:
+            result[k] = v["stringValue"]
+        elif "booleanValue" in v:
+            result[k] = v["booleanValue"]
+        elif "integerValue" in v:
+            result[k] = int(v["integerValue"])
+        elif "doubleValue" in v:
+            result[k] = v["doubleValue"]
+        elif "nullValue" in v:
+            result[k] = None
+        elif "arrayValue" in v:
+            result[k] = [_fs_to_dict(item.get("mapValue", {}).get("fields", {})) if "mapValue" in item else
+                         item.get("stringValue", item.get("booleanValue", item.get("integerValue", "")))
+                         for item in v["arrayValue"].get("values", [])]
+        elif "mapValue" in v:
+            result[k] = _fs_to_dict(v["mapValue"].get("fields", {}))
+        else:
+            result[k] = str(v)
+    return result
+
+
+def _dict_to_fs(d):
+    """파이썬 dict → Firestore 필드 변환"""
+    fields = {}
+    for k, v in d.items():
+        if isinstance(v, bool):
+            fields[k] = {"booleanValue": v}
+        elif isinstance(v, int):
+            fields[k] = {"integerValue": str(v)}
+        elif isinstance(v, float):
+            fields[k] = {"doubleValue": v}
+        elif isinstance(v, str):
+            fields[k] = {"stringValue": v}
+        elif isinstance(v, list):
+            values = []
+            for item in v:
+                if isinstance(item, dict):
+                    values.append({"mapValue": {"fields": _dict_to_fs(item)}})
+                elif isinstance(item, str):
+                    values.append({"stringValue": item})
+                else:
+                    values.append({"stringValue": str(item)})
+            fields[k] = {"arrayValue": {"values": values} if values else {"values": []}}
+        elif v is None:
+            fields[k] = {"nullValue": None}
+        elif isinstance(v, dict):
+            fields[k] = {"mapValue": {"fields": _dict_to_fs(v)}}
+        else:
+            fields[k] = {"stringValue": str(v)}
+    return fields
+
+
+def fs_get_collection(collection):
+    """Firestore 컬렉션의 모든 문서 가져오기"""
+    try:
+        url = f"{FIRESTORE_BASE}/{collection}?key={FIREBASE_API_KEY}"
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            docs = data.get("documents", [])
+            return [_fs_to_dict(doc.get("fields", {})) for doc in docs]
+        return []
+    except Exception as e:
+        print(f"[Firestore GET 오류] {collection}: {e}")
+        return []
+
+
+def fs_set_doc(collection, doc_id, data_dict):
+    """Firestore 문서 생성/덮어쓰기"""
+    try:
+        url = f"{FIRESTORE_BASE}/{collection}/{doc_id}?key={FIREBASE_API_KEY}"
+        body = {"fields": _dict_to_fs(data_dict)}
+        resp = requests.patch(url, json=body, timeout=10)
+        return resp.status_code == 200
+    except Exception as e:
+        print(f"[Firestore SET 오류] {collection}/{doc_id}: {e}")
+        return False
+
+
+def fs_delete_doc(collection, doc_id):
+    """Firestore 문서 삭제"""
+    try:
+        url = f"{FIRESTORE_BASE}/{collection}/{doc_id}?key={FIREBASE_API_KEY}"
+        resp = requests.delete(url, timeout=10)
+        return resp.status_code in (200, 204)
+    except Exception as e:
+        print(f"[Firestore DEL 오류] {collection}/{doc_id}: {e}")
+        return False
+
+
+# ══════════════════════════════════════════
+#  데이터 함수 (Firestore 기반)
+# ══════════════════════════════════════════
+
+def load_stores():
+    return fs_get_collection("stores")
+
+def save_store(store):
+    fs_set_doc("stores", store["id"], store)
+
+def save_stores(stores):
+    for s in stores:
+        fs_set_doc("stores", s["id"], s)
+
+def delete_store_doc(store_id):
+    fs_delete_doc("stores", store_id)
+
+def load_users():
+    return fs_get_collection("users")
+
+def save_user(user):
+    fs_set_doc("users", user["id"], user)
+
+def save_users(users):
+    for u in users:
+        fs_set_doc("users", u["id"], u)
 
 
 # ══════════════════════════════════════════
@@ -53,16 +174,6 @@ if not os.path.exists(USERS_FILE):
 
 def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
-
-
-def load_users():
-    with open(USERS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_users(users):
-    with open(USERS_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f, ensure_ascii=False, indent=2)
 
 
 def get_current_user():
@@ -494,10 +605,7 @@ def add_store():
         store["lat"] = lat
         store["lng"] = lng
 
-    stores = load_stores()
-    stores.append(store)
-    save_stores(stores)
-
+    save_store(store)
     return jsonify(store), 201
 
 
@@ -518,7 +626,7 @@ def update_store(store_id):
             # 주소가 변경되면 district 재추출
             if "address" in data:
                 stores[i]["district"] = extract_district(data["address"])
-            save_stores(stores)
+            save_store(stores[i])
             return jsonify(stores[i])
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -528,15 +636,9 @@ def update_store(store_id):
 @login_required
 def delete_store(store_id):
     """매장 삭제"""
-    stores = load_stores()
-    original_len = len(stores)
-    stores = [s for s in stores if s["id"] != store_id]
-
-    if len(stores) == original_len:
-        return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
-
-    save_stores(stores)
-    return jsonify({"message": "삭제 완료"}), 200
+    if delete_store_doc(store_id):
+        return jsonify({"message": "삭제 완료"}), 200
+    return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
 
 
 # ══════════════════════════════════════════
@@ -612,10 +714,8 @@ def upload_excel():
         if lat is None or lng is None:
             errors.append(f"행 {row_idx}: '{address}' 지오코딩 실패")
 
-        stores.append(store)
+        save_store(store)
         added.append(store)
-
-    save_stores(stores)
 
     return jsonify({
         "message": f"{len(added)}개 매장 추가 완료",
@@ -659,7 +759,7 @@ def add_visit(store_id):
             if "visits" not in stores[i]:
                 stores[i]["visits"] = []
             stores[i]["visits"].append(visit)
-            save_stores(stores)
+            save_store(stores[i])
             return jsonify(visit), 201
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -680,7 +780,7 @@ def delete_visit(store_id, visit_id):
             if len(stores[i]["visits"]) == original_len:
                 return jsonify({"error": "방문 기록을 찾을 수 없습니다."}), 404
 
-            save_stores(stores)
+            save_store(stores[i])
             return jsonify({"message": "방문 기록 삭제 완료"}), 200
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -770,7 +870,7 @@ def toggle_star(store_id):
         if store["id"] == store_id:
             current = stores[i].get("starred", False)
             stores[i]["starred"] = not current
-            save_stores(stores)
+            save_store(stores[i])
             return jsonify({
                 "id": store_id,
                 "starred": stores[i]["starred"],
@@ -795,15 +895,13 @@ def bulk_delete_stores():
     if not ids_to_delete:
         return jsonify({"error": "삭제할 ID가 없습니다."}), 400
 
-    stores = load_stores()
-    original_len = len(stores)
-    stores = [s for s in stores if s["id"] not in ids_to_delete]
-    deleted_count = original_len - len(stores)
+    deleted_count = 0
+    for sid in ids_to_delete:
+        if delete_store_doc(sid):
+            deleted_count += 1
 
     if deleted_count == 0:
         return jsonify({"error": "일치하는 매장이 없습니다."}), 404
-
-    save_stores(stores)
     return jsonify({
         "message": f"{deleted_count}개 매장 삭제 완료",
         "deleted_count": deleted_count,
