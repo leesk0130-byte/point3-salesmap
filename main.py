@@ -699,7 +699,8 @@ def upload_excel():
     for idx, h in enumerate(headers):
         col_map[h] = idx
 
-    stores = load_stores()
+    user = get_current_user()
+    team = user.get("teamName", "") if user else ""
     added = []
     errors = []
 
@@ -729,6 +730,7 @@ def upload_excel():
             "district": extract_district(address_str),
             "memo": str(memo),
             "visits": [],
+            "teamName": team,
             "created_at": datetime.now().isoformat(),
         }
 

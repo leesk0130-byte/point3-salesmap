@@ -182,13 +182,14 @@
       try {
         const res = await fetch('/auth/me');
         if (!res.ok) throw new Error('서버 오류가 발생했습니다.');
-
         const data = await res.json();
 
         if (data.isApproved) {
-          location.href = '/';
+          statusMsg.textContent = '승인 완료! 이동합니다...';
+          statusMsg.style.color = '#059669';
+          setTimeout(() => { location.href = '/'; }, 500);
         } else {
-          statusMsg.textContent = '아직 승인되지 않았습니다.';
+          statusMsg.textContent = '아직 승인되지 않았습니다. 자동으로 확인 중...';
         }
       } catch (err) {
         statusMsg.textContent = err.message;
@@ -198,6 +199,17 @@
         checkBtn.textContent = '승인 확인';
       }
     }
+
+    // 5초마다 자동 확인
+    setInterval(async () => {
+      try {
+        const res = await fetch('/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.isApproved) location.href = '/';
+        }
+      } catch(e) {}
+    }, 5000);
   </script>
 </body>
 </html>
