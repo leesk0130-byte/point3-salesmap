@@ -6,6 +6,7 @@ import os
 import json
 import re
 import uuid
+import time
 import csv
 import io
 import hashlib
@@ -147,18 +148,34 @@ def fs_delete_doc(collection, doc_id):
 #  데이터 함수 (Firestore 기반)
 # ══════════════════════════════════════════
 
+_stores_cache = {"data": None, "ts": 0}
+
 def load_stores():
-    return fs_get_collection("stores")
+    now = time.time()
+    if _stores_cache["data"] is not None and (now - _stores_cache["ts"]) < 5:
+        return _stores_cache["data"]
+    result = fs_get_collection("stores")
+    _stores_cache["data"] = result
+    _stores_cache["ts"] = now
+    return result
+
+def _invalidate_cache():
+    _stores_cache["data"] = None
+    _stores_cache["ts"] = 0
 
 def save_store(store):
     fs_set_doc("stores", store["id"], store)
+    _invalidate_cache()
 
 def save_stores(stores):
     for s in stores:
         fs_set_doc("stores", s["id"], s)
+    _invalidate_cache()
 
 def delete_store_doc(store_id):
-    fs_delete_doc("stores", store_id)
+    result = fs_delete_doc("stores", store_id)
+    _invalidate_cache()
+    return result
 
 def load_users():
     return fs_get_collection("users")
@@ -807,6 +824,40 @@ def delete_visit(store_id, visit_id):
             return jsonify({"message": "방문 기록 삭제 완료"}), 200
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
+
+
+# ══════════════════════════════════════════
+#  API 라우트 - 통계
+# ══════════════════════════════════════════
+
+@app.route("/api/stats", methods=["GET"])
+@login_required
+def get_stats():
+    from datetime import timedelta
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my = [s for s in stores if s.get("teamName") == team]
+    total = len(my)
+    visited = sum(1 for s in my if s.get("visits"))
+    status_counts = {}
+    recent_7d = 0
+    today = datetime.now().date()
+    for s in my:
+        vs = s.get("visits") or []
+        if vs:
+            latest = max(vs, key=lambda v: v.get("date", ""))
+            r = latest.get("result", "기타") or "기타"
+            status_counts[r] = status_counts.get(r, 0) + 1
+            for v in vs:
+                try:
+                    vd = datetime.strptime(v.get("date", ""), "%Y-%m-%d").date()
+                    if (today - vd).days <= 7:
+                        recent_7d += 1
+                except:
+                    pass
+    return jsonify({"total": total, "visited": visited, "not_visited": total - visited,
+                    "status_counts": status_counts, "recent_7d_visits": recent_7d})
 
 
 # ══════════════════════════════════════════

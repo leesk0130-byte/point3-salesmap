@@ -69,6 +69,13 @@
             --violet-light: #4c1d95;
         }
 
+        /* ── Toast ── */
+        .toast-container { position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:8px;pointer-events:none; }
+        .toast { padding:12px 20px;border-radius:var(--radius);background:#10b981;color:#fff;font:600 13px/1.4 inherit;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:toastFadeIn .3s ease,toastFadeOut .3s ease 2.2s forwards;pointer-events:auto; }
+        .toast-error { background:var(--danger); }
+        @keyframes toastFadeIn { from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes toastFadeOut { from{opacity:1}to{opacity:0;transform:translateY(-12px)} }
+
         /* ── MarkerCluster 인디고 스타일 ── */
         .marker-cluster-small { background-color: rgba(199, 210, 254, 0.7); }
         .marker-cluster-small div { background-color: rgba(165, 180, 252, 0.9); }
@@ -1083,7 +1090,10 @@
     <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
     <div class="detail-panel" id="detailPanel">
         <div class="dp-header">
-            <div class="dp-title" id="dpTitle">가맹점 상세</div>
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                <div class="dp-title" id="dpTitle">가맹점 상세</div>
+                <span class="badge" id="dpStatusBadge"></span>
+            </div>
             <button class="dp-close" onclick="closeDetail()">&times;</button>
         </div>
         <div class="dp-body">
@@ -1105,19 +1115,13 @@
 
             <div class="dp-section">
                 <div class="dp-section-title">방문 기록</div>
-                <div class="dp-visit-form">
-                    <input type="date" id="dpVisitDate">
-                    <select id="dpVisitResult">
-                        <option value="명함전달">명함전달</option>
-                        <option value="미팅완료">미팅완료</option>
-                        <option value="부재중">부재중</option>
-                        <option value="계약성사">계약성사</option>
-                        <option value="실패">실패</option>
-                        <option value="기타">기타</option>
-                    </select>
-                    <button class="dp-visit-add" onclick="addDetailVisit()">추가</button>
+                <div class="dp-visit-form" style="flex-direction:column;gap:10px;">
+                    <input type="date" id="dpVisitDate" style="width:100%;">
+                    <input type="hidden" id="dpVisitResult" value="명함전달">
+                    <div id="dpResultBtnGroup" style="display:flex;flex-wrap:wrap;gap:6px;width:100%;"></div>
+                    <button class="dp-visit-add" onclick="addDetailVisit()" style="width:100%;height:40px;">추가</button>
                 </div>
-                <input class="dp-input" id="dpVisitMemo" placeholder="방문 메모 (선택)" style="margin-bottom:10px;font-size:13px;">
+                <textarea class="dp-input" id="dpVisitMemo" placeholder="방문 메모 (선택)" style="margin-bottom:10px;font-size:13px;min-height:80px;resize:vertical;"></textarea>
                 <div id="dpVisitList"></div>
             </div>
         </div>
@@ -1125,6 +1129,7 @@
 
     <div id="map"></div>
 
+    <div class="toast-container" id="toastContainer"></div>
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
@@ -1424,7 +1429,7 @@
     <a href="https://map.naver.com/v5/directions/-/${store.lng},${store.lat},${encodeURIComponent(store.name)}/-/car" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#03C75A;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">네이버</a>
     <a href="tmap://route?goalx=${store.lng}&goaly=${store.lat}&goalname=${encodeURIComponent(store.name)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#EF4444;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">티맵</a>
 </div>
-<button onclick="openDetail('${store.id}')" style="width:100%;margin-top:8px;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:8px;font:600 13px/1 inherit;cursor:pointer;">상세 / 수정</button>`;
+<button onclick="openDetail('${store.id}')" style="width:100%;margin-top:8px;padding:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:8px;font:700 14px/1 inherit;cursor:pointer;box-shadow:0 2px 8px rgba(79,70,229,.3);">상세 / 수정</button>`;
             m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div></div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
 
             m.bindTooltip(store.name, { direction:'top', offset:[0,-6], className:'premium-tooltip' });
@@ -1679,6 +1684,32 @@
         // ══════════════════════════════════════
         //  STORE DETAIL PANEL
         // ══════════════════════════════════════
+        function showToast(msg, isError) {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = 'toast' + (isError ? ' toast-error' : '');
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 2600);
+        }
+
+        // 결과 버튼 그룹 초기화
+        const _resultOptions = ['명함전달','미팅완료','부재중','계약성사','실패'];
+        function initResultBtnGroup() {
+            const g = document.getElementById('dpResultBtnGroup');
+            g.innerHTML = _resultOptions.map(r =>
+                `<button type="button" data-value="${r}" style="flex:1;min-width:65px;height:36px;border:1px solid var(--border);border-radius:var(--radius);font:600 12px/1 inherit;cursor:pointer;background:var(--bg);color:var(--fg);transition:all .15s;">${r}</button>`
+            ).join('');
+            g.addEventListener('click', function(e) {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                document.getElementById('dpVisitResult').value = btn.dataset.value;
+                g.querySelectorAll('button').forEach(b => { b.style.background='var(--bg)'; b.style.color='var(--fg)'; b.style.borderColor='var(--border)'; });
+                btn.style.background='var(--primary)'; btn.style.color='#fff'; btn.style.borderColor='var(--primary)';
+            });
+        }
+        initResultBtnGroup();
+
         function openDetail(storeId) {
             const s = allStores.find(x => x.id === storeId);
             if (!s) return;
@@ -1687,12 +1718,24 @@
             document.getElementById('dpAddress').value = s.address || '';
             document.getElementById('dpMemo').value = s.memo || '';
             document.getElementById('dpTitle').textContent = s.name || '가맹점 상세';
+            // 상태배지
+            const status = getStoreStatus(s);
+            const badge = document.getElementById('dpStatusBadge');
+            badge.className = 'badge badge-' + status;
+            badge.innerHTML = '<span class="badge-dot"></span>' + escapeHtml(status);
             document.getElementById('dpVisitDate').valueAsDate = new Date();
             document.getElementById('dpVisitMemo').value = '';
+            // 결과 버튼 초기화
+            document.getElementById('dpVisitResult').value = '명함전달';
+            document.querySelectorAll('#dpResultBtnGroup button').forEach(b => {
+                const d = b.dataset.value === '명함전달';
+                b.style.background = d ? 'var(--primary)' : 'var(--bg)';
+                b.style.color = d ? '#fff' : 'var(--fg)';
+                b.style.borderColor = d ? 'var(--primary)' : 'var(--border)';
+            });
             renderDetailVisits(s);
             document.getElementById('detailOverlay').classList.add('active');
             document.getElementById('detailPanel').classList.add('open');
-            // 팝업 닫기
             map.closePopup();
         }
         function closeDetail() {
@@ -1732,10 +1775,11 @@
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
+                    showToast('저장되었습니다');
                     closeDetail();
                     await loadStores();
                 }
-            } catch(e) { alert('저장 실패'); }
+            } catch(e) { showToast('저장 실패', true); }
         }
         async function deleteDetail() {
             if (!confirm('이 가맹점을 삭제하시겠습니까?')) return;
