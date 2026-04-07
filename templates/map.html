@@ -1300,9 +1300,8 @@
 
             const statusBadge = statusLabel ? `<span class="badge badge-${statusLabel}" style="margin-left:auto;"><span class="badge-dot"></span>${escapeHtml(statusLabel)}</span>` : '';
             const naviHtml = `<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;gap:6px;">
-    <a href="https://map.kakao.com/link/to/${encodeURIComponent(store.name)},${store.lat},${store.lng}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;background:#FEE500;color:#3C1E1E;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">카카오</a>
-    <a href="https://map.naver.com/v5/directions/-/${store.lng},${store.lat},${encodeURIComponent(store.name)}/-/car" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;background:#03C75A;color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">네이버</a>
-    <a href="https://www.google.com/maps/dir/?api=1&destination=${store.lat},${store.lng}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px;background:#4285F4;color:#fff;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">구글</a>
+    <a href="https://map.naver.com/v5/directions/-/${store.lng},${store.lat},${encodeURIComponent(store.name)}/-/car" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#03C75A;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">네이버</a>
+    <a href="tmap://route?goalx=${store.lng}&goaly=${store.lat}&goalname=${encodeURIComponent(store.name)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#EF4444;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">티맵</a>
 </div>`;
             m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div></div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
 
