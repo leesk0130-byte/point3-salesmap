@@ -513,10 +513,9 @@ def admin_approve():
 def admin_reject():
     data = request.get_json()
     uid = data.get("userId")
-    users = load_users()
-    users = [u for u in users if u["id"] != uid]
-    save_users(users)
-    return jsonify({"message": "거절 완료"})
+    if uid and fs_delete_doc("users", uid):
+        return jsonify({"message": "거절 완료"})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
 
 
 # ══════════════════════════════════════════
