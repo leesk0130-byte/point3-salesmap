@@ -120,7 +120,7 @@ def ensure_superadmin():
         "username": SUPERADMIN_USERNAME,
         "password": hash_pw("12345"),
         "name": "관리자",
-        "teamName": "Point3",
+        "teamName": "point3",
         "isApproved": True,
         "role": "superadmin",
         "created_at": datetime.now().isoformat(),
