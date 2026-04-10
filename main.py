@@ -1442,6 +1442,276 @@ def stats_activity_by_day():
 
 
 # ══════════════════════════════════════════
+#  API 라우트 - 영업 히스토리 스냅샷
+# ══════════════════════════════════════════
+
+VALID_STATUSES = ['미컨택', '명함전달', '미팅대기', '미팅완료']
+
+def _get_store_status(store):
+    """매장의 현재 영업 상태 판별"""
+    visits = store.get("visits") or []
+    if not visits:
+        return "미컨택"
+    latest = max(visits, key=lambda v: v.get("date", ""))
+    raw = latest.get("result", "") or ""
+    mapped = STATUS_MAP.get(raw, raw)
+    return mapped if mapped in VALID_STATUSES else "미컨택"
+
+
+def _build_snapshot(stores, period_start, period_end):
+    """주어진 기간의 스냅샷 데이터 생성"""
+    total = len(stores)
+    status_counts = {s: 0 for s in VALID_STATUSES}
+    district_counts = {}
+    contact_counts = {"email": 0, "linkedin": 0, "remember": 0, "intro": 0}
+    activities_in_period = 0
+    new_stores_in_period = 0
+    activity_details = []  # 기간 내 활동 상세
+
+    for s in stores:
+        st = _get_store_status(s)
+        status_counts[st] = status_counts.get(st, 0) + 1
+
+        district = s.get("district", "기타")
+        district_counts[district] = district_counts.get(district, 0) + 1
+
+        if s.get("contact_email"):
+            contact_counts["email"] += 1
+        if s.get("contact_linkedin"):
+            contact_counts["linkedin"] += 1
+        if s.get("contact_remember"):
+            contact_counts["remember"] += 1
+        if s.get("contact_intro"):
+            contact_counts["intro"] += 1
+
+        # 등록일이 기간 내인지
+        created = s.get("created_at", "")
+        if created and period_start <= created[:10] <= period_end:
+            new_stores_in_period += 1
+
+        # 기간 내 활동 집계
+        for v in (s.get("visits") or []):
+            vdate = v.get("date", "")
+            if vdate and period_start <= vdate[:10] <= period_end:
+                activities_in_period += 1
+                activity_details.append({
+                    "store_name": s.get("name", ""),
+                    "date": vdate[:10],
+                    "result": STATUS_MAP.get(v.get("result", ""), v.get("result", "")),
+                    "memo": v.get("memo", "")
+                })
+
+    contacted = total - status_counts.get("미컨택", 0)
+    conversion_rate = round((contacted / total * 100), 1) if total > 0 else 0.0
+
+    return {
+        "total_stores": total,
+        "status": status_counts,
+        "districts": district_counts,
+        "contacts": contact_counts,
+        "activities_in_period": activities_in_period,
+        "new_stores": new_stores_in_period,
+        "contacted": contacted,
+        "conversion_rate": conversion_rate,
+        "activity_details": activity_details[:100],  # 최대 100건
+    }
+
+
+@app.route("/api/snapshots", methods=["GET"])
+@login_required
+def list_snapshots():
+    """저장된 스냅샷 목록 조회"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    snap_type = request.args.get("type", "")  # weekly / monthly / ''
+
+    docs = fs_get_collection("snapshots")
+    result = []
+    for d in docs:
+        if d.get("teamName") != team:
+            continue
+        if snap_type and d.get("type") != snap_type:
+            continue
+        # activity_details는 목록에서 제외 (무거움)
+        item = {k: v for k, v in d.items() if k != "activity_details"}
+        result.append(item)
+
+    result.sort(key=lambda x: x.get("period_end", ""), reverse=True)
+    return jsonify(result)
+
+
+@app.route("/api/snapshots/<snap_id>", methods=["GET"])
+@login_required
+def get_snapshot(snap_id):
+    """스냅샷 상세 조회 (activity_details 포함)"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+
+    docs = fs_get_collection("snapshots")
+    for d in docs:
+        if d.get("id") == snap_id and d.get("teamName") == team:
+            return jsonify(d)
+    return jsonify({"error": "스냅샷을 찾을 수 없습니다"}), 404
+
+
+@app.route("/api/snapshots", methods=["POST"])
+@login_required
+def create_snapshot():
+    """스냅샷 생성 (주별 또는 월별)"""
+    from datetime import timedelta
+    import calendar as cal_mod
+
+    user = get_current_user()
+    team = user.get("teamName", "")
+    body = request.get_json(force=True)
+    snap_type = body.get("type", "weekly")  # weekly / monthly
+    target_date = body.get("date", "")  # YYYY-MM-DD (해당 주/월 기준일)
+
+    if not target_date:
+        target_date = datetime.now().strftime("%Y-%m-%d")
+
+    try:
+        dt = datetime.strptime(target_date, "%Y-%m-%d")
+    except ValueError:
+        return jsonify({"error": "날짜 형식 오류 (YYYY-MM-DD)"}), 400
+
+    if snap_type == "weekly":
+        # 해당 주의 월~일
+        monday = dt - timedelta(days=dt.weekday())
+        sunday = monday + timedelta(days=6)
+        period_start = monday.strftime("%Y-%m-%d")
+        period_end = sunday.strftime("%Y-%m-%d")
+        iso_cal = dt.isocalendar()
+        period_label = f"{iso_cal[0]}-W{iso_cal[1]:02d}"
+    elif snap_type == "monthly":
+        period_start = dt.strftime("%Y-%m-01")
+        last_day = cal_mod.monthrange(dt.year, dt.month)[1]
+        period_end = dt.strftime(f"%Y-%m-{last_day:02d}")
+        period_label = dt.strftime("%Y-%m")
+    else:
+        return jsonify({"error": "type은 weekly 또는 monthly"}), 400
+
+    # 중복 체크
+    existing = fs_get_collection("snapshots")
+    for d in existing:
+        if d.get("teamName") == team and d.get("period") == period_label and d.get("type") == snap_type:
+            # 이미 존재하면 덮어쓰기
+            snap_id = d.get("id")
+            stores = load_stores()
+            my = [s for s in stores if s.get("teamName") == team]
+            snapshot_data = _build_snapshot(my, period_start, period_end)
+
+            doc = {
+                "id": snap_id,
+                "teamName": team,
+                "type": snap_type,
+                "period": period_label,
+                "period_start": period_start,
+                "period_end": period_end,
+                "created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                "created_by": user.get("username", ""),
+            }
+            doc.update(snapshot_data)
+            fs_set_doc("snapshots", snap_id, doc)
+            return jsonify({"message": "스냅샷 업데이트 완료", "id": snap_id, "snapshot": doc})
+
+    # 새로 생성
+    snap_id = f"snap_{uuid.uuid4().hex[:12]}"
+    stores = load_stores()
+    my = [s for s in stores if s.get("teamName") == team]
+    snapshot_data = _build_snapshot(my, period_start, period_end)
+
+    doc = {
+        "id": snap_id,
+        "teamName": team,
+        "type": snap_type,
+        "period": period_label,
+        "period_start": period_start,
+        "period_end": period_end,
+        "created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "created_by": user.get("username", ""),
+    }
+    doc.update(snapshot_data)
+    fs_set_doc("snapshots", snap_id, doc)
+    return jsonify({"message": "스냅샷 생성 완료", "id": snap_id, "snapshot": doc}), 201
+
+
+@app.route("/api/snapshots/<snap_id>", methods=["DELETE"])
+@login_required
+def delete_snapshot(snap_id):
+    """스냅샷 삭제"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+
+    docs = fs_get_collection("snapshots")
+    for d in docs:
+        if d.get("id") == snap_id and d.get("teamName") == team:
+            fs_delete_doc("snapshots", snap_id)
+            return jsonify({"message": "삭제 완료"})
+    return jsonify({"error": "스냅샷을 찾을 수 없습니다"}), 404
+
+
+@app.route("/api/snapshots/export", methods=["GET"])
+@login_required
+def export_snapshots():
+    """스냅샷 히스토리를 엑셀로 내보내기"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    snap_type = request.args.get("type", "")
+
+    docs = fs_get_collection("snapshots")
+    snapshots = [d for d in docs if d.get("teamName") == team]
+    if snap_type:
+        snapshots = [d for d in snapshots if d.get("type") == snap_type]
+    snapshots.sort(key=lambda x: x.get("period_start", ""))
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "영업 히스토리"
+
+    headers = ["기간", "유형", "시작일", "종료일", "전체 가맹점", "미컨택", "명함전달",
+               "미팅대기", "미팅완료", "컨택율(%)", "기간내 활동", "신규 등록", "생성일"]
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font = Font(bold=True)
+        cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.alignment = Alignment(horizontal="center")
+
+    for row_idx, s in enumerate(snapshots, 2):
+        status = s.get("status", {})
+        if isinstance(status, str):
+            try:
+                status = json.loads(status)
+            except:
+                status = {}
+        ws.cell(row=row_idx, column=1, value=s.get("period", ""))
+        ws.cell(row=row_idx, column=2, value="주별" if s.get("type") == "weekly" else "월별")
+        ws.cell(row=row_idx, column=3, value=s.get("period_start", ""))
+        ws.cell(row=row_idx, column=4, value=s.get("period_end", ""))
+        ws.cell(row=row_idx, column=5, value=s.get("total_stores", 0))
+        ws.cell(row=row_idx, column=6, value=status.get("미컨택", 0))
+        ws.cell(row=row_idx, column=7, value=status.get("명함전달", 0))
+        ws.cell(row=row_idx, column=8, value=status.get("미팅대기", 0))
+        ws.cell(row=row_idx, column=9, value=status.get("미팅완료", 0))
+        ws.cell(row=row_idx, column=10, value=s.get("conversion_rate", 0))
+        ws.cell(row=row_idx, column=11, value=s.get("activities_in_period", 0))
+        ws.cell(row=row_idx, column=12, value=s.get("new_stores", 0))
+        ws.cell(row=row_idx, column=13, value=s.get("created_at", ""))
+
+    # 열 너비 조절
+    for col in range(1, len(headers) + 1):
+        ws.column_dimensions[openpyxl.utils.get_column_letter(col)].width = 14
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    filename = f"영업히스토리_{team}_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    return send_file(buf, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                     as_attachment=True, download_name=filename)
+
+
+# ══════════════════════════════════════════
 #  Keep-alive (Render Free tier 슬립 방지)
 # ══════════════════════════════════════════
 

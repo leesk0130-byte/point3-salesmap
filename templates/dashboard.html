@@ -320,6 +320,234 @@
     }
     .weekly-bar-label.today { color: var(--warning); font-weight: 700; }
 
+    /* ── 히스토리 섹션 ── */
+    .history-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .history-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .history-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .history-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-snap {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--muted);
+      color: var(--text-secondary);
+      transition: all .2s var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-snap:hover { background: var(--border); color: var(--fg); }
+    .btn-snap.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+    .btn-snap-primary {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #4f46e5;
+      background: #4f46e5;
+      color: #fff;
+      transition: all .2s var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-snap-primary:hover { background: #4338ca; border-color: #4338ca; }
+    .btn-snap-export {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--success);
+      background: var(--success);
+      color: #fff;
+      transition: all .2s var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-snap-export:hover { opacity: .85; }
+    .snap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .snap-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-fg);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 10px;
+      border-bottom: 2px solid var(--border);
+      white-space: nowrap;
+    }
+    .snap-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--muted);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .snap-table tbody tr { transition: all .15s; }
+    .snap-table tbody tr:hover td { background: var(--primary-light); }
+    .snap-period {
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .snap-type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .snap-type-badge.weekly { background: #eef2ff; color: #4f46e5; }
+    .snap-type-badge.monthly { background: #fef3c7; color: #92400e; }
+    body.dark .snap-type-badge.weekly { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .snap-type-badge.monthly { background: var(--warning-light); color: #fcd34d; }
+    .snap-mini-bar {
+      display: inline-flex;
+      gap: 1px;
+      height: 14px;
+      border-radius: 3px;
+      overflow: hidden;
+      min-width: 80px;
+    }
+    .snap-mini-bar span { display: block; height: 100%; min-width: 2px; }
+    .snap-change { font-size: 11px; font-weight: 600; }
+    .snap-change.up { color: #059669; }
+    .snap-change.down { color: #dc2626; }
+    .snap-change.flat { color: var(--muted-fg); }
+    .snap-btn-del {
+      background: none;
+      border: none;
+      color: var(--muted-fg);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all .15s;
+    }
+    .snap-btn-del:hover { color: #dc2626; background: #fef2f2; }
+    .snap-empty {
+      text-align: center;
+      color: var(--muted-fg);
+      padding: 32px 0;
+      font-size: 13px;
+    }
+    .snap-detail-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all .2s;
+    }
+    .snap-detail-overlay.show { opacity: 1; visibility: visible; }
+    .snap-detail-modal {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      transform: translateY(20px);
+      transition: transform .2s;
+    }
+    .snap-detail-overlay.show .snap-detail-modal { transform: translateY(0); }
+    .snap-detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .snap-detail-title { font-size: 18px; font-weight: 700; color: var(--fg); }
+    .snap-detail-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--muted-fg);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .snap-detail-close:hover { background: var(--muted); color: var(--fg); }
+    .snap-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .snap-kpi {
+      background: var(--muted);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .snap-kpi-label { font-size: 11px; color: var(--muted-fg); font-weight: 500; }
+    .snap-kpi-val { font-size: 22px; font-weight: 700; margin-top: 2px; }
+    .snap-kpi-val.c1 { color: #dc2626; }
+    .snap-kpi-val.c2 { color: #4f46e5; }
+    .snap-kpi-val.c3 { color: #d97706; }
+    .snap-kpi-val.c4 { color: #059669; }
+    .snap-act-list {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .snap-act-list table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .snap-act-list th {
+      text-align: left;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-fg);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+    }
+    .snap-act-list td { padding: 7px 10px; border-bottom: 1px solid var(--muted); color: var(--text-secondary); }
+
     /* ── 최근활동 컬럼 ── */
     .last-activity {
       font-size: 12px;
@@ -699,6 +927,66 @@
     <div class="weekly-summary">
       <div class="weekly-title">이번 주 활동 요약</div>
       <div class="weekly-bars" id="weeklyBars"></div>
+    </div>
+
+    <!-- ═══ 영업 히스토리 ═══ -->
+    <div class="history-section">
+      <div class="history-header">
+        <div class="history-header-left">
+          <div class="history-title">영업 히스토리</div>
+          <div style="display:flex;gap:4px;">
+            <button class="btn-snap active" id="filterAll" onclick="filterSnap('')">전체</button>
+            <button class="btn-snap" id="filterWeekly" onclick="filterSnap('weekly')">주별</button>
+            <button class="btn-snap" id="filterMonthly" onclick="filterSnap('monthly')">월별</button>
+          </div>
+        </div>
+        <div class="history-actions">
+          <button class="btn-snap-primary" onclick="generateSnapshot('weekly')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            이번 주 저장
+          </button>
+          <button class="btn-snap-primary" onclick="generateSnapshot('monthly')" style="background:#7c3aed;border-color:#7c3aed;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            이번 달 저장
+          </button>
+          <button class="btn-snap-export" onclick="exportSnapshots()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            엑셀 다운로드
+          </button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="snap-table">
+          <thead>
+            <tr>
+              <th>기간</th>
+              <th>유형</th>
+              <th>가맹점</th>
+              <th>상태 분포</th>
+              <th>컨택율</th>
+              <th>기간 활동</th>
+              <th>신규</th>
+              <th>전주 대비</th>
+              <th>저장일</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="snapTableBody">
+            <tr><td colspan="10" class="snap-empty">스냅샷을 저장하면 여기에 히스토리가 쌓입니다</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 스냅샷 상세 모달 -->
+    <div class="snap-detail-overlay" id="snapDetailOverlay" onclick="if(event.target===this)closeSnapDetail()">
+      <div class="snap-detail-modal">
+        <div class="snap-detail-header">
+          <div class="snap-detail-title" id="snapDetailTitle">스냅샷 상세</div>
+          <button class="snap-detail-close" onclick="closeSnapDetail()">&times;</button>
+        </div>
+        <div id="snapDetailBody"></div>
+      </div>
     </div>
 
     <!-- 전체 매장 리스트 -->
@@ -1258,6 +1546,179 @@
       div.textContent = text;
       return div.innerHTML;
     }
+
+    // ═══ 영업 히스토리 ═══
+    let allSnapshots = [];
+    let snapFilterType = '';
+
+    async function loadSnapshots() {
+      try {
+        const res = await fetch('/api/snapshots');
+        allSnapshots = await res.json();
+        renderSnapTable();
+      } catch (e) {
+        console.error('스냅샷 로드 실패:', e);
+      }
+    }
+
+    function filterSnap(type) {
+      snapFilterType = type;
+      document.getElementById('filterAll').className = 'btn-snap' + (type === '' ? ' active' : '');
+      document.getElementById('filterWeekly').className = 'btn-snap' + (type === 'weekly' ? ' active' : '');
+      document.getElementById('filterMonthly').className = 'btn-snap' + (type === 'monthly' ? ' active' : '');
+      renderSnapTable();
+    }
+
+    function renderSnapTable() {
+      const tbody = document.getElementById('snapTableBody');
+      let list = allSnapshots.slice();
+      if (snapFilterType) list = list.filter(s => s.type === snapFilterType);
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="10" class="snap-empty">저장된 스냅샷이 없습니다. 위 버튼으로 이번 주/달 데이터를 저장하세요.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map((s, i) => {
+        const status = typeof s.status === 'object' ? s.status : {};
+        const total = s.total_stores || 0;
+        const counts = [status['미컨택']||0, status['명함전달']||0, status['미팅대기']||0, status['미팅완료']||0];
+        const colors = ['#dc2626','#4f46e5','#d97706','#059669'];
+        const barHtml = total > 0
+          ? '<div class="snap-mini-bar">' + counts.map((c,j) => `<span style="width:${Math.max(c/total*80,2)}px;background:${colors[j]}" title="${['미컨택','명함전달','미팅대기','미팅완료'][j]}: ${c}"></span>`).join('') + '</div>'
+          : '-';
+
+        // 전주 대비 (같은 타입의 이전 스냅샷과 비교)
+        let changeHtml = '<span class="snap-change flat">-</span>';
+        const prevIdx = list.findIndex((p, pi) => pi > i && p.type === s.type);
+        if (prevIdx >= 0) {
+          const prev = list[prevIdx];
+          const diff = (s.activities_in_period || 0) - (prev.activities_in_period || 0);
+          if (diff > 0) changeHtml = `<span class="snap-change up">+${diff} ↑</span>`;
+          else if (diff < 0) changeHtml = `<span class="snap-change down">${diff} ↓</span>`;
+          else changeHtml = '<span class="snap-change flat">→ 동일</span>';
+        }
+
+        const typeLabel = s.type === 'weekly' ? 'weekly' : 'monthly';
+        const typeName = s.type === 'weekly' ? '주별' : '월별';
+
+        return `<tr style="cursor:pointer" onclick="viewSnapDetail('${escapeHtml(s.id)}')">
+          <td><span class="snap-period">${escapeHtml(s.period||'')}</span><br><span style="font-size:11px;color:var(--muted-fg)">${escapeHtml(s.period_start||'')} ~ ${escapeHtml(s.period_end||'')}</span></td>
+          <td><span class="snap-type-badge ${typeLabel}">${typeName}</span></td>
+          <td style="font-weight:600">${total}</td>
+          <td>${barHtml}</td>
+          <td style="font-weight:600">${s.conversion_rate||0}%</td>
+          <td style="font-weight:600;color:var(--primary)">${s.activities_in_period||0}건</td>
+          <td>${s.new_stores||0}</td>
+          <td>${changeHtml}</td>
+          <td style="font-size:11px;color:var(--muted-fg)">${(s.created_at||'').slice(0,10)}</td>
+          <td><button class="snap-btn-del" onclick="event.stopPropagation();deleteSnap('${escapeHtml(s.id)}')" title="삭제">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+          </button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function generateSnapshot(type) {
+      const today = new Date().toISOString().slice(0, 10);
+      try {
+        const res = await fetch('/api/snapshots', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ type: type, date: today })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showToast((type === 'weekly' ? '이번 주' : '이번 달') + ' 스냅샷 저장 완료', 'success');
+          loadSnapshots();
+        } else {
+          showToast(data.error || '저장 실패', 'error');
+        }
+      } catch (e) {
+        showToast('스냅샷 저장 실패', 'error');
+      }
+    }
+
+    async function deleteSnap(id) {
+      try {
+        await fetch('/api/snapshots/' + id, { method: 'DELETE' });
+        showToast('스냅샷 삭제됨', 'success');
+        loadSnapshots();
+      } catch (e) {
+        showToast('삭제 실패', 'error');
+      }
+    }
+
+    function exportSnapshots() {
+      const typeParam = snapFilterType ? '?type=' + snapFilterType : '';
+      window.location.href = '/api/snapshots/export' + typeParam;
+    }
+
+    async function viewSnapDetail(id) {
+      try {
+        const res = await fetch('/api/snapshots/' + id);
+        if (!res.ok) { showToast('스냅샷 조회 실패', 'error'); return; }
+        const snap = await res.json();
+        const status = typeof snap.status === 'object' ? snap.status : {};
+        const typeName = snap.type === 'weekly' ? '주별' : '월별';
+
+        document.getElementById('snapDetailTitle').textContent = `${snap.period} ${typeName} 스냅샷`;
+
+        let html = `<div class="snap-kpi-grid">
+          <div class="snap-kpi"><div class="snap-kpi-label">미컨택</div><div class="snap-kpi-val c1">${status['미컨택']||0}</div></div>
+          <div class="snap-kpi"><div class="snap-kpi-label">명함전달</div><div class="snap-kpi-val c2">${status['명함전달']||0}</div></div>
+          <div class="snap-kpi"><div class="snap-kpi-label">미팅대기</div><div class="snap-kpi-val c3">${status['미팅대기']||0}</div></div>
+          <div class="snap-kpi"><div class="snap-kpi-label">미팅완료</div><div class="snap-kpi-val c4">${status['미팅완료']||0}</div></div>
+        </div>`;
+
+        html += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div class="snap-kpi"><div class="snap-kpi-label">전체 가맹점</div><div class="snap-kpi-val" style="color:var(--fg)">${snap.total_stores||0}</div></div>
+          <div class="snap-kpi"><div class="snap-kpi-label">컨택율</div><div class="snap-kpi-val" style="color:var(--primary)">${snap.conversion_rate||0}%</div></div>
+          <div class="snap-kpi"><div class="snap-kpi-label">기간내 활동</div><div class="snap-kpi-val" style="color:var(--primary)">${snap.activities_in_period||0}건</div></div>
+        </div>`;
+
+        // 활동 상세 목록
+        const details = snap.activity_details || [];
+        if (details.length > 0) {
+          html += '<div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--fg)">기간내 활동 내역</div>';
+          html += '<div class="snap-act-list"><table><thead><tr><th>날짜</th><th>가맹점</th><th>결과</th><th>메모</th></tr></thead><tbody>';
+          details.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+          details.forEach(d => {
+            html += `<tr><td>${escapeHtml(d.date||'')}</td><td style="font-weight:500">${escapeHtml(d.store_name||'')}</td><td><span class="status-badge status-${escapeHtml(d.result||'미컨택')}" style="font-size:11px;padding:2px 8px">${escapeHtml(d.result||'')}</span></td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${escapeHtml(d.memo||'-')}</td></tr>`;
+          });
+          html += '</tbody></table></div>';
+        } else {
+          html += '<div style="text-align:center;color:var(--muted-fg);padding:20px;font-size:13px">이 기간에 활동 내역이 없습니다</div>';
+        }
+
+        // 연락수단 현황
+        const contacts = snap.contacts || {};
+        if (contacts.email || contacts.linkedin || contacts.remember || contacts.intro) {
+          html += '<div style="font-size:13px;font-weight:600;margin:16px 0 8px;color:var(--fg)">연락수단 현황</div>';
+          html += '<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+          if (contacts.email) html += `<span class="ct ct-email" style="font-size:12px;padding:4px 10px">메일 ${contacts.email}</span>`;
+          if (contacts.linkedin) html += `<span class="ct ct-li" style="font-size:12px;padding:4px 10px">LI ${contacts.linkedin}</span>`;
+          if (contacts.remember) html += `<span class="ct ct-rem" style="font-size:12px;padding:4px 10px">리멤 ${contacts.remember}</span>`;
+          if (contacts.intro) html += `<span class="ct ct-intro" style="font-size:12px;padding:4px 10px">소개 ${contacts.intro}</span>`;
+          html += '</div>';
+        }
+
+        document.getElementById('snapDetailBody').innerHTML = html;
+        document.getElementById('snapDetailOverlay').classList.add('show');
+      } catch (e) {
+        showToast('스냅샷 조회 실패', 'error');
+      }
+    }
+
+    function closeSnapDetail() {
+      document.getElementById('snapDetailOverlay').classList.remove('show');
+    }
+
+    // ESC로 모달 닫기
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSnapDetail(); });
+
+    // 스냅샷 초기 로드
+    loadSnapshots();
 
     // ── 자동 새로고침 ──
     let lastUpdateTime = null;
