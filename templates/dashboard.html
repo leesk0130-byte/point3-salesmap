@@ -25,7 +25,7 @@
       --violet: #7c3aed;
       --violet-light: #f5f3ff;
       --bg: #f9fafb;
-      --fg: #111827;
+      --fg: #0f172a;
       --card-bg: #fff;
       --card-border: #e5e7eb;
       --muted: #f3f4f6;
@@ -66,8 +66,8 @@
     /* ── 헤더 ── */
     .header {
       background: var(--card-bg);
-      padding: 0 32px;
-      height: 64px;
+      padding: 0 24px;
+      height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -83,13 +83,13 @@
       gap: 10px;
     }
     .header-brand h1 {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.5px;
       color: #6366f1;
     }
     .header-brand .subtitle {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
       color: #6366f1;
       padding: 3px 10px;
@@ -102,7 +102,7 @@
       background: var(--muted);
       color: var(--text-secondary);
       border: 1px solid var(--border);
-      padding: 8px 20px;
+      padding: 7px 14px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
@@ -115,7 +115,7 @@
       background: #4f46e5;
       color: #fff;
       border: 1px solid #4f46e5;
-      padding: 8px 20px;
+      padding: 7px 14px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
@@ -218,10 +218,11 @@
       border-radius: 14px;
       padding: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,.04);
-      transition: box-shadow .2s var(--transition);
+      transition: all .2s var(--transition);
     }
     .chart-card:hover {
-      box-shadow: 0 4px 16px rgba(0,0,0,.06);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.10);
     }
     .chart-card.full { grid-column: 1 / -1; }
     .chart-title {
@@ -536,6 +537,79 @@
         pointer-events: none;
       }
     }
+    /* ── KPI fadeUp 애니메이션 ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .kpi-card {
+      opacity: 0;
+      animation: fadeUp .4s var(--transition) forwards;
+    }
+    .kpi-card:nth-child(1) { animation-delay: 0s; }
+    .kpi-card:nth-child(2) { animation-delay: .1s; }
+    .kpi-card:nth-child(3) { animation-delay: .2s; }
+    .kpi-card:nth-child(4) { animation-delay: .3s; }
+
+    /* ── 스켈레톤 펄스 ── */
+    @keyframes skeletonPulse {
+      0%, 100% { opacity: .4; }
+      50% { opacity: 1; }
+    }
+    .skeleton {
+      background: var(--muted);
+      border-radius: 6px;
+      animation: skeletonPulse 1.2s ease-in-out infinite;
+    }
+    .skeleton-chart {
+      height: 200px;
+      background: var(--muted);
+      border-radius: 8px;
+      animation: skeletonPulse 1.2s ease-in-out infinite;
+    }
+    .skeleton-row td {
+      padding: 14px 12px !important;
+    }
+    .skeleton-bar {
+      height: 14px;
+      background: var(--muted);
+      border-radius: 4px;
+      animation: skeletonPulse 1.2s ease-in-out infinite;
+    }
+
+    /* ── 토스트 ── */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      animation: toastIn .3s var(--transition) forwards;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.success { background: #059669; }
+    .toast.error { background: #dc2626; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to { opacity: 0; transform: translateX(40px); }
+    }
+
     @media (max-width: 480px) {
       .header-brand h1 { font-size: 17px; }
       .header-right { gap: 6px; }
@@ -597,7 +671,8 @@
     <div class="chart-grid">
       <div class="chart-card">
         <div class="chart-title">영업 파이프라인</div>
-        <div class="donut-with-rates">
+        <div id="skelPipeline" class="skeleton-chart"></div>
+        <div class="donut-with-rates" id="wrapPipeline" style="display:none">
           <div class="chart-wrap donut">
             <canvas id="chartStatus"></canvas>
           </div>
@@ -606,13 +681,15 @@
       </div>
       <div class="chart-card">
         <div class="chart-title">지역구별 현황</div>
-        <div class="chart-wrap">
+        <div id="skelDistrict" class="skeleton-chart"></div>
+        <div class="chart-wrap" id="wrapDistrict" style="display:none">
           <canvas id="chartDistrict"></canvas>
         </div>
       </div>
       <div class="chart-card full">
         <div class="chart-title">최근 30일 활동 추이</div>
-        <div class="chart-wrap">
+        <div id="skelTrend" class="skeleton-chart"></div>
+        <div class="chart-wrap" id="wrapTrend" style="display:none">
           <canvas id="chartTrend"></canvas>
         </div>
       </div>
@@ -665,7 +742,9 @@
             </tr>
           </thead>
           <tbody id="storeTableBody">
-            <tr><td colspan="9" class="empty-msg">데이터 로딩 중...</td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-bar" style="width:20px"></div></td><td><div class="skeleton-bar" style="width:80%"></div></td><td class="col-addr"><div class="skeleton-bar" style="width:90%"></div></td><td><div class="skeleton-bar" style="width:60px"></div></td><td><div class="skeleton-bar" style="width:60px"></div></td><td><div class="skeleton-bar" style="width:50px"></div></td><td><div class="skeleton-bar" style="width:30px"></div></td><td class="col-last-act"><div class="skeleton-bar" style="width:70px"></div></td><td><div class="skeleton-bar" style="width:30px"></div></td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-bar" style="width:20px"></div></td><td><div class="skeleton-bar" style="width:70%"></div></td><td class="col-addr"><div class="skeleton-bar" style="width:85%"></div></td><td><div class="skeleton-bar" style="width:50px"></div></td><td><div class="skeleton-bar" style="width:55px"></div></td><td><div class="skeleton-bar" style="width:45px"></div></td><td><div class="skeleton-bar" style="width:25px"></div></td><td class="col-last-act"><div class="skeleton-bar" style="width:65px"></div></td><td><div class="skeleton-bar" style="width:30px"></div></td></tr>
+            <tr class="skeleton-row"><td><div class="skeleton-bar" style="width:20px"></div></td><td><div class="skeleton-bar" style="width:75%"></div></td><td class="col-addr"><div class="skeleton-bar" style="width:80%"></div></td><td><div class="skeleton-bar" style="width:55px"></div></td><td><div class="skeleton-bar" style="width:65px"></div></td><td><div class="skeleton-bar" style="width:40px"></div></td><td><div class="skeleton-bar" style="width:28px"></div></td><td class="col-last-act"><div class="skeleton-bar" style="width:60px"></div></td><td><div class="skeleton-bar" style="width:30px"></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -673,8 +752,54 @@
 
   </div>
 
+  <!-- 토스트 컨테이너 -->
+  <div class="toast-container" id="toastContainer"></div>
+
   <!-- ═══ 스크립트 ═══ -->
   <script>
+    // ── 토스트 함수 ──
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + type;
+      const icon = type === 'success' ? '&#10003;' : '&#10007;';
+      toast.innerHTML = '<span>' + icon + '</span><span>' + message + '</span>';
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.animation = 'toastOut .3s var(--transition) forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // ── 카운트업 애니메이션 ──
+    function animateCount(el, target, suffix) {
+      suffix = suffix || '';
+      const isFloat = String(target).includes('.');
+      const duration = 600;
+      const start = performance.now();
+      const numTarget = parseFloat(target);
+      if (isNaN(numTarget) || numTarget === 0) {
+        el.textContent = target + suffix;
+        return;
+      }
+      function tick(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = numTarget * eased;
+        if (isFloat) {
+          el.textContent = current.toFixed(1) + suffix;
+        } else {
+          el.textContent = Math.floor(current).toLocaleString() + suffix;
+        }
+        if (progress < 1) requestAnimationFrame(tick);
+        else {
+          if (isFloat) el.textContent = numTarget.toFixed(1) + suffix;
+          else el.textContent = numTarget.toLocaleString() + suffix;
+        }
+      }
+      requestAnimationFrame(tick);
+    }
     let chartStatus = null;
     let chartDistrict = null;
     let chartTrend = null;
@@ -710,8 +835,10 @@
         const stores = await res.json();
         allStoresCache = stores;
         render(stores);
+        showToast('데이터 업데이트 완료 (' + stores.length + '개)', 'success');
       } catch (e) {
         console.error('데이터 로드 실패:', e);
+        showToast('데이터 로드 실패', 'error');
       } finally {
         btn.classList.remove('spinning');
       }
@@ -764,10 +891,10 @@
       const contacted = total - noContact;
       const rate = total > 0 ? ((contacted / total) * 100).toFixed(1) : '0.0';
 
-      document.getElementById('kpiTotal').textContent = total.toLocaleString();
-      document.getElementById('kpiContacted').textContent = contacted.toLocaleString();
-      document.getElementById('kpiNoContact').textContent = noContact.toLocaleString();
-      document.getElementById('kpiRate').textContent = rate + '%';
+      animateCount(document.getElementById('kpiTotal'), total);
+      animateCount(document.getElementById('kpiContacted'), contacted);
+      animateCount(document.getElementById('kpiNoContact'), noContact);
+      animateCount(document.getElementById('kpiRate'), rate, '%');
 
       // ── 전주 대비 변화 계산 ──
       const thisWeek = getWeekRange(0);
@@ -849,6 +976,10 @@
         }
       });
 
+      // 스켈레톤 → 차트 표시
+      document.getElementById('skelPipeline').style.display = 'none';
+      document.getElementById('wrapPipeline').style.display = '';
+
       // ── 전환율 표시 ──
       const convEl = document.getElementById('conversionRates');
       const convPairs = [
@@ -888,6 +1019,10 @@
       });
       const districtContacted = districtNames.map(d => districtMap[d].contacted);
       const districtNoContact = districtNames.map(d => districtMap[d].noContact);
+
+      // 스켈레톤 → 차트 표시
+      document.getElementById('skelDistrict').style.display = 'none';
+      document.getElementById('wrapDistrict').style.display = '';
 
       // ── 바 차트 ──
       if (chartDistrict) chartDistrict.destroy();
@@ -951,6 +1086,10 @@
         const parts = d.split('-');
         return parts[1] + '/' + parts[2];
       });
+
+      // 스켈레톤 → 차트 표시
+      document.getElementById('skelTrend').style.display = 'none';
+      document.getElementById('wrapTrend').style.display = '';
 
       if (chartTrend) chartTrend.destroy();
       chartTrend = new Chart(document.getElementById('chartTrend'), {
