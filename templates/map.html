@@ -72,8 +72,8 @@
 
         /* ── Toast ── */
         .toast-container { position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:8px;pointer-events:none; }
-        .toast { padding:12px 20px;border-radius:var(--radius);background:#10b981;color:#fff;font:600 13px/1.4 inherit;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:toastFadeIn .3s ease,toastFadeOut .3s ease 2.2s forwards;pointer-events:auto; }
-        .toast-error { background:var(--danger); }
+        .toast { padding:14px 20px;border-radius:10px;background:#059669;color:#fff;font:600 13px/1.4 inherit;box-shadow:0 4px 12px rgba(0,0,0,.15);animation:toastFadeIn .3s ease,toastFadeOut .3s ease 2.2s forwards;pointer-events:auto; }
+        .toast-error { background:#dc2626; }
         @keyframes toastFadeIn { from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)} }
         @keyframes toastFadeOut { from{opacity:1}to{opacity:0;transform:translateY(-12px)} }
 
@@ -183,7 +183,7 @@
         .sb-search input::placeholder { color: var(--muted-fg); }
         .sb-search input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+            box-shadow: 0 0 0 3px rgba(79,70,229,.15);
             background: var(--bg);
         }
         .sb-search-icon {
@@ -311,14 +311,14 @@
             background: var(--bg);
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             border-left: 3px solid transparent;
         }
         .s-card:hover {
             border-color: var(--border-strong);
             background: var(--muted);
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,.06);
         }
         .s-card:active {
             transform: translateY(0);
@@ -367,6 +367,18 @@
         .s-card-alert-dot.warn { background: var(--warning); box-shadow: 0 0 4px rgba(217,119,6,.4); }
         .s-card-alert-dot.danger { background: var(--danger); box-shadow: 0 0 4px rgba(220,38,38,.4); animation: dot-pulse 1.5s ease-in-out infinite; }
         @keyframes dot-pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+        /* ── Skeleton Loading ── */
+        .skeleton-card {
+            padding: 14px 12px; border-radius: 8px; background: var(--muted);
+            margin-bottom: 10px; animation: skeleton-pulse 1.2s ease-in-out infinite;
+        }
+        .skeleton-card .sk-line { height: 12px; border-radius: 4px; background: var(--border); margin-bottom: 8px; }
+        .skeleton-card .sk-line:last-child { margin-bottom: 0; }
+        .skeleton-card .sk-line.sk-title { width: 60%; height: 14px; }
+        .skeleton-card .sk-line.sk-addr { width: 85%; }
+        .skeleton-card .sk-line.sk-badge { width: 40%; height: 10px; }
+        @keyframes skeleton-pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
         /* ── Badge — Compact ── */
         .badge {
@@ -436,14 +448,14 @@
             display: flex; gap: 8px;
         }
         .map-ctrl-btn {
-            height: 36px; padding: 0 14px; border-radius: var(--radius);
+            height: 36px; padding: 0 14px; border-radius: 8px;
             border: 1px solid var(--border); background: var(--bg);
-            font: 500 12px/1 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif; color: var(--muted-fg); letter-spacing: -0.2px;
+            font: 500 13px/1 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif; color: var(--muted-fg); letter-spacing: -0.2px;
             display: flex; align-items: center; gap: 6px;
-            cursor: pointer; transition: all .15s;
+            cursor: pointer; transition: all .2s cubic-bezier(.4,0,.2,1);
             box-shadow: var(--shadow);
         }
-        .map-ctrl-btn:hover { background: var(--muted); color: var(--fg); }
+        .map-ctrl-btn:hover { background: var(--muted); color: var(--fg); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
         .map-ctrl-btn.active {
             background: #16a34a; border-color: #16a34a; color: #fff;
         }
@@ -523,7 +535,7 @@
 
         /* Popup */
         .leaflet-popup-content-wrapper {
-            border-radius: var(--radius-lg) !important;
+            border-radius: 14px !important;
             box-shadow: var(--shadow-md), 0 0 0 1px var(--border) !important;
             padding: 0 !important; overflow: hidden;
             background: var(--bg) !important; border: none !important;
@@ -533,10 +545,10 @@
         .leaflet-popup-close-button { color: var(--muted-fg) !important; font-size: 18px !important; padding: 6px 8px !important; }
         .leaflet-popup-close-button:hover { color: var(--fg) !important; }
 
-        .pop-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+        .pop-head { padding: 16px; border-bottom: 1px solid var(--border); }
         .pop-name { font-size: 15px; font-weight: 600; color: var(--fg); margin-bottom: 2px; word-break: break-word; }
         .pop-addr { font-size: 12px; color: var(--muted-fg); word-break: break-word; }
-        .pop-body { padding: 12px 16px 14px; }
+        .pop-body { padding: 14px; }
         .pop-memo {
             font-size: 12px; color: var(--fg); margin-bottom: 10px;
             padding: 8px 10px; background: var(--muted); border-radius: 6px;
@@ -544,7 +556,7 @@
             word-break: break-word;
         }
         .pop-section-label { font-size: 11px; font-weight: 600; color: var(--muted-fg); margin-bottom: 8px; }
-        .pop-visits { max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+        .pop-visits { max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
         .pop-visits::-webkit-scrollbar { width: 3px; }
         .pop-visits::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
         .pop-v {
@@ -979,7 +991,7 @@
         /* ── Map Control Button Hover Enhancement ── */
         .map-ctrl-btn:hover {
             transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
+            box-shadow: 0 4px 12px rgba(0,0,0,.08);
         }
     </style>
 </head>
@@ -1788,7 +1800,7 @@
             t.className = 'toast' + (isError ? ' toast-error' : '');
             t.textContent = msg;
             c.appendChild(t);
-            setTimeout(() => t.remove(), 2600);
+            setTimeout(() => t.remove(), 2500);
         }
 
         // 결과 버튼 그룹 초기화
@@ -1930,6 +1942,7 @@
 
         async function loadStores() {
             loadingOverlay.style.display = 'flex';
+            storeList.innerHTML = Array(3).fill('<div class="skeleton-card"><div class="sk-line sk-title"></div><div class="sk-line sk-addr"></div><div class="sk-line sk-badge"></div></div>').join('');
             try {
                 const res = await fetch('/api/stores'); if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
