@@ -1323,6 +1323,119 @@ def delete_calendar_note(note_id):
     return jsonify({"error": "메모를 찾을 수 없습니다."}), 404
 
 
+# ══════════════════════════════════════════
+#  API 라우트 - 통계 (주간/전환율/요일별)
+# ══════════════════════════════════════════
+
+STATUS_MAP = {
+    '미방문': '미컨택',
+    '부재중': '미컨택',
+    '계약성사': '미팅완료',
+    '실패': '미컨택',
+    '기타': '미컨택',
+}
+
+
+@app.route("/api/stats/weekly", methods=["GET"])
+@login_required
+def stats_weekly():
+    """이번 주(월~일) vs 지난 주 활동 건수 비교"""
+    from datetime import timedelta
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my = [s for s in stores if s.get("teamName") == team]
+
+    today = datetime.now().date()
+    # 이번 주 월요일 (weekday(): 월=0)
+    this_monday = today - timedelta(days=today.weekday())
+    last_monday = this_monday - timedelta(days=7)
+
+    def empty_bucket():
+        return {"total": 0, "명함전달": 0, "미팅대기": 0, "미팅완료": 0}
+
+    this_week = empty_bucket()
+    last_week = empty_bucket()
+
+    for s in my:
+        for v in (s.get("visits") or []):
+            try:
+                vd = datetime.strptime(v.get("date", ""), "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                continue
+            result = v.get("result", "")
+            if this_monday <= vd <= this_monday + timedelta(days=6):
+                this_week["total"] += 1
+                if result in this_week:
+                    this_week[result] += 1
+            elif last_monday <= vd <= last_monday + timedelta(days=6):
+                last_week["total"] += 1
+                if result in last_week:
+                    last_week[result] += 1
+
+    return jsonify({"thisWeek": this_week, "lastWeek": last_week})
+
+
+@app.route("/api/stats/conversion", methods=["GET"])
+@login_required
+def stats_conversion():
+    """전환율 퍼널 — 현재 각 상태별 가맹점 수"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my = [s for s in stores if s.get("teamName") == team]
+
+    funnel = {"미컨택": 0, "명함전달": 0, "미팅대기": 0, "미팅완료": 0}
+
+    for s in my:
+        vs = s.get("visits") or []
+        if not vs:
+            funnel["미컨택"] += 1
+            continue
+        latest = max(vs, key=lambda v: v.get("date", ""))
+        raw = latest.get("result", "") or ""
+        status = STATUS_MAP.get(raw, raw)
+        if status in funnel:
+            funnel[status] += 1
+        else:
+            funnel["미컨택"] += 1
+
+    return jsonify(funnel)
+
+
+@app.route("/api/stats/activity-by-day", methods=["GET"])
+@login_required
+def stats_activity_by_day():
+    """최근 7일 요일별 활동 건수"""
+    from datetime import timedelta
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my = [s for s in stores if s.get("teamName") == team]
+
+    today = datetime.now().date()
+    day_names = ["월", "화", "수", "목", "금", "토", "일"]
+
+    # 최근 7일 날짜 목록 (오래된 순)
+    days = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        days.append({"date": d.strftime("%Y-%m-%d"), "day": day_names[d.weekday()], "count": 0})
+
+    date_set = {d["date"] for d in days}
+
+    for s in my:
+        for v in (s.get("visits") or []):
+            vdate = v.get("date", "")
+            if vdate in date_set:
+                for d in days:
+                    if d["date"] == vdate:
+                        d["count"] += 1
+                        break
+
+    return jsonify(days)
+
+
 # ── 초기화 + 서버 실행 ──
 ensure_superadmin()
 
