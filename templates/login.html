@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Point3 CRM</title>
+<title>{{ team_name or 'Point3' }} CRM</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
   :root {
@@ -190,7 +190,7 @@
         <circle cx="12" cy="10" r="3"/>
       </svg>
     </div>
-    <span class="logo-text">Point3 CRM</span>
+    <span class="logo-text">{{ team_name or 'Point3' }} CRM</span>
   </div>
   <div style="text-align:center;font-size:13px;color:var(--fg-muted);margin-top:-20px;margin-bottom:24px;font-weight:500;transition:color .2s;">영업팀 전용 CRM</div>
 

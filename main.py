@@ -455,7 +455,7 @@ def team_setup_page():
         return redirect("/login")
     if user.get("teamName"):
         return redirect("/pending" if not user.get("isApproved") else "/")
-    return render_template("team-setup.html")
+    return render_template("team-setup.html", team_name="")
 
 
 @app.route("/auth/set-team", methods=["POST"])
@@ -484,7 +484,7 @@ def pending_page():
         return redirect("/login")
     if user.get("isApproved"):
         return redirect("/")
-    return render_template("pending.html")
+    return render_template("pending.html", team_name=user.get("teamName", "") if user else "")
 
 
 @app.route("/approve")
@@ -493,7 +493,7 @@ def approve_page():
     user = get_current_user()
     if user.get("role") != "superadmin":
         return redirect("/")
-    return render_template("approve.html")
+    return render_template("approve.html", team_name=user.get("teamName", ""))
 
 
 # ── 관리자 API ──
@@ -578,32 +578,36 @@ def admin_update_team():
 @app.route("/")
 @login_required
 def index():
-    return render_template("map.html")
+    user = get_current_user()
+    return render_template("map.html", team_name=user.get("teamName", ""))
 
 
 @app.route("/admin")
 @login_required
 def admin_page():
     user = get_current_user()
-    return render_template("admin.html", is_superadmin=(user.get("role") == "superadmin"))
+    return render_template("admin.html", is_superadmin=(user.get("role") == "superadmin"), team_name=user.get("teamName", ""))
 
 
 @app.route("/dashboard")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    user = get_current_user()
+    return render_template("dashboard.html", team_name=user.get("teamName", ""))
 
 
 @app.route("/calendar")
 @login_required
 def calendar():
-    return render_template("calendar.html")
+    user = get_current_user()
+    return render_template("calendar.html", team_name=user.get("teamName", ""))
 
 
 @app.route("/stores")
 @login_required
 def stores_page():
-    return render_template("stores.html")
+    user = get_current_user()
+    return render_template("stores.html", team_name=user.get("teamName", ""))
 
 
 # ══════════════════════════════════════════

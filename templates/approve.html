@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Point3 CRM — 팀원 관리</title>
+  <title>{{ team_name }} CRM — 팀원 관리</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <style>
     :root {
@@ -297,7 +297,7 @@
 <body>
   <div class="header">
     <div class="header-left">
-      <div class="logo">Point3 <span>CRM</span></div>
+      <div class="logo">{{ team_name or 'Point3' }} <span>CRM</span></div>
       <div class="header-sub">팀원 관리</div>
     </div>
     <a href="/" class="back-link">← 지도로 돌아가기</a>
