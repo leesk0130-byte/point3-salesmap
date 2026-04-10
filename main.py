@@ -1265,6 +1265,64 @@ def migrate_websites():
     return jsonify({"updated": updated})
 
 
+# ── 캘린더 메모 API ──
+_notes_cache = {"data": None, "ts": 0}
+
+def load_notes():
+    now = time.time()
+    if _notes_cache["data"] is not None and (now - _notes_cache["ts"]) < 5:
+        return _notes_cache["data"]
+    result = fs_get_collection("calendar_notes")
+    _notes_cache["data"] = result
+    _notes_cache["ts"] = now
+    return result
+
+def _invalidate_notes_cache():
+    _notes_cache["data"] = None
+    _notes_cache["ts"] = 0
+
+
+@app.route("/api/calendar-notes", methods=["GET"])
+@login_required
+def get_calendar_notes():
+    user = get_current_user()
+    team = user.get("teamName", "")
+    notes = [n for n in load_notes() if n.get("teamName") == team]
+    return jsonify(notes)
+
+
+@app.route("/api/calendar-notes", methods=["POST"])
+@login_required
+def add_calendar_note():
+    user = get_current_user()
+    data = request.get_json()
+    note = {
+        "id": str(uuid.uuid4()),
+        "date": data.get("date", ""),
+        "memo": data.get("memo", ""),
+        "teamName": user.get("teamName", ""),
+        "author": user.get("name", ""),
+        "created_at": datetime.now().isoformat(),
+    }
+    fs_set_doc("calendar_notes", note["id"], note)
+    _invalidate_notes_cache()
+    return jsonify(note)
+
+
+@app.route("/api/calendar-notes/<note_id>", methods=["DELETE"])
+@login_required
+def delete_calendar_note(note_id):
+    user = get_current_user()
+    team = user.get("teamName", "")
+    notes = load_notes()
+    for n in notes:
+        if n["id"] == note_id and n.get("teamName") == team:
+            fs_delete_doc("calendar_notes", note_id)
+            _invalidate_notes_cache()
+            return jsonify({"ok": True})
+    return jsonify({"error": "메모를 찾을 수 없습니다."}), 404
+
+
 # ── 초기화 + 서버 실행 ──
 ensure_superadmin()
 
