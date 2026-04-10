@@ -1591,7 +1591,7 @@
                             if (store) store.starred = data.starred;
                             render();
                         }
-                    } catch(err) { console.error('즐겨찾기 토글 실패', err); }
+                    } catch(err) { console.error('즐겨찾기 토글 실패', err); showToast('즐겨찾기 저장 실패', true); }
                 });
             });
             storeList.querySelectorAll('.s-card').forEach(el => {
@@ -1906,8 +1906,11 @@
         updateSidebarState();
         loadStores();
         // superadmin이면 승인 버튼 표시
-        fetch('/auth/me').then(r=>r.json()).then(u=>{
-            if(u.role==='superadmin') document.getElementById('approveBtn').style.display='flex';
+        fetch('/auth/me').then(r=>{
+            if(!r.ok) { location.href='/login'; return Promise.reject(); }
+            return r.json();
+        }).then(u=>{
+            if(u && u.role==='superadmin') document.getElementById('approveBtn').style.display='flex';
         }).catch(()=>{});
     </script>
 

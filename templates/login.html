@@ -290,7 +290,9 @@
       });
       var data = await res.json();
       if (res.ok) {
-        location.href = '/';
+        if (data.needTeam) location.href = '/team-setup';
+        else if (data.needApproval) location.href = '/pending';
+        else location.href = '/';
       } else {
         showAlert(data.error || '로그인에 실패했습니다.', 'error');
       }

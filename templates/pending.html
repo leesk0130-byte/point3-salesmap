@@ -248,7 +248,8 @@
           statusMsg.textContent = '아직 승인되지 않았습니다. 자동으로 확인 중...';
         }
       } catch (err) {
-        statusMsg.textContent = err.message;
+        console.error('Auth check failed:', err);
+        statusMsg.textContent = '상태 확인 중 오류가 발생했습니다. 다시 시도해주세요.';
         statusMsg.className = 'status-msg error';
       } finally {
         checkBtn.disabled = false;

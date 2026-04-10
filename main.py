@@ -164,8 +164,10 @@ def _invalidate_cache():
     _stores_cache["ts"] = 0
 
 def save_store(store):
-    fs_set_doc("stores", store["id"], store)
+    """매장 저장. 성공 시 True, 실패 시 False 반환"""
+    result = fs_set_doc("stores", store["id"], store)
     _invalidate_cache()
+    return result
 
 def save_stores(stores):
     for s in stores:
@@ -377,7 +379,11 @@ def auth_login():
     for u in users:
         if u["username"] == username and u["password"] == hash_pw(password):
             session["user_id"] = u["id"]
-            return jsonify({"message": "로그인 성공"})
+            return jsonify({
+                "message": "로그인 성공",
+                "needTeam": not u.get("teamName"),
+                "needApproval": not u.get("isApproved"),
+            })
 
     return jsonify({"error": "아이디 또는 비밀번호가 올바르지 않습니다."}), 401
 
@@ -396,7 +402,8 @@ def auth_google():
         email = idinfo["email"].lower()
         name = idinfo.get("name", email.split("@")[0])
     except Exception as e:
-        return jsonify({"error": f"Google 인증 실패: {str(e)}"}), 401
+        print(f"[Google Auth Error] {str(e)}")
+        return jsonify({"error": "Google 인증에 실패했습니다. 다시 시도해주세요."}), 401
 
     users = load_users()
     # 기존 유저 찾기
@@ -576,6 +583,7 @@ def index():
 
 @app.route("/admin")
 @login_required
+@superadmin_required
 def admin_page():
     return render_template("admin.html")
 
@@ -640,10 +648,13 @@ def add_store():
     # 위도/경도가 없으면 자동 지오코딩
     if store["lat"] is None or store["lng"] is None:
         lat, lng = geocode_address(store["address"])
+        if lat is None or lng is None:
+            return jsonify({"error": "주소를 지도 좌표로 변환할 수 없습니다. 정확한 주소인지 확인해주세요."}), 400
         store["lat"] = lat
         store["lng"] = lng
 
-    save_store(store)
+    if not save_store(store):
+        return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
     return jsonify(store), 201
 
 
@@ -651,12 +662,17 @@ def add_store():
 @login_required
 def update_store(store_id):
     """매장 정보 수정"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
     data = request.get_json()
     stores = load_stores()
 
     # 해당 ID의 매장 찾기
     for i, store in enumerate(stores):
         if store["id"] == store_id:
+            # 팀 소유권 검증
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
             # 전달된 필드만 업데이트
             for key in ["name", "address", "lat", "lng", "memo"]:
                 if key in data:
@@ -664,7 +680,8 @@ def update_store(store_id):
             # 주소가 변경되면 district 재추출
             if "address" in data:
                 stores[i]["district"] = extract_district(data["address"])
-            save_store(stores[i])
+            if not save_store(stores[i]):
+                return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
             return jsonify(stores[i])
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -674,9 +691,20 @@ def update_store(store_id):
 @login_required
 def delete_store(store_id):
     """매장 삭제"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
+    stores = load_stores()
+    for store in stores:
+        if store["id"] == store_id:
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
+            break
+    else:
+        return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
+
     if delete_store_doc(store_id):
         return jsonify({"message": "삭제 완료"}), 200
-    return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
+    return jsonify({"error": "삭제 중 오류가 발생했습니다."}), 500
 
 
 # ══════════════════════════════════════════
@@ -772,9 +800,13 @@ def upload_excel():
 @login_required
 def get_visits(store_id):
     """매장의 방문 기록 조회"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
     stores = load_stores()
     for store in stores:
         if store["id"] == store_id:
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
             return jsonify(store.get("visits", [])), 200
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
 
@@ -783,11 +815,15 @@ def get_visits(store_id):
 @login_required
 def add_visit(store_id):
     """매장에 방문 기록 추가"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
     data = request.get_json()
     stores = load_stores()
 
     for i, store in enumerate(stores):
         if store["id"] == store_id:
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
             visit = {
                 "id": str(uuid.uuid4()),
                 "date": data.get("date", datetime.now().strftime("%Y-%m-%d")),
@@ -799,7 +835,8 @@ def add_visit(store_id):
             if "visits" not in stores[i]:
                 stores[i]["visits"] = []
             stores[i]["visits"].append(visit)
-            save_store(stores[i])
+            if not save_store(stores[i]):
+                return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
             return jsonify(visit), 201
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -809,10 +846,14 @@ def add_visit(store_id):
 @login_required
 def delete_visit(store_id, visit_id):
     """매장의 방문 기록 삭제"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
     stores = load_stores()
 
     for i, store in enumerate(stores):
         if store["id"] == store_id:
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
             visits = store.get("visits", [])
             original_len = len(visits)
             stores[i]["visits"] = [v for v in visits if v["id"] != visit_id]
@@ -820,7 +861,8 @@ def delete_visit(store_id, visit_id):
             if len(stores[i]["visits"]) == original_len:
                 return jsonify({"error": "방문 기록을 찾을 수 없습니다."}), 404
 
-            save_store(stores[i])
+            if not save_store(stores[i]):
+                return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
             return jsonify({"message": "방문 기록 삭제 완료"}), 200
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -938,13 +980,18 @@ def address_search():
 @login_required
 def toggle_star(store_id):
     """매장 즐겨찾기 토글 (starred 필드 true/false)"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
     stores = load_stores()
 
     for i, store in enumerate(stores):
         if store["id"] == store_id:
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
             current = stores[i].get("starred", False)
             stores[i]["starred"] = not current
-            save_store(stores[i])
+            if not save_store(stores[i]):
+                return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
             return jsonify({
                 "id": store_id,
                 "starred": stores[i]["starred"],
@@ -961,6 +1008,8 @@ def toggle_star(store_id):
 @login_required
 def bulk_delete_stores():
     """매장 일괄 삭제 (body: {"ids": ["id1", "id2", ...]})"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
     data = request.get_json()
     if not data or not isinstance(data.get("ids"), list):
         return jsonify({"error": "ids 배열이 필요합니다."}), 400
@@ -968,6 +1017,11 @@ def bulk_delete_stores():
     ids_to_delete = set(data["ids"])
     if not ids_to_delete:
         return jsonify({"error": "삭제할 ID가 없습니다."}), 400
+
+    # 팀 소유 매장만 삭제 허용
+    stores = load_stores()
+    my_store_ids = {s["id"] for s in stores if s.get("teamName") == user_team}
+    ids_to_delete = ids_to_delete & my_store_ids
 
     deleted_count = 0
     for sid in ids_to_delete:
