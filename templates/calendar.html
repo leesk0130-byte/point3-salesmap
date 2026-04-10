@@ -570,7 +570,9 @@
     // ══════════════════════════════════════
     let allVisits = [];       // { date, result, memo, storeName, storeId }
     let allStoresCache = [];  // 전체 가맹점 목록
+    let allNotes = [];        // { id, date, memo, author }
     let visitsByDate = {};    // "YYYY-MM-DD" -> [...]
+    let notesByDate = {};     // "YYYY-MM-DD" -> [...]
     let currentYear, currentMonth;
     let selectedDate = null;
 
@@ -591,8 +593,11 @@
     // ══════════════════════════════════════
     async function loadData() {
       try {
-        const res = await fetch('/api/stores', {cache: 'no-store'});
-        const stores = await res.json();
+        const [storesRes, notesRes] = await Promise.all([
+          fetch('/api/stores', {cache: 'no-store'}),
+          fetch('/api/calendar-notes', {cache: 'no-store'})
+        ]);
+        const stores = await storesRes.json();
         allStoresCache = stores;
         allVisits = [];
         stores.forEach(store => {
@@ -607,6 +612,7 @@
             });
           });
         });
+        allNotes = await notesRes.json();
         groupByDate();
         renderCalendar();
         renderSummary();
@@ -620,6 +626,11 @@
       allVisits.forEach(v => {
         if (!visitsByDate[v.date]) visitsByDate[v.date] = [];
         visitsByDate[v.date].push(v);
+      });
+      notesByDate = {};
+      allNotes.forEach(n => {
+        if (!notesByDate[n.date]) notesByDate[n.date] = [];
+        notesByDate[n.date].push(n);
       });
     }
 
@@ -663,14 +674,20 @@
 
         let dots = '';
         const dayVisits = visitsByDate[dateStr];
-        if (dayVisits && dayVisits.length > 0) {
-          // 상태별 중복 제거 도트
-          const statuses = [...new Set(dayVisits.map(v => v.result))];
+        const dayNotes = notesByDate[dateStr];
+        const hasDots = (dayVisits && dayVisits.length) || (dayNotes && dayNotes.length);
+        if (hasDots) {
           dots = '<div class="cal-dots">';
-          statuses.forEach(s => {
-            const style = getStatusStyle(s);
-            dots += '<div class="cal-dot ' + style.dot + '"></div>';
-          });
+          if (dayVisits) {
+            const statuses = [...new Set(dayVisits.map(v => v.result))];
+            statuses.forEach(s => {
+              const style = getStatusStyle(s);
+              dots += '<div class="cal-dot ' + style.dot + '"></div>';
+            });
+          }
+          if (dayNotes && dayNotes.length) {
+            dots += '<div class="cal-dot" style="background:#9ca3af;"></div>';
+          }
           dots += '</div>';
         }
 
@@ -725,29 +742,44 @@
       panelDate.innerHTML = (d.getMonth() + 1) + '월 ' + d.getDate() + '일'
                           + '<span>' + dayName + '요일</span>';
 
-      const visits = visitsByDate[dateStr];
+      const visits = visitsByDate[dateStr] || [];
+      const notes = notesByDate[dateStr] || [];
 
-      if (!visits || visits.length === 0) {
+      if (!visits.length && !notes.length) {
         visitList.innerHTML = '<div class="empty-state">'
           + '<div class="empty-icon">&#128203;</div>'
-          + '<p>방문 기록이 없습니다</p>'
-          + '<p class="empty-sub">이 날짜에 기록된 방문이 없어요</p>'
+          + '<p>기록이 없습니다</p>'
+          + '<p class="empty-sub">아래에서 활동이나 메모를 추가하세요</p>'
           + '</div>';
         return;
       }
 
-      let html = '<div class="visit-list">';
-      visits.forEach(v => {
-        const style = getStatusStyle(v.result);
-        html += '<div class="visit-item">'
-              + '<div class="visit-store">' + escapeHtml(v.storeName) + '</div>'
-              + '<div class="visit-meta">'
-              + '<span class="badge ' + style.badge + '">' + escapeHtml(v.result || '기타') + '</span>'
-              + '</div>'
-              + (v.memo ? '<div class="visit-memo">' + escapeHtml(v.memo) + '</div>' : '')
-              + '</div>';
-      });
-      html += '</div>';
+      let html = '';
+      if (visits.length) {
+        html += '<div class="visit-list">';
+        visits.forEach(v => {
+          const style = getStatusStyle(v.result);
+          html += '<div class="visit-item">'
+                + '<div class="visit-store">' + escapeHtml(v.storeName) + '</div>'
+                + '<div class="visit-meta">'
+                + '<span class="badge ' + style.badge + '">' + escapeHtml(v.result || '기타') + '</span>'
+                + '</div>'
+                + (v.memo ? '<div class="visit-memo">' + escapeHtml(v.memo) + '</div>' : '')
+                + '</div>';
+        });
+        html += '</div>';
+      }
+      if (notes.length) {
+        html += '<div style="margin-top:12px;"><div style="font-size:11px;font-weight:600;color:var(--muted-fg);margin-bottom:6px;">메모</div>';
+        notes.forEach(n => {
+          html += '<div class="cal-note-item">'
+                + escapeHtml(n.memo)
+                + (n.author ? '<span style="display:block;font-size:10px;color:var(--muted-fg);margin-top:3px;">— ' + escapeHtml(n.author) + '</span>' : '')
+                + '<button class="cal-note-del" onclick="deleteCalNote(\'' + n.id + '\')" title="삭제">&times;</button>'
+                + '</div>';
+        });
+        html += '</div>';
+      }
       visitList.innerHTML = html;
     }
 
@@ -824,6 +856,32 @@
       btn.classList.add('active');
       document.getElementById('calResult').value = btn.dataset.val;
     });
+
+    async function submitCalNote() {
+      const memo = document.getElementById('calNoteMemo').value.trim();
+      if (!memo) { alert('메모를 입력하세요'); return; }
+      try {
+        const res = await fetch('/api/calendar-notes', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ date: selectedDate, memo })
+        });
+        if (!res.ok) { alert('저장 실패'); return; }
+        document.getElementById('calNoteMemo').value = '';
+        await loadData();
+        if (selectedDate) renderVisitPanel(selectedDate);
+      } catch(e) { alert('저장 실패'); }
+    }
+
+    async function deleteCalNote(noteId) {
+      try {
+        const res = await fetch('/api/calendar-notes/' + noteId, {method:'DELETE'});
+        if (res.ok) {
+          await loadData();
+          if (selectedDate) renderVisitPanel(selectedDate);
+        }
+      } catch(e) { alert('삭제 실패'); }
+    }
 
     async function submitCalVisit() {
       const storeId = document.getElementById('calStore').value;
