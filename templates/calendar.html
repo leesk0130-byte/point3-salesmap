@@ -464,6 +464,9 @@
       .card-header { padding: 14px 16px 12px; }
       .card-body { padding: 14px 16px 18px; }
     }
+    .cal-result-btn { padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--fg); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .cal-result-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .cal-result-btn:hover:not(.active) { background:var(--muted); }
   </style>
 </head>
 <body>
@@ -507,14 +510,34 @@
     <div class="side-panel">
       <div class="card">
         <div class="card-header">
-          <div class="panel-date" id="panelDate">날짜를 선택하세요</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div class="panel-date" id="panelDate">날짜를 선택하세요</div>
+            <button id="addVisitBtn" onclick="openCalAddForm()" style="display:none;width:30px;height:30px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:18px;cursor:pointer;line-height:1;" title="활동 추가">+</button>
+          </div>
         </div>
         <div class="card-body">
+          <div id="calAddForm" style="display:none;margin-bottom:14px;padding:14px;background:var(--primary-light);border-radius:10px;border:1px solid var(--primary);">
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--primary);">활동 추가</div>
+            <select id="calStore" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:8px;background:var(--bg);color:var(--fg);">
+              <option value="">가맹점 선택</option>
+            </select>
+            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;" id="calResultBtns">
+              <button type="button" class="cal-result-btn" data-val="명함전달">명함전달</button>
+              <button type="button" class="cal-result-btn" data-val="미팅대기">미팅대기</button>
+              <button type="button" class="cal-result-btn" data-val="미팅완료">미팅완료</button>
+            </div>
+            <input type="hidden" id="calResult" value="명함전달">
+            <input type="text" id="calMemo" placeholder="메모 (선택)" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;margin-bottom:10px;background:var(--bg);color:var(--fg);">
+            <div style="display:flex;gap:8px;">
+              <button onclick="submitCalVisit()" style="flex:1;padding:8px;border:none;border-radius:8px;background:var(--primary);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">저장</button>
+              <button onclick="closeCalAddForm()" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--fg);font-size:13px;cursor:pointer;">취소</button>
+            </div>
+          </div>
           <div id="visitList">
             <div class="empty-state">
               <div class="empty-icon">&#128197;</div>
               <p>날짜를 클릭하면</p>
-              <p class="empty-sub">해당일 방문 기록이 표시됩니다</p>
+              <p class="empty-sub">해당일 활동 기록이 표시됩니다</p>
             </div>
           </div>
         </div>
@@ -527,7 +550,8 @@
     // ══════════════════════════════════════
     // 데이터 & 상태
     // ══════════════════════════════════════
-    let allVisits = [];       // { date, result, memo, storeName }
+    let allVisits = [];       // { date, result, memo, storeName, storeId }
+    let allStoresCache = [];  // 전체 가맹점 목록
     let visitsByDate = {};    // "YYYY-MM-DD" -> [...]
     let currentYear, currentMonth;
     let selectedDate = null;
@@ -551,6 +575,7 @@
       try {
         const res = await fetch('/api/stores', {cache: 'no-store'});
         const stores = await res.json();
+        allStoresCache = stores;
         allVisits = [];
         stores.forEach(store => {
           const visits = store.visits || [];
@@ -559,7 +584,8 @@
               date: v.date,
               result: v.result,
               memo: v.memo || '',
-              storeName: store.name || '이름 없음'
+              storeName: store.name || '이름 없음',
+              storeId: store.id
             });
           });
         });
@@ -658,6 +684,8 @@
       selectedDate = dateStr;
       renderCalendar();
       renderVisitPanel(dateStr);
+      document.getElementById('addVisitBtn').style.display = 'block';
+      closeCalAddForm();
     }
 
     // ══════════════════════════════════════
@@ -752,6 +780,53 @@
       const div = document.createElement('div');
       div.textContent = str;
       return div.innerHTML;
+    }
+
+    // ══════════════════════════════════════
+    // 캘린더 직접 입력
+    // ══════════════════════════════════════
+    function openCalAddForm() {
+      if (!selectedDate) return;
+      const form = document.getElementById('calAddForm');
+      const sel = document.getElementById('calStore');
+      sel.innerHTML = '<option value="">가맹점 선택</option>' + allStoresCache.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+      document.getElementById('calMemo').value = '';
+      document.getElementById('calResult').value = '명함전달';
+      form.style.display = 'block';
+      // 결과 버튼 초기화
+      document.querySelectorAll('.cal-result-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.val === '명함전달');
+        b.onclick = function() {
+          document.querySelectorAll('.cal-result-btn').forEach(x => x.classList.remove('active'));
+          this.classList.add('active');
+          document.getElementById('calResult').value = this.dataset.val;
+        };
+      });
+    }
+
+    function closeCalAddForm() {
+      document.getElementById('calAddForm').style.display = 'none';
+    }
+
+    async function submitCalVisit() {
+      const storeId = document.getElementById('calStore').value;
+      const result = document.getElementById('calResult').value;
+      const memo = document.getElementById('calMemo').value.trim();
+      if (!storeId) { alert('가맹점을 선택하세요'); return; }
+
+      try {
+        const res = await fetch(`/api/stores/${storeId}/visits`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ date: selectedDate, result, memo })
+        });
+        if (!res.ok) { const d = await res.json(); alert(d.error || '저장 실패'); return; }
+        closeCalAddForm();
+        await loadData();
+        if (selectedDate) renderVisitPanel(selectedDate);
+      } catch(e) {
+        alert('저장 실패');
+      }
     }
 
     // ══════════════════════════════════════

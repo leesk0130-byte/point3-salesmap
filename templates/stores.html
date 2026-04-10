@@ -392,9 +392,9 @@
     .store-info-card .si-visit-item { padding:6px 10px; margin:4px 0; background:var(--muted); border-radius:8px; font-size:12px; }
     .store-info-card .si-visit-date { font-weight:600; color:var(--primary); margin-right:8px; }
 
-    .contact-chk { display:inline-flex; align-items:center; gap:3px; margin-right:5px; cursor:pointer; vertical-align:middle; }
-    .contact-chk input[type="checkbox"] { width:14px; height:14px; margin:0; cursor:pointer; accent-color:#4f46e5; }
-    .cc-label { font-size:11px; font-weight:600; padding:2px 5px; border-radius:4px; user-select:none; }
+    .contact-chk { display:inline-flex; align-items:center; gap:3px; margin-right:3px; margin-bottom:2px; cursor:pointer; vertical-align:middle; }
+    .contact-chk input[type="checkbox"] { width:13px; height:13px; margin:0; cursor:pointer; accent-color:#4f46e5; }
+    .cc-label { font-size:11px; font-weight:600; padding:2px 5px; border-radius:4px; user-select:none; white-space:nowrap; }
     .cc-email { background:#dbeafe; color:#1d4ed8; }
     .cc-li { background:#e0e7ff; color:#4338ca; }
     .cc-rem { background:#fef3c7; color:#92400e; }
@@ -771,7 +771,6 @@
           <th class="col-num">#</th>
           <th>가맹점</th>
           <th style="width:36px;text-align:center;">사이트</th>
-          <th class="col-addr">주소</th>
           <th class="col-district">지역구</th>
           <th>연락수단</th>
           <th>상태</th>
@@ -782,7 +781,7 @@
         </tr>
       </thead>
       <tbody id="storeBody">
-        <tr><td colspan="11" class="loading">데이터 불러오는 중...</td></tr>
+        <tr><td colspan="10" class="loading">데이터 불러오는 중...</td></tr>
       </tbody>
     </table>
   </div>
@@ -1056,7 +1055,7 @@ function render() {
   document.getElementById('statRate').textContent = rate;
 
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="11"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
+    body.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
     return;
   }
 
@@ -1077,9 +1076,8 @@ function render() {
       <td class="col-num">${idx + 1}</td>
       <td class="col-name"><a href="#" class="store-name-link" onclick="event.preventDefault();showStoreInfo('${escAttr(s.id)}')">${esc(s.name)}</a></td>
       <td style="text-align:center;">${s.website ? `<a href="${escAttr(s.website)}" target="_blank" rel="noopener" class="site-link" title="${escAttr(s.website)}">🏠</a>` : '<span style="color:var(--muted-fg);font-size:11px;">-</span>'}</td>
-      <td class="col-addr" title="${escAttr(s.address)}">${esc(s.address)}</td>
       <td class="col-district">${esc(s.district || '기타')}</td>
-      <td style="font-size:11px;white-space:nowrap;">
+      <td style="font-size:12px;">
         <label class="contact-chk" title="이메일"><input type="checkbox" ${s.contact_email ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_email',this.checked)"><span class="cc-label cc-email">메일</span></label>
         <label class="contact-chk" title="링크드인"><input type="checkbox" ${s.contact_linkedin ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_linkedin',this.checked)"><span class="cc-label cc-li">LI</span></label>
         <label class="contact-chk" title="리멤버"><input type="checkbox" ${s.contact_remember ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_remember',this.checked)"><span class="cc-label cc-rem">리멤</span></label>
