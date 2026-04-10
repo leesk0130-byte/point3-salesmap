@@ -599,89 +599,16 @@
 
 <div class="container">
 
-  <!-- ══ 가맹점 등록/수정 폼 ══ -->
+  <!-- ══ 가맹점 관리 안내 ══ -->
   <div class="card">
-    <div class="card-title" id="formTitle">가맹점 등록</div>
-    <form id="storeForm" onsubmit="handleSubmit(event)">
-      <input type="hidden" id="editId" value="">
-      <input type="hidden" id="storeLat" value="">
-      <input type="hidden" id="storeLng" value="">
-      <div class="form-grid">
-        <div class="form-group full">
-          <label>가맹점명 <span class="required">*</span></label>
-          <input type="text" id="storeName" placeholder="예) 맘스터치 강남점" required>
-        </div>
-        <div class="form-group full">
-          <label>주소 <span class="required">*</span></label>
-          <div class="addr-row">
-            <input type="text" id="storeAddress" placeholder="클릭하여 주소 검색..." required readonly onclick="openDaumPostcode()" autocomplete="off">
-            <button type="button" class="btn-addr-search" onclick="openDaumPostcode()">주소 검색</button>
-          </div>
-        </div>
-        <div class="form-group full">
-          <label>메모</label>
-          <textarea id="storeMemo" placeholder="특이사항, 참고 내용 등"></textarea>
-        </div>
-        <div class="form-group full">
-          <label>비고사항</label>
-          <textarea id="storeNotes" placeholder="비고사항 입력"></textarea>
-        </div>
-        <div class="form-group full">
-          <label>연락 수단</label>
-          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
-            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
-              <input type="checkbox" id="contactEmail" style="accent-color:var(--primary);width:16px;height:16px;"> 이메일
-            </label>
-            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
-              <input type="checkbox" id="contactLinkedin" style="accent-color:var(--primary);width:16px;height:16px;"> 링크드인
-            </label>
-            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
-              <input type="checkbox" id="contactRemember" style="accent-color:var(--primary);width:16px;height:16px;"> 리멤버
-            </label>
-            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
-              <input type="checkbox" id="contactIntro" style="accent-color:var(--primary);width:16px;height:16px;"> 소개
-            </label>
-          </div>
-        </div>
-        <div class="form-group full">
-          <label style="display:flex;align-items:center;gap:8px;">
-            <input type="checkbox" id="storeShowOnMap" checked style="accent-color:#059669;width:18px;height:18px;">
-            지도에 표시
-          </label>
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" id="submitBtn">저장</button>
-          <button type="button" class="btn btn-secondary" onclick="resetForm()" id="cancelBtn" style="display:none;">취소</button>
-        </div>
-      </div>
-    </form>
-  </div>
-
-  <!-- ══ 최근 등록 + 가맹점 목록 바로가기 ══ -->
-  <div class="card">
-    <div class="card-title">등록된 가맹점</div>
+    <div class="card-title">가맹점 관리</div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-      <div class="store-count" id="storeCount" style="font-size:15px;padding:8px 18px;">총 0개</div>
+      <p style="font-size:14px;color:var(--muted-fg);">가맹점 등록/수정은 가맹점 목록에서 가능합니다.</p>
       <a href="/stores" class="btn btn-primary" style="text-decoration:none;">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
         가맹점 목록 보기
       </a>
     </div>
-  </div>
-
-  <!-- ══ 엑셀 업로드 ══ -->
-  <div class="card">
-    <div class="card-title">엑셀 일괄 등록</div>
-    <div class="upload-area">
-      <input type="file" id="excelFile" accept=".xlsx">
-      <button class="btn btn-success" onclick="uploadExcel()">업로드</button>
-    </div>
-    <div class="upload-progress" id="uploadProgress">
-      <div class="spinner"></div>
-      <span>업로드 및 지오코딩 처리 중... (주소 수에 따라 시간이 소요됩니다)</span>
-    </div>
-    <div class="upload-result" id="uploadResult"></div>
-    <a class="template-link" onclick="downloadTemplate()">샘플 엑셀 템플릿 다운로드</a>
   </div>
 
 </div>

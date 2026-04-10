@@ -730,6 +730,7 @@
         <a href="#" onclick="exportExcel(); return false;">엑셀 다운로드</a>
       </div>
     </div>
+    <button onclick="openAddStoreModal()" style="padding:8px 16px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(79,70,229,.25);">+ 가맹점 추가</button>
   </div>
 
   <!-- 일괄 작업 바 -->
@@ -813,6 +814,67 @@
   </div>
 </div>
 
+<!-- 가맹점 추가/수정 모달 -->
+<div class="modal-overlay" id="storeModal" style="display:none;">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h2 id="storeModalTitle">가맹점 추가</h2>
+      <button class="modal-close" onclick="closeStoreModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="smEditId" value="">
+      <input type="hidden" id="smLat" value="">
+      <input type="hidden" id="smLng" value="">
+      <div>
+        <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">가맹점명 <span style="color:#ef4444;">*</span></label>
+        <input type="text" id="smName" placeholder="예) 맘스터치 강남점" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--fg);">
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">주소 <span style="color:#ef4444;">*</span></label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="smAddress" placeholder="클릭하여 주소 검색..." readonly onclick="openDaumPostcode()" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;background:var(--bg);color:var(--fg);">
+          <button type="button" onclick="openDaumPostcode()" style="padding:10px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">주소 검색</button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">메모</label>
+        <textarea id="smMemo" placeholder="특이사항, 참고 내용 등" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:60px;resize:vertical;background:var(--bg);color:var(--fg);"></textarea>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">비고사항</label>
+        <textarea id="smNotes" placeholder="비고사항 입력" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:50px;resize:vertical;background:var(--bg);color:var(--fg);"></textarea>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">연락 수단</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
+            <input type="checkbox" id="smContactEmail" style="accent-color:var(--primary);width:15px;height:15px;"> 이메일
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
+            <input type="checkbox" id="smContactLinkedin" style="accent-color:var(--primary);width:15px;height:15px;"> 링크드인
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
+            <input type="checkbox" id="smContactRemember" style="accent-color:var(--primary);width:15px;height:15px;"> 리멤버
+          </label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
+            <input type="checkbox" id="smContactIntro" style="accent-color:var(--primary);width:15px;height:15px;"> 소개
+          </label>
+        </div>
+      </div>
+      <div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;">
+          <input type="checkbox" id="smShowOnMap" checked style="accent-color:#059669;width:17px;height:17px;">
+          지도에 표시
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button id="smSubmitBtn" onclick="submitStore()" style="flex:1;padding:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">저장</button>
+        <button onclick="closeStoreModal()" style="padding:12px 20px;background:var(--muted);color:var(--fg);border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 토스트 -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -847,6 +909,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // 모달 외부 클릭
   document.getElementById('visitModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeVisitModal();
+  });
+  document.getElementById('storeModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeStoreModal();
   });
 
   // 빠른메뉴/내보내기 메뉴 닫기
@@ -1308,7 +1373,112 @@ function viewOnMap(id) {
 }
 
 function editStore(id) {
-  window.location.href = `/admin?edit=${id}`;
+  const s = allStores.find(x => x.id === id);
+  if (!s) return;
+  openAddStoreModal(s);
+}
+
+/* ============================
+   Store Modal (Add/Edit)
+   ============================ */
+function openAddStoreModal(store) {
+  const modal = document.getElementById('storeModal');
+  const isEdit = !!store;
+  document.getElementById('storeModalTitle').textContent = isEdit ? '가맹점 수정' : '가맹점 추가';
+  document.getElementById('smSubmitBtn').textContent = isEdit ? '수정' : '저장';
+  document.getElementById('smEditId').value = isEdit ? store.id : '';
+  document.getElementById('smName').value = isEdit ? (store.name || '') : '';
+  document.getElementById('smAddress').value = isEdit ? (store.address || '') : '';
+  document.getElementById('smMemo').value = isEdit ? (store.memo || '') : '';
+  document.getElementById('smNotes').value = isEdit ? (store.notes || '') : '';
+  document.getElementById('smLat').value = isEdit ? (store.lat || '') : '';
+  document.getElementById('smLng').value = isEdit ? (store.lng || '') : '';
+  document.getElementById('smContactEmail').checked = isEdit ? !!store.contact_email : false;
+  document.getElementById('smContactLinkedin').checked = isEdit ? !!store.contact_linkedin : false;
+  document.getElementById('smContactRemember').checked = isEdit ? !!store.contact_remember : false;
+  document.getElementById('smContactIntro').checked = isEdit ? !!store.contact_intro : false;
+  document.getElementById('smShowOnMap').checked = isEdit ? store.showOnMap !== false : true;
+  modal.style.display = 'flex';
+}
+
+function closeStoreModal() {
+  document.getElementById('storeModal').style.display = 'none';
+}
+
+async function submitStore() {
+  const editId = document.getElementById('smEditId').value;
+  const name = document.getElementById('smName').value.trim();
+  const address = document.getElementById('smAddress').value.trim();
+  if (!name || !address) { toast('가맹점명과 주소는 필수입니다.', 'error'); return; }
+
+  const payload = {
+    name,
+    address,
+    memo: document.getElementById('smMemo').value.trim(),
+    notes: document.getElementById('smNotes').value.trim(),
+    contact_email: document.getElementById('smContactEmail').checked,
+    contact_linkedin: document.getElementById('smContactLinkedin').checked,
+    contact_remember: document.getElementById('smContactRemember').checked,
+    contact_intro: document.getElementById('smContactIntro').checked,
+    showOnMap: document.getElementById('smShowOnMap').checked,
+    lat: document.getElementById('smLat').value ? parseFloat(document.getElementById('smLat').value) : null,
+    lng: document.getElementById('smLng').value ? parseFloat(document.getElementById('smLng').value) : null,
+  };
+
+  const btn = document.getElementById('smSubmitBtn');
+  btn.textContent = '저장 중...';
+  btn.disabled = true;
+
+  try {
+    let res;
+    if (editId) {
+      res = await fetch(`/api/stores/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    } else {
+      res = await fetch('/api/stores', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    }
+    if (res.ok) {
+      toast(editId ? '수정 완료' : '등록 완료', 'success');
+      closeStoreModal();
+      await loadStores();
+    } else {
+      const data = await res.json();
+      toast(data.error || '저장 실패', 'error');
+    }
+  } catch (e) {
+    toast('서버 요청 실패', 'error');
+  } finally {
+    btn.textContent = editId ? '수정' : '저장';
+    btn.disabled = false;
+  }
+}
+
+function openDaumPostcode() {
+  new daum.Postcode({
+    oncomplete: function(data) {
+      const addr = data.roadAddress || data.jibunAddress;
+      document.getElementById('smAddress').value = addr;
+      toast('주소 선택 완료', 'success');
+      autoGeocode(addr);
+    }
+  }).open();
+}
+
+async function autoGeocode(address) {
+  try {
+    const res = await fetch(`/api/geocode?address=${encodeURIComponent(address)}`);
+    if (res.ok) {
+      const data = await res.json();
+      document.getElementById('smLat').value = data.lat;
+      document.getElementById('smLng').value = data.lng;
+      toast('좌표 자동 입력 완료', 'success');
+    } else {
+      document.getElementById('smLat').value = '';
+      document.getElementById('smLng').value = '';
+      toast('좌표 변환 실패', 'warning');
+    }
+  } catch (e) {
+    toast('좌표 변환 요청 실패', 'error');
+  }
 }
 
 /* ============================
@@ -1337,5 +1507,6 @@ function toast(msg, type = 'info') {
   }, 2500);
 }
 </script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 </body>
 </html>
