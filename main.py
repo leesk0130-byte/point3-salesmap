@@ -646,6 +646,7 @@ def add_store():
         "contact_remember": data.get("contact_remember", False),
         "contact_intro": data.get("contact_intro", False),
         "showOnMap": data.get("showOnMap", True),
+        "website": data.get("website", ""),
         "visits": [],
         "teamName": user.get("teamName", ""),
         "created_at": datetime.now().isoformat(),
@@ -682,7 +683,7 @@ def update_store(store_id):
             # 전달된 필드만 업데이트
             for key in ["name", "address", "lat", "lng", "memo", "notes",
                          "contact_email", "contact_linkedin", "contact_remember",
-                         "contact_intro", "showOnMap"]:
+                         "contact_intro", "showOnMap", "website"]:
                 if key in data:
                     stores[i][key] = data[key]
             # 주소가 변경되면 district 재추출
@@ -1220,6 +1221,44 @@ def backup_json():
         f"attachment; filename=\"{filename}\""
     )
     return response
+
+
+# ── 웹사이트 마이그레이션 (일회성) ──
+@app.route("/api/migrate-websites", methods=["POST"])
+@login_required
+def migrate_websites():
+    """기존 가맹점에 웹사이트 URL 일괄 추가"""
+    user = get_current_user()
+    if user.get("username") != "leesk0130":
+        return jsonify({"error": "권한 없음"}), 403
+
+    WEBSITE_MAP = {
+        "공유어장": "https://padobox.kr",
+        "파도상자": "https://padobox.kr",
+        "해주세요": "https://haejuseyo.com",
+        "라이펫": "https://lifet.co.kr",
+        "아레스3": "https://honestflower.kr",
+        "아니스트플라워": "https://honestflower.kr",
+        "원모먼트": "https://www.1moment.co.kr",
+        "플링캐스트": "https://www.plingcast.com",
+        "쓰리랩스": "https://marketbang.kr",
+        "마켓뱅": "https://marketbang.kr",
+    }
+
+    stores = load_stores()
+    updated = 0
+    for store in stores:
+        if store.get("website"):
+            continue
+        name = store.get("name", "")
+        for key, url in WEBSITE_MAP.items():
+            if key in name:
+                store["website"] = url
+                save_store(store)
+                updated += 1
+                break
+
+    return jsonify({"updated": updated})
 
 
 # ── 초기화 + 서버 실행 ──

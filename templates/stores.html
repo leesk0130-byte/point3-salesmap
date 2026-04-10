@@ -371,6 +371,8 @@
     .btn-quick:hover { background: #d1fae5; }
 
     /* ── 연락수단 체크박스 ── */
+    .site-link { text-decoration:none; font-size:15px; opacity:.7; transition:opacity .15s; }
+    .site-link:hover { opacity:1; }
     .store-name-link { color: var(--primary); text-decoration: none; font-weight: 600; cursor: pointer; }
     .store-name-link:hover { text-decoration: underline; }
 
@@ -768,6 +770,7 @@
           <th class="col-check"><input type="checkbox" id="checkAll"></th>
           <th class="col-num">#</th>
           <th>가맹점</th>
+          <th style="width:36px;text-align:center;">사이트</th>
           <th class="col-addr">주소</th>
           <th class="col-district">지역구</th>
           <th>연락수단</th>
@@ -779,7 +782,7 @@
         </tr>
       </thead>
       <tbody id="storeBody">
-        <tr><td colspan="10" class="loading">데이터 불러오는 중...</td></tr>
+        <tr><td colspan="11" class="loading">데이터 불러오는 중...</td></tr>
       </tbody>
     </table>
   </div>
@@ -847,6 +850,10 @@
           <input type="text" id="smAddress" placeholder="클릭하여 주소 검색..." readonly onclick="openDaumPostcode()" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;cursor:pointer;background:var(--bg);color:var(--fg);">
           <button type="button" onclick="openDaumPostcode()" style="padding:10px 14px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">주소 검색</button>
         </div>
+      </div>
+      <div>
+        <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">웹사이트</label>
+        <input type="url" id="smWebsite" placeholder="https://example.com" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--fg);">
       </div>
       <div>
         <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">메모</label>
@@ -1066,7 +1073,7 @@ function render() {
   document.getElementById('statRate').textContent = rate;
 
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
+    body.innerHTML = '<tr><td colspan="11"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
     return;
   }
 
@@ -1086,6 +1093,7 @@ function render() {
       <td class="col-check"><input type="checkbox" data-id="${escAttr(s.id)}" ${checked} onchange="toggleCheck(this)"></td>
       <td class="col-num">${idx + 1}</td>
       <td class="col-name"><a href="#" class="store-name-link" onclick="event.preventDefault();showStoreInfo('${escAttr(s.id)}')">${esc(s.name)}</a></td>
+      <td style="text-align:center;">${s.website ? `<a href="${escAttr(s.website)}" target="_blank" rel="noopener" class="site-link" title="${escAttr(s.website)}">🏠</a>` : '<span style="color:var(--muted-fg);font-size:11px;">-</span>'}</td>
       <td class="col-addr" title="${escAttr(s.address)}">${esc(s.address)}</td>
       <td class="col-district">${esc(s.district || '기타')}</td>
       <td style="font-size:11px;white-space:nowrap;">
@@ -1404,6 +1412,7 @@ function showStoreInfo(id) {
       <div class="si-row"><div class="si-label">지역구</div><div class="si-val">${s.district||'기타'}</div></div>
       <div class="si-row"><div class="si-label">메모</div><div class="si-val">${s.memo||'-'}</div></div>
       <div class="si-row"><div class="si-label">연락수단</div><div class="si-val">${contactTags}</div></div>
+      <div class="si-row"><div class="si-label">사이트</div><div class="si-val">${s.website ? `<a href="${s.website}" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;">${s.website}</a>` : '-'}</div></div>
       <div class="si-row"><div class="si-label">지도</div><div class="si-val">${s.showOnMap !== false ? '📍 표시중' : '⊘ 숨김'}</div></div>
       <div class="si-visits">
         <div style="font-weight:700;font-size:13px;margin-bottom:6px;">방문 기록 (${visits.length}건)</div>
@@ -1458,7 +1467,7 @@ function openAddStoreModal(store) {
   document.getElementById('smName').value = isEdit ? (store.name || '') : '';
   document.getElementById('smAddress').value = isEdit ? (store.address || '') : '';
   document.getElementById('smMemo').value = isEdit ? (store.memo || '') : '';
-  document.getElementById('smNotes').value = isEdit ? (store.notes || '') : '';
+  document.getElementById('smWebsite').value = isEdit ? (store.website || '') : '';
   document.getElementById('smLat').value = isEdit ? (store.lat || '') : '';
   document.getElementById('smLng').value = isEdit ? (store.lng || '') : '';
   document.getElementById('smContactEmail').checked = isEdit ? !!store.contact_email : false;
@@ -1483,7 +1492,7 @@ async function submitStore() {
     name,
     address,
     memo: document.getElementById('smMemo').value.trim(),
-    notes: document.getElementById('smNotes').value.trim(),
+    website: document.getElementById('smWebsite').value.trim(),
     contact_email: document.getElementById('smContactEmail').checked,
     contact_linkedin: document.getElementById('smContactLinkedin').checked,
     contact_remember: document.getElementById('smContactRemember').checked,
