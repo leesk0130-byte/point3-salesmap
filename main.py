@@ -991,6 +991,9 @@ def bulk_delete_stores():
 def export_csv():
     """가맹점 목록을 BOM 포함 UTF-8 CSV로 내보내기"""
     stores = load_stores()
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = [s for s in stores if s.get("teamName") == team]
 
     output = io.StringIO()
     output.write('\ufeff')
@@ -1041,6 +1044,9 @@ def export_csv():
 def export_excel():
     """가맹점 목록을 .xlsx로 내보내기 (시트1: 목록, 시트2: 방문기록)"""
     stores = load_stores()
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = [s for s in stores if s.get("teamName") == team]
     wb = openpyxl.Workbook()
 
     header_font = Font(bold=True, color="FFFFFF", size=11)
@@ -1120,18 +1126,23 @@ def export_excel():
 @app.route("/api/backup")
 @login_required
 def backup_json():
-    """stores.json 파일 그대로 다운로드"""
-    if not os.path.exists(STORES_FILE):
-        return jsonify({"error": "백업 파일이 존재하지 않습니다."}), 404
+    """Firestore 데이터를 JSON으로 다운로드"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my_stores = [s for s in stores if s.get("teamName") == team]
 
+    output = json.dumps(my_stores, ensure_ascii=False, indent=2)
     filename = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 
-    return send_file(
-        STORES_FILE,
+    response = Response(
+        output,
         mimetype="application/json; charset=utf-8",
-        as_attachment=True,
-        download_name=filename,
     )
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename=\"{filename}\""
+    )
+    return response
 
 
 # ── 초기화 + 서버 실행 ──

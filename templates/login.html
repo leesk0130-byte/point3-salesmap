@@ -6,23 +6,42 @@
 <title>Point3 CRM</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <style>
+  :root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-active: #3730a3;
+    --primary-glow: rgba(79, 70, 229, 0.25);
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --fg: #0f172a;
+    --fg-secondary: #1e293b;
+    --fg-muted: #94a3b8;
+    --border: #e2e8f0;
+    --input-bg: #f8fafc;
+    --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
-    background: #f8fafc;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    transition: background var(--transition), color var(--transition);
   }
   .card {
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    background: var(--bg-card);
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+    border: 1px solid var(--border);
     width: 100%;
     max-width: 400px;
     padding: 36px 32px 32px;
+    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
   }
   .logo {
     display: flex;
@@ -33,34 +52,39 @@
   }
   .logo-icon {
     width: 40px; height: 40px;
-    background: #4f46e5;
+    background: var(--primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px var(--primary-glow);
+    transition: background var(--transition), box-shadow var(--transition);
   }
   .logo-icon svg { width: 20px; height: 20px; }
   .logo-text {
     font-size: 22px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--fg-secondary);
+    transition: color var(--transition);
   }
   /* 알림 배너 */
   .alert {
     padding: 10px 14px;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 13px;
     font-weight: 500;
     margin-bottom: 16px;
     display: none;
+    transition: background var(--transition), color var(--transition), border-color var(--transition);
   }
   .alert.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
   .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
   /* 탭 */
   .tabs {
     display: flex;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--border);
     margin-bottom: 24px;
+    transition: border-color var(--transition);
   }
   .tab {
     flex: 1;
@@ -68,15 +92,16 @@
     padding: 10px 0;
     font-size: 15px;
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--fg-muted);
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
-    transition: color .2s, border-color .2s;
+    transition: color var(--transition), border-color var(--transition);
   }
+  .tab:hover { color: var(--primary); }
   .tab.active {
-    color: #4f46e5;
-    border-bottom-color: #4f46e5;
+    color: var(--primary);
+    border-bottom-color: var(--primary);
   }
   /* 폼 */
   .form { display: none; }
@@ -86,36 +111,72 @@
     width: 100%;
     height: 44px;
     padding: 0 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
     font-size: 14px;
     font-family: inherit;
-    color: #1e293b;
-    background: #f8fafc;
+    color: var(--fg-secondary);
+    background: var(--input-bg);
     outline: none;
-    transition: border-color .2s;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
   }
   .field input:focus {
-    border-color: #4f46e5;
-    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
+    background: var(--bg-card);
   }
-  .field input::placeholder { color: #94a3b8; }
+  .field input::placeholder { color: var(--fg-muted); }
   .btn {
     width: 100%;
     height: 48px;
-    background: #4f46e5;
+    background: var(--primary);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 15px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     margin-top: 6px;
-    transition: background .2s;
+    transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
   }
-  .btn:hover { background: #4338ca; }
-  .btn:active { background: #3730a3; }
+  .btn:hover { background: var(--primary-hover); box-shadow: 0 4px 16px var(--primary-glow); }
+  .btn:active { background: var(--primary-active); transform: scale(0.98); }
+
+  /* Dark mode */
+  body.dark {
+    --bg: #0f172a;
+    --bg-card: #1e293b;
+    --fg: #f1f5f9;
+    --fg-secondary: #e2e8f0;
+    --fg-muted: #64748b;
+    --border: #334155;
+    --input-bg: #0f172a;
+    --primary-glow: rgba(99, 102, 241, 0.3);
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%);
+  }
+  body.dark .alert.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+  body.dark .alert.success { background: #14532d; color: #86efac; border-color: #166534; }
+  body.dark #googleBtn { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+  body.dark #googleBtn:hover { background: #334155 !important; }
+
+  @media (prefers-color-scheme: dark) {
+    body:not(.light) {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --fg: #f1f5f9;
+      --fg-secondary: #e2e8f0;
+      --fg-muted: #64748b;
+      --border: #334155;
+      --input-bg: #0f172a;
+      --primary-glow: rgba(99, 102, 241, 0.3);
+      background-image: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%);
+    }
+    body:not(.light) .alert.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+    body:not(.light) .alert.success { background: #14532d; color: #86efac; border-color: #166534; }
+    body:not(.light) #googleBtn { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+    body:not(.light) #googleBtn:hover { background: #334155 !important; }
+  }
 </style>
 </head>
 <body>
@@ -131,7 +192,7 @@
     </div>
     <span class="logo-text">Point3 CRM</span>
   </div>
-  <div style="text-align:center;font-size:13px;color:#94a3b8;margin-top:-20px;margin-bottom:24px;font-weight:500;">영업팀 전용 CRM</div>
+  <div style="text-align:center;font-size:13px;color:var(--fg-muted);margin-top:-20px;margin-bottom:24px;font-weight:500;transition:color .2s;">영업팀 전용 CRM</div>
 
   <!-- 알림 -->
   <div id="alert" class="alert"></div>
@@ -162,7 +223,7 @@
         data-callback="handleGoogleLogin"
         data-auto_prompt="false">
       </div>
-      <button type="button" id="googleBtn" onclick="triggerGoogleLogin()" style="width:100%;height:48px;border:1.5px solid #d1d5db;border-radius:10px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:500;color:#374151;font-family:inherit;transition:all .15s;">
+      <button type="button" id="googleBtn" onclick="triggerGoogleLogin()" style="width:100%;height:48px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;color:var(--fg-secondary);font-family:inherit;transition:all .2s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Google로 로그인
       </button>

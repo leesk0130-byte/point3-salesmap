@@ -8,10 +8,52 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --violet: #7c3aed;
+      --violet-light: #f5f3ff;
+      --bg: #f8fafc;
+      --fg: #1e293b;
+      --card-bg: #fff;
+      --card-border: #e2e8f0;
+      --muted: #f1f5f9;
+      --muted-fg: #64748b;
+      --border: #e2e8f0;
+      --text-secondary: #334155;
+      --transition: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.dark {
+      --bg: #0f172a;
+      --fg: #f1f5f9;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --muted: #1e293b;
+      --muted-fg: #94a3b8;
+      --border: #334155;
+      --text-secondary: #cbd5e1;
+      --primary: #818cf8;
+      --primary-light: #1e1b4b;
+      --success: #34d399;
+      --success-light: #064e3b;
+      --warning: #fbbf24;
+      --warning-light: #78350f;
+      --danger: #f87171;
+      --danger-light: #7f1d1d;
+      --violet: #a78bfa;
+      --violet-light: #4c1d95;
+    }
+
     body {
       font-family: 'Pretendard Variable', Pretendard, Inter, 'Noto Sans KR', -apple-system, sans-serif;
-      background: #f8fafc;
-      color: #1e293b;
+      background: var(--bg);
+      color: var(--fg);
       min-height: 100vh;
       font-size: 14px;
       line-height: 1.5;
@@ -19,16 +61,17 @@
 
     /* ── 헤더 ── */
     .header {
-      background: #fff;
+      background: var(--card-bg);
       height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0 24px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 200;
+      backdrop-filter: blur(8px);
     }
     .header-brand {
       display: flex;
@@ -39,7 +82,7 @@
     .header-brand h1 {
       font-size: 18px;
       font-weight: 700;
-      color: #4f46e5;
+      color: var(--primary);
       letter-spacing: -0.5px;
     }
     .header-nav {
@@ -52,14 +95,14 @@
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
-      color: #64748b;
+      color: var(--muted-fg);
       text-decoration: none;
-      transition: all .15s;
+      transition: all .2s var(--transition);
     }
-    .nav-link:hover { background: #f1f5f9; color: #334155; }
+    .nav-link:hover { background: var(--muted); color: var(--fg); }
     .nav-link.active {
-      background: #eef2ff;
-      color: #4f46e5;
+      background: var(--primary-light);
+      color: var(--primary);
       font-weight: 600;
     }
 
@@ -76,12 +119,12 @@
       align-items: center;
       gap: 16px;
       padding: 12px 20px;
-      background: #fff;
+      background: var(--card-bg);
       border-radius: 10px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--card-border);
       margin-bottom: 16px;
       font-size: 13px;
-      color: #64748b;
+      color: var(--muted-fg);
       flex-wrap: wrap;
     }
     .summary-bar .stat {
@@ -91,10 +134,10 @@
     }
     .summary-bar .stat-value {
       font-weight: 700;
-      color: #1e293b;
+      color: var(--fg);
       font-size: 15px;
     }
-    .summary-bar .dot { color: #cbd5e1; }
+    .summary-bar .dot { color: var(--border); }
 
     /* ── 필터 바 ── */
     .filter-bar {
@@ -102,63 +145,67 @@
       align-items: center;
       gap: 10px;
       padding: 14px 20px;
-      background: #fff;
+      background: var(--card-bg);
       border-radius: 10px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--card-border);
       margin-bottom: 16px;
       flex-wrap: wrap;
     }
     .filter-bar input[type="text"] {
       flex: 1;
-      min-width: 180px;
-      padding: 8px 12px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 13px;
+      min-width: 220px;
+      padding: 10px 14px 10px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
       font-family: inherit;
       outline: none;
-      transition: border-color .15s;
-      background: #f8fafc;
+      transition: all .2s var(--transition);
+      background: var(--muted) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20' fill='%239ca3af'%3E%3Cpath fill-rule='evenodd' d='M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z' clip-rule='evenodd'/%3E%3C/svg%3E") no-repeat 12px center;
+      color: var(--fg);
     }
     .filter-bar input[type="text"]:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 3px rgba(79,70,229,.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+      background-color: var(--card-bg);
     }
     .filter-bar select {
       padding: 8px 12px;
-      border: 1.5px solid #e2e8f0;
+      border: 1.5px solid var(--border);
       border-radius: 8px;
       font-size: 13px;
       font-family: inherit;
       outline: none;
-      background: #f8fafc;
-      color: #334155;
+      background: var(--muted);
+      color: var(--text-secondary);
       cursor: pointer;
+      transition: all .2s var(--transition);
     }
     .filter-bar select:focus {
-      border-color: #4f46e5;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79,70,229,.08);
     }
     .btn-export {
       padding: 8px 16px;
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #e2e8f0;
+      background: var(--muted);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
       font-family: inherit;
       cursor: pointer;
-      transition: all .15s;
+      transition: all .2s var(--transition);
       position: relative;
     }
-    .btn-export:hover { background: #e2e8f0; color: #1e293b; }
+    .btn-export:hover { background: var(--border); color: var(--fg); }
     .export-menu {
       display: none;
       position: absolute;
       top: calc(100% + 4px);
       right: 0;
-      background: #fff;
-      border: 1px solid #e2e8f0;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,.1);
       min-width: 140px;
@@ -170,11 +217,11 @@
       display: block;
       padding: 10px 16px;
       font-size: 13px;
-      color: #334155;
+      color: var(--text-secondary);
       text-decoration: none;
-      transition: background .1s;
+      transition: background .15s;
     }
-    .export-menu a:hover { background: #f1f5f9; }
+    .export-menu a:hover { background: var(--muted); }
 
     /* ── 일괄 작업 바 ── */
     .bulk-bar {
@@ -215,10 +262,11 @@
 
     /* ── 테이블 래퍼 ── */
     .table-wrapper {
-      background: #fff;
+      background: var(--card-bg);
       border-radius: 12px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid var(--card-border);
       overflow-x: auto;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
     }
     table {
       width: 100%;
@@ -226,32 +274,36 @@
       font-size: 13px;
     }
     thead th {
-      background: #f8fafc;
+      background: var(--muted);
       padding: 10px 12px;
       text-align: left;
       font-weight: 600;
-      color: #64748b;
+      color: var(--muted-fg);
       font-size: 12px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1px solid var(--border);
       white-space: nowrap;
       position: sticky;
       top: 0;
     }
     tbody tr {
-      border-bottom: 1px solid #f1f5f9;
-      transition: background .1s;
+      border-bottom: 1px solid var(--muted);
+      border-left: 3px solid transparent;
+      transition: all .2s var(--transition);
     }
-    tbody tr:hover { background: #f8fafc; }
+    tbody tr:hover {
+      background: var(--primary-light);
+      border-left-color: var(--primary);
+    }
     tbody tr:last-child { border-bottom: none; }
     tbody td {
       padding: 10px 12px;
       vertical-align: middle;
-      color: #334155;
+      color: var(--text-secondary);
     }
     .col-check { width: 36px; text-align: center; }
-    .col-num { width: 40px; text-align: center; color: #94a3b8; font-size: 12px; }
-    .col-name { font-weight: 600; color: #1e293b; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .col-addr { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #64748b; font-size: 12px; }
+    .col-num { width: 40px; text-align: center; color: var(--muted-fg); font-size: 12px; }
+    .col-name { font-weight: 600; color: var(--fg); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .col-addr { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted-fg); font-size: 12px; }
     .col-district { white-space: nowrap; }
     .col-memo { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #64748b; font-size: 12px; }
 
@@ -285,10 +337,19 @@
       cursor: pointer;
       font-size: 16px;
       padding: 2px;
-      color: #cbd5e1;
-      transition: color .15s;
+      color: var(--border);
+      transition: all .2s var(--transition);
     }
+    .star-btn:hover { transform: scale(1.3); }
+    .star-btn:active { transform: scale(0.9); }
     .star-btn.active { color: #f59e0b; }
+    .star-btn.active:hover { color: #d97706; }
+    @keyframes starPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+    .star-btn.just-toggled { animation: starPop .3s var(--transition); }
 
     /* ── 액션 버튼 ── */
     .actions { display: flex; gap: 4px; flex-wrap: nowrap; }
@@ -518,10 +579,66 @@
     .empty-state {
       text-align: center;
       padding: 60px 20px;
-      color: #94a3b8;
+      color: var(--muted-fg);
     }
-    .empty-state p { font-size: 15px; margin-bottom: 8px; }
-    .empty-state small { font-size: 12px; }
+    .empty-state::before {
+      content: '';
+      display: block;
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: var(--muted);
+      border-radius: 50%;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='1.5'%3E%3Cpath d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .empty-state p { font-size: 15px; margin-bottom: 8px; font-weight: 500; }
+    .empty-state small { font-size: 12px; color: var(--border); }
+
+    /* ── 다크모드 토글 ── */
+    .btn-dark-toggle {
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1;
+      transition: all .2s var(--transition);
+      text-decoration: none;
+    }
+    .btn-dark-toggle:hover { background: var(--border); }
+
+    /* ── 다크모드 배지 오버라이드 ── */
+    body.dark .badge-미방문 { background: var(--danger-light); color: #fca5a5; }
+    body.dark .badge-명함전달 { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .badge-미팅완료 { background: var(--success-light); color: #6ee7b7; }
+    body.dark .badge-부재중 { background: var(--warning-light); color: #fcd34d; }
+    body.dark .badge-계약성사 { background: var(--violet-light); color: #c4b5fd; }
+    body.dark .badge-실패 { background: var(--muted); color: var(--muted-fg); }
+    body.dark .badge-기타 { background: var(--muted); color: var(--muted-fg); }
+    body.dark .days-red { color: var(--danger); }
+    body.dark .days-orange { color: var(--warning); }
+    body.dark .days-green { color: var(--success); }
+    body.dark .days-gray { color: var(--muted-fg); }
+    body.dark .modal { background: var(--card-bg); border: 1px solid var(--border); }
+    body.dark .modal-header { border-color: var(--border); }
+    body.dark .modal-header h2 { color: var(--fg); }
+    body.dark .modal-close { color: var(--muted-fg); }
+    body.dark .quick-menu { background: var(--card-bg); border-color: var(--border); }
+    body.dark .quick-menu-title { background: var(--muted); color: var(--muted-fg); border-color: var(--border); }
+    body.dark .quick-menu button { color: var(--text-secondary); }
+    body.dark .quick-menu button:hover { background: var(--muted); }
+    body.dark .bulk-bar { background: var(--danger-light); border-color: #7f1d1d; color: #fca5a5; }
+    body.dark .col-memo { color: var(--muted-fg); }
+    body.dark .visit-form input,
+    body.dark .visit-form select,
+    body.dark .visit-form textarea {
+      background: var(--muted);
+      border-color: var(--border);
+      color: var(--fg);
+    }
 
     /* ── 반응형 ── */
     @media (max-width: 900px) {
@@ -568,6 +685,7 @@
     <a href="/stores" class="nav-link active">가맹점 목록</a>
     <a href="/dashboard" class="nav-link">대시보드</a>
     <a href="/calendar" class="nav-link">캘린더</a>
+    <button class="btn-dark-toggle" id="darkToggle" onclick="toggleDark()" title="다크모드">&#127769;</button>
   </nav>
 </header>
 
@@ -975,6 +1093,22 @@ async function bulkDelete() {
 }
 
 /* ============================
+   Dark Mode
+   ============================ */
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem('point3-dark', isDark ? '1' : '0');
+  document.getElementById('darkToggle').textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+}
+(function initDark() {
+  if (localStorage.getItem('point3-dark') === '1') {
+    document.body.classList.add('dark');
+    document.getElementById('darkToggle').textContent = '\u2600\uFE0F';
+  }
+})();
+
+/* ============================
    Star
    ============================ */
 async function toggleStar(id) {
@@ -985,6 +1119,9 @@ async function toggleStar(id) {
       const s = allStores.find(s => s.id === id);
       if (s) s.starred = data.starred;
       render();
+      // Animate the star button
+      const btn = document.querySelector(`button[onclick="toggleStar('${id}')"]`);
+      if (btn) { btn.classList.add('just-toggled'); setTimeout(() => btn.classList.remove('just-toggled'), 300); }
     }
   } catch (e) {
     toast('즐겨찾기 실패', 'error');

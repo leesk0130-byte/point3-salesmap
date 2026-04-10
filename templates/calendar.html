@@ -11,26 +11,69 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+      --violet: #7c3aed;
+      --violet-light: #f5f3ff;
+      --bg: #f9fafb;
+      --fg: #111827;
+      --card-bg: #fff;
+      --card-border: #e5e7eb;
+      --muted: #f3f4f6;
+      --muted-fg: #6b7280;
+      --border: #e5e7eb;
+      --text-secondary: #374151;
+      --transition: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.dark {
+      --bg: #0f172a;
+      --fg: #f1f5f9;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --muted: #1e293b;
+      --muted-fg: #94a3b8;
+      --border: #334155;
+      --text-secondary: #cbd5e1;
+      --primary: #818cf8;
+      --primary-light: #1e1b4b;
+      --success: #34d399;
+      --success-light: #064e3b;
+      --warning: #fbbf24;
+      --warning-light: #78350f;
+      --danger: #f87171;
+      --danger-light: #7f1d1d;
+      --violet: #a78bfa;
+      --violet-light: #4c1d95;
+    }
+
     body {
       font-family: 'Pretendard Variable', 'Pretendard', 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
-      background: #f9fafb;
-      color: #111827;
+      background: var(--bg);
+      color: var(--fg);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     /* ── 헤더 ── */
     .header {
-      background: #fff;
+      background: var(--card-bg);
       padding: 0 32px;
       height: 64px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #e5e7eb;
+      border-bottom: 1px solid var(--border);
       position: sticky;
       top: 0;
       z-index: 100;
+      backdrop-filter: blur(8px);
     }
     .header-brand {
       display: flex;
@@ -41,31 +84,31 @@
       font-size: 20px;
       font-weight: 700;
       letter-spacing: -0.5px;
-      color: #6366f1;
+      color: var(--primary);
     }
     .header-brand .subtitle {
       font-size: 12px;
       font-weight: 500;
-      color: #6366f1;
+      color: var(--primary);
       padding: 3px 10px;
-      background: #eef2ff;
+      background: var(--primary-light);
       border-radius: 20px;
       letter-spacing: 0.5px;
     }
     .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .btn-nav {
-      background: #f3f4f6;
-      color: #374151;
-      border: 1px solid #e5e7eb;
+      background: var(--muted);
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
       padding: 8px 20px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       text-decoration: none;
-      transition: all .2s;
+      transition: all .2s var(--transition);
     }
-    .btn-nav:hover { background: #e5e7eb; color: #111827; border-color: #d1d5db; }
+    .btn-nav:hover { background: var(--border); color: var(--fg); }
 
     /* ── 레이아웃 ── */
     .main-layout {
@@ -80,14 +123,15 @@
 
     /* ── 카드 ── */
     .card {
-      background: #fff;
-      border-radius: 12px;
-      border: 1px solid #e5e7eb;
+      background: var(--card-bg);
+      border-radius: 14px;
+      border: 1px solid var(--card-border);
       box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      transition: box-shadow .2s var(--transition);
     }
     .card-header {
       padding: 20px 24px 16px;
-      border-bottom: 1px solid #f3f4f6;
+      border-bottom: 1px solid var(--muted);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -95,7 +139,7 @@
     .card-header h2 {
       font-size: 16px;
       font-weight: 700;
-      color: #111827;
+      color: var(--fg);
     }
     .card-body { padding: 20px 24px 24px; }
 
@@ -108,47 +152,53 @@
     .month-nav .month-label {
       font-size: 18px;
       font-weight: 700;
-      color: #111827;
+      color: var(--fg);
       min-width: 160px;
       text-align: center;
+      transition: opacity .2s var(--transition);
     }
     .month-nav button {
       width: 36px;
       height: 36px;
       border-radius: 8px;
-      border: 1px solid #e5e7eb;
-      background: #fff;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 18px;
-      color: #374151;
-      transition: all .2s;
+      color: var(--text-secondary);
+      transition: all .2s var(--transition);
     }
     .month-nav button:hover {
-      background: #f3f4f6;
-      border-color: #d1d5db;
+      background: var(--muted);
+      border-color: var(--text-secondary);
+      transform: scale(1.05);
+    }
+    .month-nav button:active {
+      transform: scale(0.95);
     }
     .btn-today {
       font-size: 12px !important;
       width: auto !important;
       padding: 0 12px !important;
       font-weight: 500;
-      color: #4f46e5 !important;
-      border-color: #c7d2fe !important;
-      background: #eef2ff !important;
+      color: var(--primary) !important;
+      border-color: var(--primary) !important;
+      background: var(--primary-light) !important;
     }
     .btn-today:hover {
-      background: #e0e7ff !important;
+      background: var(--primary) !important;
+      color: #fff !important;
     }
 
     /* ── 캘린더 그리드 ── */
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
       overflow: hidden;
     }
     .cal-weekday {
@@ -156,9 +206,9 @@
       text-align: center;
       font-size: 12px;
       font-weight: 600;
-      color: #6b7280;
-      background: #f9fafb;
-      border-bottom: 1px solid #e5e7eb;
+      color: var(--muted-fg);
+      background: var(--muted);
+      border-bottom: 1px solid var(--border);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -168,19 +218,29 @@
     .cal-cell {
       min-height: 80px;
       padding: 6px 8px;
-      border-right: 1px solid #f3f4f6;
-      border-bottom: 1px solid #f3f4f6;
+      border-right: 1px solid var(--muted);
+      border-bottom: 1px solid var(--muted);
       cursor: pointer;
-      transition: background .15s;
+      transition: all .2s var(--transition);
       position: relative;
     }
     .cal-cell:nth-child(7n) { border-right: none; }
-    .cal-cell:hover { background: #f9fafb; }
-    .cal-cell.other-month { background: #fafafa; }
-    .cal-cell.other-month .cal-date { color: #d1d5db; }
-    .cal-cell.today { background: #eef2ff; }
+    .cal-cell:hover {
+      background: var(--primary-light);
+      transform: scale(1.02);
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .cal-cell.other-month { background: var(--muted); opacity: 0.6; }
+    .cal-cell.other-month .cal-date { color: var(--muted-fg); }
+    .cal-cell.today {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    }
+    body.dark .cal-cell.today {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    }
     .cal-cell.today .cal-date {
-      background: #4f46e5;
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
       color: #fff;
       border-radius: 50%;
       width: 28px;
@@ -188,28 +248,31 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 2px 8px rgba(79,70,229,.3);
     }
     .cal-cell.selected {
-      outline: 2px solid #4f46e5;
+      outline: 2px solid var(--primary);
       outline-offset: -2px;
-      z-index: 1;
+      z-index: 3;
+      background: var(--primary-light);
     }
 
     .cal-date {
       font-size: 13px;
       font-weight: 500;
-      color: #374151;
+      color: var(--text-secondary);
       margin-bottom: 4px;
       width: 28px;
       height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all .15s var(--transition);
     }
     .cal-cell:nth-child(7n+1) .cal-date { color: #ef4444; }
     .cal-cell:nth-child(7n) .cal-date { color: #3b82f6; }
     .cal-cell.other-month:nth-child(7n+1) .cal-date,
-    .cal-cell.other-month:nth-child(7n) .cal-date { color: #d1d5db; }
+    .cal-cell.other-month:nth-child(7n) .cal-date { color: var(--muted-fg); }
     .cal-cell.today .cal-date { color: #fff !important; }
 
     .cal-dots {
@@ -223,6 +286,11 @@
       height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
+      transition: transform .15s var(--transition);
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .cal-cell:hover .cal-dot {
+      transform: scale(1.4);
     }
     .dot-indigo { background: #6366f1; }
     .dot-emerald { background: #10b981; }
@@ -242,11 +310,16 @@
       gap: 6px;
       font-size: 13px;
       font-weight: 500;
-      color: #374151;
+      color: var(--text-secondary);
       padding: 6px 14px;
-      background: #f9fafb;
+      background: var(--muted);
       border-radius: 20px;
-      border: 1px solid #e5e7eb;
+      border: 1px solid var(--border);
+      transition: all .2s var(--transition);
+    }
+    .summary-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0,0,0,.06);
     }
     .summary-dot {
       width: 8px;
@@ -256,20 +329,20 @@
     }
     .summary-total {
       font-weight: 700;
-      color: #4f46e5;
-      background: #eef2ff;
-      border-color: #c7d2fe;
+      color: var(--primary);
+      background: var(--primary-light);
+      border-color: var(--primary);
     }
 
     /* ── 사이드 패널 ── */
     .panel-date {
       font-size: 15px;
       font-weight: 700;
-      color: #111827;
+      color: var(--fg);
     }
     .panel-date span {
       font-weight: 400;
-      color: #6b7280;
+      color: var(--muted-fg);
       font-size: 13px;
       margin-left: 6px;
     }
@@ -281,18 +354,21 @@
     .visit-item {
       padding: 14px 16px;
       border-radius: 10px;
-      border: 1px solid #f3f4f6;
-      background: #fafafa;
-      transition: all .15s;
+      border: 1px solid var(--muted);
+      background: var(--muted);
+      transition: all .2s var(--transition);
+      border-left: 3px solid transparent;
     }
     .visit-item:hover {
-      border-color: #e5e7eb;
-      background: #f3f4f6;
+      border-color: var(--border);
+      border-left-color: var(--primary);
+      background: var(--primary-light);
+      transform: translateX(2px);
     }
     .visit-store {
       font-size: 14px;
       font-weight: 600;
-      color: #111827;
+      color: var(--fg);
       margin-bottom: 6px;
     }
     .visit-meta {
@@ -319,13 +395,13 @@
 
     .visit-memo {
       font-size: 13px;
-      color: #6b7280;
+      color: var(--muted-fg);
       line-height: 1.5;
     }
     .empty-state {
       text-align: center;
       padding: 40px 20px;
-      color: #9ca3af;
+      color: var(--muted-fg);
     }
     .empty-state .empty-icon {
       font-size: 40px;
@@ -338,9 +414,31 @@
     }
     .empty-state .empty-sub {
       font-size: 12px;
-      color: #d1d5db;
+      color: var(--border);
       margin-top: 4px;
     }
+
+    /* ── 다크모드 토글 ── */
+    .btn-dark-toggle {
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      text-decoration: none;
+      transition: all .2s var(--transition);
+    }
+    .btn-dark-toggle:hover { background: var(--border); }
+
+    /* ── 다크모드 배지 오버라이드 ── */
+    body.dark .badge-indigo { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .badge-emerald { background: var(--success-light); color: #6ee7b7; }
+    body.dark .badge-amber { background: var(--warning-light); color: #fcd34d; }
+    body.dark .badge-violet { background: var(--violet-light); color: #c4b5fd; }
+    body.dark .badge-gray { background: var(--muted); color: var(--muted-fg); }
+    body.dark .empty-state .empty-icon { opacity: 0.3; }
 
     /* ── 반응형 ── */
     @media (max-width: 900px) {
@@ -381,6 +479,7 @@
       <a href="/admin" class="btn-nav">가맹점 등록</a>
       <a href="/stores" class="btn-nav">가맹점 목록</a>
       <a href="/dashboard" class="btn-nav">대시보드</a>
+      <button class="btn-dark-toggle" id="darkToggle" onclick="toggleDark()" title="다크모드">&#127769;</button>
     </div>
   </header>
 
@@ -658,22 +757,60 @@
     }
 
     // ══════════════════════════════════════
+    // 다크모드
+    // ══════════════════════════════════════
+    function toggleDark() {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      localStorage.setItem('point3-dark', isDark ? '1' : '0');
+      document.getElementById('darkToggle').textContent = isDark ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    }
+    (function initDark() {
+      if (localStorage.getItem('point3-dark') === '1') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').textContent = '\u2600\uFE0F';
+      }
+    })();
+
+    // ══════════════════════════════════════
+    // 월 전환 애니메이션
+    // ══════════════════════════════════════
+    function animateMonthChange(direction, callback) {
+      const grid = document.getElementById('calendarGrid');
+      grid.style.transition = 'opacity .15s ease, transform .15s ease';
+      grid.style.opacity = '0';
+      grid.style.transform = direction === 'prev' ? 'translateX(20px)' : 'translateX(-20px)';
+      setTimeout(() => {
+        callback();
+        grid.style.transform = direction === 'prev' ? 'translateX(-20px)' : 'translateX(20px)';
+        requestAnimationFrame(() => {
+          grid.style.opacity = '1';
+          grid.style.transform = 'translateX(0)';
+        });
+      }, 150);
+    }
+
+    // ══════════════════════════════════════
     // 이벤트
     // ══════════════════════════════════════
     document.getElementById('prevMonth').addEventListener('click', () => {
-      currentMonth--;
-      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-      selectedDate = null;
-      renderCalendar();
-      renderSummary();
+      animateMonthChange('prev', () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        selectedDate = null;
+        renderCalendar();
+        renderSummary();
+      });
     });
 
     document.getElementById('nextMonth').addEventListener('click', () => {
-      currentMonth++;
-      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-      selectedDate = null;
-      renderCalendar();
-      renderSummary();
+      animateMonthChange('next', () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        selectedDate = null;
+        renderCalendar();
+        renderSummary();
+      });
     });
 
     document.getElementById('todayBtn').addEventListener('click', () => {
