@@ -316,13 +316,10 @@
       font-weight: 600;
       white-space: nowrap;
     }
-    .badge-미방문 { background: #fef2f2; color: #dc2626; }
+    .badge-미컨택 { background: #fef2f2; color: #dc2626; }
     .badge-명함전달 { background: #eef2ff; color: #4f46e5; }
+    .badge-미팅대기 { background: #fffbeb; color: #d97706; }
     .badge-미팅완료 { background: #ecfdf5; color: #059669; }
-    .badge-부재중 { background: #fffbeb; color: #d97706; }
-    .badge-계약성사 { background: #f5f3ff; color: #7c3aed; }
-    .badge-실패 { background: #f1f5f9; color: #64748b; }
-    .badge-기타 { background: #f1f5f9; color: #64748b; }
 
     /* ── 경과일 ── */
     .days-red { color: #dc2626; font-weight: 600; }
@@ -640,13 +637,10 @@
     .btn-dark-toggle:hover { background: var(--border); }
 
     /* ── 다크모드 배지 오버라이드 ── */
-    body.dark .badge-미방문 { background: var(--danger-light); color: #fca5a5; }
+    body.dark .badge-미컨택 { background: var(--danger-light); color: #fca5a5; }
     body.dark .badge-명함전달 { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .badge-미팅대기 { background: var(--warning-light); color: #fcd34d; }
     body.dark .badge-미팅완료 { background: var(--success-light); color: #6ee7b7; }
-    body.dark .badge-부재중 { background: var(--warning-light); color: #fcd34d; }
-    body.dark .badge-계약성사 { background: var(--violet-light); color: #c4b5fd; }
-    body.dark .badge-실패 { background: var(--muted); color: var(--muted-fg); }
-    body.dark .badge-기타 { background: var(--muted); color: var(--muted-fg); }
     body.dark .days-red { color: var(--danger); }
     body.dark .days-orange { color: var(--warning); }
     body.dark .days-green { color: var(--success); }
@@ -735,12 +729,10 @@
     <input type="text" id="searchInput" placeholder="가맹점 / 주소 / 메모 검색...">
     <select id="statusFilter">
       <option value="">상태: 전체</option>
-      <option value="미방문">미방문</option>
+      <option value="미컨택">미컨택</option>
       <option value="명함전달">명함전달</option>
+      <option value="미팅대기">미팅대기</option>
       <option value="미팅완료">미팅완료</option>
-      <option value="부재중">부재중</option>
-      <option value="계약성사">계약성사</option>
-      <option value="실패">실패</option>
     </select>
     <select id="districtFilter">
       <option value="">지역구: 전체</option>
@@ -796,13 +788,10 @@
 
 <!-- 빠른방문 메뉴 -->
 <div class="quick-menu" id="quickMenu">
-  <div class="quick-menu-title" id="quickMenuTitle">빠른 방문등록</div>
+  <div class="quick-menu-title" id="quickMenuTitle">빠른 활동등록</div>
   <button onclick="quickVisit('명함전달')">명함전달</button>
+  <button onclick="quickVisit('미팅대기')">미팅대기</button>
   <button onclick="quickVisit('미팅완료')">미팅완료</button>
-  <button onclick="quickVisit('부재중')">부재중</button>
-  <button onclick="quickVisit('계약성사')">계약성사</button>
-  <button onclick="quickVisit('실패')">실패</button>
-  <button onclick="quickVisit('기타')">기타</button>
 </div>
 
 <!-- 방문기록 모달 -->
@@ -822,11 +811,8 @@
           <label>결과</label>
           <select id="vfResult">
             <option value="명함전달">명함전달</option>
+            <option value="미팅대기">미팅대기</option>
             <option value="미팅완료">미팅완료</option>
-            <option value="부재중">부재중</option>
-            <option value="계약성사">계약성사</option>
-            <option value="실패">실패</option>
-            <option value="기타">기타</option>
           </select>
         </div>
         <div class="vf-group" style="flex:1; min-width: 120px;">
@@ -997,9 +983,13 @@ function getLastVisit(store) {
   return visits.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
 }
 
+const STATUS_MAP = {'미방문':'미컨택','부재중':'미컨택','계약성사':'미팅완료','실패':'미컨택','기타':'미컨택'};
+const VALID_STATUSES = ['미컨택','명함전달','미팅대기','미팅완료'];
 function getStatus(store) {
   const last = getLastVisit(store);
-  return last ? (last.result || '기타') : '미방문';
+  if (!last) return '미컨택';
+  const raw = last.result || '미컨택';
+  return STATUS_MAP[raw] || (VALID_STATUSES.includes(raw) ? raw : '미컨택');
 }
 
 function daysSince(dateStr) {

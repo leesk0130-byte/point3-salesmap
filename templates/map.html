@@ -265,21 +265,18 @@
 
         /* status chips — colored variants */
         .sb-chip-status { border-style: solid; }
-        .sb-chip-status[data-status="미방문"] { border-color: #fca5a5; color: #991b1b; background: #fff5f5; }
-        .sb-chip-status[data-status="미방문"]:hover { background: #fee2e2; }
-        .sb-chip-status[data-status="미방문"].active { background: var(--danger); border-color: var(--danger); color: #fff; }
+        .sb-chip-status[data-status="미컨택"] { border-color: #fca5a5; color: #991b1b; background: #fff5f5; }
+        .sb-chip-status[data-status="미컨택"]:hover { background: #fee2e2; }
+        .sb-chip-status[data-status="미컨택"].active { background: var(--danger); border-color: var(--danger); color: #fff; }
         .sb-chip-status[data-status="명함전달"] { border-color: #c7d2fe; color: #3730a3; background: #eef2ff; }
         .sb-chip-status[data-status="명함전달"]:hover { background: #e0e7ff; }
         .sb-chip-status[data-status="명함전달"].active { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .sb-chip-status[data-status="미팅대기"] { border-color: #fde68a; color: #92400e; background: #fffbeb; }
+        .sb-chip-status[data-status="미팅대기"]:hover { background: #fef3c7; }
+        .sb-chip-status[data-status="미팅대기"].active { background: var(--warning); border-color: var(--warning); color: #fff; }
         .sb-chip-status[data-status="미팅완료"] { border-color: #a7f3d0; color: #065f46; background: #ecfdf5; }
         .sb-chip-status[data-status="미팅완료"]:hover { background: #d1fae5; }
         .sb-chip-status[data-status="미팅완료"].active { background: var(--success); border-color: var(--success); color: #fff; }
-        .sb-chip-status[data-status="부재중"] { border-color: #fde68a; color: #92400e; background: #fffbeb; }
-        .sb-chip-status[data-status="부재중"]:hover { background: #fef3c7; }
-        .sb-chip-status[data-status="부재중"].active { background: var(--warning); border-color: var(--warning); color: #fff; }
-        .sb-chip-status[data-status="계약성사"] { border-color: #ddd6fe; color: #5b21b6; background: #f5f3ff; }
-        .sb-chip-status[data-status="계약성사"]:hover { background: #ede9fe; }
-        .sb-chip-status[data-status="계약성사"].active { background: var(--violet); border-color: var(--violet); color: #fff; }
 
         /* ── Store List ── */
         .sb-list-header {
@@ -332,12 +329,10 @@
             box-shadow: 0 0 0 2px rgba(79,70,229,.1), 0 4px 12px rgba(79,70,229,.08);
             background: var(--primary-light);
         }
-        .s-card[data-status="미방문"] { border-left-color: var(--danger); }
+        .s-card[data-status="미컨택"] { border-left-color: var(--danger); }
         .s-card[data-status="명함전달"] { border-left-color: var(--primary); }
         .s-card[data-status="미팅완료"] { border-left-color: var(--success); }
-        .s-card[data-status="부재중"] { border-left-color: var(--warning); }
-        .s-card[data-status="계약성사"] { border-left-color: var(--violet); }
-        .s-card[data-status="실패"] { border-left-color: #94a3b8; }
+        .s-card[data-status="미팅대기"] { border-left-color: var(--warning); }
 
         /* 1줄: 이름 + 배지 */
         .s-card-top {
@@ -381,19 +376,13 @@
         .badge-명함전달 .badge-dot { background: #4f46e5; }
         .badge-미팅완료 { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
         .badge-미팅완료 .badge-dot { background: #059669; }
-        .badge-부재중 { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-        .badge-부재중 .badge-dot { background: #d97706; }
-        .badge-실패 { background: #f8fafc; color: #334155; border-color: #e2e8f0; }
-        .badge-실패 .badge-dot { background: #64748b; }
-        .badge-계약성사 { background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe; }
-        .badge-계약성사 .badge-dot { background: #7c3aed; }
-        .badge-기타 { background: #f8fafc; color: #334155; border-color: #e2e8f0; }
-        .badge-기타 .badge-dot { background: #64748b; }
-        .badge-미방문 {
+        .badge-미팅대기 { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+        .badge-미팅대기 .badge-dot { background: #d97706; }
+        .badge-미컨택 {
             background: #fef2f2; color: #991b1b; border-color: #fecaca;
             font-weight: 700;
         }
-        .badge-미방문 .badge-dot { background: #dc2626; }
+        .badge-미컨택 .badge-dot { background: #dc2626; }
 
         .s-date { font-size: 11px; color: var(--muted-fg); font-variant-numeric: tabular-nums; }
         .s-extra { font-size: 11px; color: var(--muted-fg); }
@@ -749,18 +738,14 @@
         .leaflet-tile-pane { filter: saturate(.25) brightness(1.05) contrast(.95); transition: filter .3s ease; }
         body.dark .leaflet-tile-pane { filter: brightness(0.7) invert(1) contrast(1.1) hue-rotate(200deg) saturate(0.3); }
         body.dark .loading-overlay { background: rgba(15,23,42,.9); }
-        body.dark .badge-미방문 { background: var(--danger-light); color: #fca5a5; border-color: #7f1d1d; }
+        body.dark .badge-미컨택 { background: var(--danger-light); color: #fca5a5; border-color: #7f1d1d; }
         body.dark .badge-명함전달 { background: var(--primary-light); color: #a5b4fc; border-color: #312e81; }
+        body.dark .badge-미팅대기 { background: var(--warning-light); color: #fcd34d; border-color: #78350f; }
         body.dark .badge-미팅완료 { background: var(--success-light); color: #6ee7b7; border-color: #064e3b; }
-        body.dark .badge-부재중 { background: var(--warning-light); color: #fcd34d; border-color: #78350f; }
-        body.dark .badge-계약성사 { background: var(--violet-light); color: #c4b5fd; border-color: #4c1d95; }
-        body.dark .badge-실패 { background: var(--muted); color: var(--muted-fg); border-color: var(--border); }
-        body.dark .badge-기타 { background: var(--muted); color: var(--muted-fg); border-color: var(--border); }
-        body.dark .sb-chip-status[data-status="미방문"] { border-color: #7f1d1d; color: #fca5a5; background: var(--danger-light); }
+        body.dark .sb-chip-status[data-status="미컨택"] { border-color: #7f1d1d; color: #fca5a5; background: var(--danger-light); }
         body.dark .sb-chip-status[data-status="명함전달"] { border-color: #312e81; color: #a5b4fc; background: var(--primary-light); }
+        body.dark .sb-chip-status[data-status="미팅대기"] { border-color: #78350f; color: #fcd34d; background: var(--warning-light); }
         body.dark .sb-chip-status[data-status="미팅완료"] { border-color: #064e3b; color: #6ee7b7; background: var(--success-light); }
-        body.dark .sb-chip-status[data-status="부재중"] { border-color: #78350f; color: #fcd34d; background: var(--warning-light); }
-        body.dark .sb-chip-status[data-status="계약성사"] { border-color: #4c1d95; color: #c4b5fd; background: var(--violet-light); }
         body.dark .kpi-unvisited { background: var(--danger-light); }
         body.dark .sb-search input:focus { box-shadow: 0 0 0 3px rgba(129,140,248,.2); }
         .dark-toggle {
@@ -842,11 +827,10 @@
             transition: all .12s; border-left: 3px solid transparent;
         }
         .fl-card:hover { background: var(--muted); border-color: var(--border-strong); }
-        .fl-card[data-status="미방문"] { border-left-color: var(--danger); }
+        .fl-card[data-status="미컨택"] { border-left-color: var(--danger); }
         .fl-card[data-status="명함전달"] { border-left-color: var(--primary); }
+        .fl-card[data-status="미팅대기"] { border-left-color: var(--warning); }
         .fl-card[data-status="미팅완료"] { border-left-color: var(--success); }
-        .fl-card[data-status="부재중"] { border-left-color: var(--warning); }
-        .fl-card[data-status="계약성사"] { border-left-color: var(--violet); }
         .fl-card-main { flex: 1; min-width: 0; }
         .fl-card-name { font-size: 14px; font-weight: 600; color: var(--fg); margin-bottom: 2px; }
         .fl-card-addr { font-size: 12px; color: var(--muted-fg); margin-bottom: 4px; }
@@ -1003,8 +987,8 @@
             <div class="bs-handle-bar"></div>
         </div>
         <div class="bs-peek-info" id="bsPeekInfo">
-            <div class="bs-peek-stat"><span class="bs-peek-dot" style="background:var(--danger)"></span> 미방문 <span id="peekUnvisited">0</span></div>
-            <div class="bs-peek-stat"><span class="bs-peek-dot" style="background:var(--primary)"></span> 방문 <span id="peekVisited">0</span></div>
+            <div class="bs-peek-stat"><span class="bs-peek-dot" style="background:var(--danger)"></span> 미컨택 <span id="peekUnvisited">0</span></div>
+            <div class="bs-peek-stat"><span class="bs-peek-dot" style="background:var(--primary)"></span> 컨택 <span id="peekVisited">0</span></div>
             <div class="bs-peek-stat" style="color:var(--muted-fg);">총 <span id="peekTotal">0</span></div>
         </div>
 
@@ -1046,15 +1030,15 @@
                 </div>
                 <div class="kpi-card kpi-rate">
                     <div class="kpi-card-value" id="kpiRate">0%</div>
-                    <div class="kpi-card-title">방문율</div>
+                    <div class="kpi-card-title">진행률</div>
                 </div>
                 <div class="kpi-card kpi-visited">
-                    <div class="kpi-card-value" id="kpiVisited">0</div>
-                    <div class="kpi-card-title">방문 완료</div>
+                    <div class="kpi-card-value" id="kpiContacted">0</div>
+                    <div class="kpi-card-title">컨택 완료</div>
                 </div>
                 <div class="kpi-card kpi-unvisited">
-                    <div class="kpi-card-value" id="kpiUnvisited">0</div>
-                    <div class="kpi-card-title">미방문</div>
+                    <div class="kpi-card-value" id="kpiNoContact">0</div>
+                    <div class="kpi-card-title">미컨택</div>
                 </div>
             </div>
         </div>
@@ -1102,11 +1086,10 @@
             <input type="text" class="fl-search" id="flSearch" placeholder="매장명, 주소 검색..." oninput="renderFullList()">
             <select class="fl-select" id="flStatus" onchange="renderFullList()">
                 <option value="">전체 상태</option>
-                <option value="미방문">미방문</option>
+                <option value="미컨택">미컨택</option>
                 <option value="명함전달">명함전달</option>
+                <option value="미팅대기">미팅대기</option>
                 <option value="미팅완료">미팅완료</option>
-                <option value="부재중">부재중</option>
-                <option value="계약성사">계약성사</option>
             </select>
             <select class="fl-select" id="flDistrict" onchange="renderFullList()">
                 <option value="">전체 지역</option>
@@ -1253,34 +1236,33 @@
         })();
 
         const MARKER_STATUS_COLORS = {
-            '미방문':   '#ef4444',   // 빨강 — 가장 눈에 띄게
+            '미컨택':   '#ef4444',   // 빨강
             '명함전달': '#4f46e5',   // 인디고
-            '미팅완료': '#10b981',   // 에메랄드 (더 밝게)
-            '부재중':   '#f59e0b',   // 앰버 (더 밝게)
-            '실패':     '#6b7280',   // 그레이
-            '계약성사': '#8b5cf6',   // 바이올렛 (더 밝게)
-            '기타':     '#6b7280',   // 그레이
+            '미팅대기': '#f59e0b',   // 앰버
+            '미팅완료': '#10b981',   // 에메랄드
             'personal': '#374151'    // 다크그레이
         };
 
         const MAP_PIN_ICON = '<path d="M10 1C6.13 1 3 4.13 3 8c0 5.25 7 11 7 11s7-5.75 7-11c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>';
         const HOME_ICON = '<path d="M10 2L3 9h2v7h4v-4h2v4h4V9h2L10 2z"/>';
 
+        const STATUS_MAP = {'미방문':'미컨택','부재중':'미컨택','계약성사':'미팅완료','실패':'미컨택','기타':'미컨택'};
+        const VALID_STATUSES = ['미컨택','명함전달','미팅대기','미팅완료'];
         function getStoreStatus(store) {
             const lv = getLastVisit(store);
-            if (!lv) return '미방문';
-            return lv.result || '기타';
+            if (!lv) return '미컨택';
+            const raw = lv.result || '미컨택';
+            return STATUS_MAP[raw] || (VALID_STATUSES.includes(raw) ? raw : '미컨택');
         }
 
         function buildMarkerHtml(store) {
             const personal = store.name==='집' || store.name==='회사';
             const status = personal ? 'personal' : getStoreStatus(store);
-            const color = MARKER_STATUS_COLORS[status] || MARKER_STATUS_COLORS['미방문'];
+            const color = MARKER_STATUS_COLORS[status] || MARKER_STATUS_COLORS['미컨택'];
             const icon = personal ? HOME_ICON : MAP_PIN_ICON;
-            const isContract = status === '계약성사';
 
             const starHtml = !personal && store.starred ? '<div class="cm-star">★</div>' : '';
-            return `<div class="cm-wrapper${personal?' cm-personal':''}${isContract?' cm-contract':''}">
+            return `<div class="cm-wrapper${personal?' cm-personal':''}">
                 ${starHtml}
                 <div class="cm-pin">
                     <svg viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1469,18 +1451,18 @@
         // ── KPI ──
         function updateKPI(stores) {
             const total = stores.length;
-            let unvisited = 0;
-            stores.forEach(s => { if (!getLastVisit(s)) unvisited++; });
-            const visited = total - unvisited;
-            const rate = total ? Math.round((visited / total) * 100) : 0;
+            let noContact = 0;
+            stores.forEach(s => { if (getStoreStatus(s) === '미컨택') noContact++; });
+            const contacted = total - noContact;
+            const rate = total ? Math.round((contacted / total) * 100) : 0;
 
             document.getElementById('kpiTotal').textContent = total;
-            document.getElementById('kpiVisited').textContent = visited;
-            document.getElementById('kpiUnvisited').textContent = unvisited;
+            document.getElementById('kpiContacted').textContent = contacted;
+            document.getElementById('kpiNoContact').textContent = noContact;
             document.getElementById('kpiRate').textContent = rate + '%';
             // peek 미니 KPI (모바일)
             const pt = document.getElementById('peekTotal');
-            if (pt) { pt.textContent = total; document.getElementById('peekVisited').textContent = visited; document.getElementById('peekUnvisited').textContent = unvisited; }
+            if (pt) { pt.textContent = total; document.getElementById('peekVisited').textContent = contacted; document.getElementById('peekUnvisited').textContent = noContact; }
         }
 
         // ── Marker ──
@@ -1512,7 +1494,7 @@
                     return `<div class="pop-v"><div class="pop-v-top"><span class="pop-v-date">${fmtDate(v.date||v.visited_at)}</span><span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span></div>${memo}</div>`;
                 }).join('')}</div>`;
             } else {
-                vHtml = `<div class="pop-section-label">방문 기록</div><div class="pop-empty"><span class="badge badge-미방문"><span class="badge-dot"></span>미방문</span></div>`;
+                vHtml = `<div class="pop-section-label">방문 기록</div><div class="pop-empty"><span class="badge badge-미컨택"><span class="badge-dot"></span>미컨택</span></div>`;
             }
 
             const statusBadge = statusLabel ? `<span class="badge badge-${statusLabel}" style="margin-left:auto;"><span class="badge-dot"></span>${escapeHtml(statusLabel)}</span>` : '';
@@ -1605,7 +1587,7 @@
                     const r = lv.result||'기타';
                     tag = `<span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span><span class="s-date">${fmtDate(lv.date||lv.visited_at)}</span>`;
                 } else {
-                    tag = `<span class="badge badge-미방문"><span class="badge-dot"></span>미방문</span>`;
+                    tag = `<span class="badge badge-미컨택"><span class="badge-dot"></span>미컨택</span>`;
                 }
                 const daysAgo = getDaysAgo(s);
                 const daysColor = getDaysAgoColor(daysAgo);
@@ -1653,7 +1635,7 @@
             const sc = {};
             let starCount = 0;
             allStores.forEach(s => { const st = getStoreStatus(s); sc[st] = (sc[st]||0)+1; if(s.starred) starCount++; });
-            const order = ['미방문','명함전달','미팅완료','부재중','계약성사'];
+            const order = ['미컨택','명함전달','미팅대기','미팅완료'];
             let h = `<button class="sb-chip${activeStatus===null&&!filterStarred?' active':''}" data-s="__all__">전체 <span class="sb-chip-n">${allStores.length}</span></button>`;
             h += `<button class="sb-chip${filterStarred?' active':''}" data-s="__star__" style="${filterStarred?'background:var(--warning);border-color:var(--warning);color:#fff;':'color:#f59e0b;border-color:#fde68a;'}">★ <span class="sb-chip-n">${starCount}</span></button>`;
             order.forEach(st => {
@@ -1749,7 +1731,7 @@
                     if (lv.memo) visitInfo += `<div class="fl-card-memo">${escapeHtml(lv.memo)}</div>`;
                     // 방문수 표시 제거
                 } else {
-                    visitInfo = '<span class="badge badge-미방문"><span class="badge-dot"></span>미방문</span>';
+                    visitInfo = '<span class="badge badge-미컨택"><span class="badge-dot"></span>미컨택</span>';
                 }
 
                 return `<div class="fl-card" data-id="${s.id}" data-status="${status}">
@@ -1798,7 +1780,7 @@
         }
 
         // 결과 버튼 그룹 초기화
-        const _resultOptions = ['명함전달','미팅완료','부재중','계약성사','실패'];
+        const _resultOptions = ['명함전달','미팅대기','미팅완료'];
         function initResultBtnGroup() {
             const g = document.getElementById('dpResultBtnGroup');
             g.innerHTML = _resultOptions.map(r =>

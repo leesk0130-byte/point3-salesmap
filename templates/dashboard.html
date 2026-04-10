@@ -344,13 +344,16 @@
       white-space: nowrap;
       box-shadow: 0 1px 2px rgba(0,0,0,.06);
     }
-    .status-미방문 { background: #fef2f2; color: #dc2626; }
+    .status-미컨택 { background: #fef2f2; color: #dc2626; }
     .status-명함전달 { background: #eef2ff; color: #4f46e5; }
+    .status-미팅대기 { background: #fffbeb; color: #d97706; }
     .status-미팅완료 { background: #ecfdf5; color: #059669; }
-    .status-부재중 { background: #fffbeb; color: #d97706; }
-    .status-계약성사 { background: #f5f3ff; color: #7c3aed; }
-    .status-실패 { background: #f1f5f9; color: #94a3b8; }
-    .status-기타 { background: #f1f5f9; color: #94a3b8; }
+    .contact-tags { display:flex; gap:3px; flex-wrap:wrap; }
+    .ct { font-size:10px; font-weight:600; padding:2px 5px; border-radius:4px; }
+    .ct-email { background:#dbeafe; color:#1d4ed8; }
+    .ct-li { background:#e0e7ff; color:#4338ca; }
+    .ct-rem { background:#fef3c7; color:#92400e; }
+    .ct-intro { background:#d1fae5; color:#065f46; }
     .link-map {
       color: #4f46e5;
       text-decoration: none;
@@ -379,13 +382,10 @@
     .btn-dark-toggle:hover { background: var(--border); }
 
     /* ── 다크모드 상태 배지 ── */
-    body.dark .status-미방문 { background: var(--danger-light); color: #fca5a5; }
+    body.dark .status-미컨택 { background: var(--danger-light); color: #fca5a5; }
     body.dark .status-명함전달 { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .status-미팅대기 { background: var(--warning-light); color: #fcd34d; }
     body.dark .status-미팅완료 { background: var(--success-light); color: #6ee7b7; }
-    body.dark .status-부재중 { background: var(--warning-light); color: #fcd34d; }
-    body.dark .status-계약성사 { background: var(--violet-light); color: #c4b5fd; }
-    body.dark .status-실패 { background: var(--muted); color: var(--muted-fg); }
-    body.dark .status-기타 { background: var(--muted); color: var(--muted-fg); }
     body.dark .days-badge.urgent { background: var(--danger-light); color: #fca5a5; }
     body.dark .days-badge.warn { background: var(--warning-light); color: #fcd34d; }
     body.dark .days-badge.normal { background: var(--muted); color: var(--muted-fg); }
@@ -450,15 +450,15 @@
         <span class="kpi-value" id="kpiTotal">-</span>
       </div>
       <div class="kpi-card success">
-        <div class="kpi-header"><span class="kpi-label">방문 완료</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-        <span class="kpi-value" id="kpiVisited">-</span>
+        <div class="kpi-header"><span class="kpi-label">컨택 완료</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="kpi-value" id="kpiContacted">-</span>
       </div>
       <div class="kpi-card danger">
-        <div class="kpi-header"><span class="kpi-label">미방문</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-        <span class="kpi-value" id="kpiUnvisited">-</span>
+        <div class="kpi-header"><span class="kpi-label">미컨택</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        <span class="kpi-value" id="kpiNoContact">-</span>
       </div>
       <div class="kpi-card violet">
-        <div class="kpi-header"><span class="kpi-label">방문율</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
+        <div class="kpi-header"><span class="kpi-label">진행률</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
         <span class="kpi-value" id="kpiRate">-</span>
       </div>
     </div>
@@ -466,19 +466,19 @@
     <!-- 차트 -->
     <div class="chart-grid">
       <div class="chart-card">
-        <div class="chart-title">상태별 분포</div>
+        <div class="chart-title">영업 파이프라인</div>
         <div class="chart-wrap donut">
           <canvas id="chartStatus"></canvas>
         </div>
       </div>
       <div class="chart-card">
-        <div class="chart-title">지역구별 매장 수</div>
+        <div class="chart-title">지역구별 현황</div>
         <div class="chart-wrap">
           <canvas id="chartDistrict"></canvas>
         </div>
       </div>
       <div class="chart-card full">
-        <div class="chart-title">최근 30일 방문 추이</div>
+        <div class="chart-title">최근 30일 활동 추이</div>
         <div class="chart-wrap">
           <canvas id="chartTrend"></canvas>
         </div>
@@ -488,17 +488,15 @@
     <!-- 전체 매장 리스트 -->
     <div class="table-card">
       <div class="table-header">
-        <div class="table-title">전체 매장 목록</div>
+        <div class="table-title">전체 가맹점 현황</div>
         <div class="table-filters">
-          <input type="text" class="filter-search" id="storeSearch" placeholder="매장명, 주소 검색..." oninput="renderStoreTable()">
+          <input type="text" class="filter-search" id="storeSearch" placeholder="가맹점, 주소 검색..." oninput="renderStoreTable()">
           <select class="filter-select" id="filterStatus" onchange="renderStoreTable()">
             <option value="">전체 상태</option>
-            <option value="미방문">미방문</option>
+            <option value="미컨택">미컨택</option>
             <option value="명함전달">명함전달</option>
+            <option value="미팅대기">미팅대기</option>
             <option value="미팅완료">미팅완료</option>
-            <option value="부재중">부재중</option>
-            <option value="계약성사">계약성사</option>
-            <option value="실패">실패</option>
           </select>
           <select class="filter-select" id="filterDistrict" onchange="renderStoreTable()">
             <option value="">전체 지역구</option>
@@ -517,12 +515,12 @@
           <thead>
             <tr>
               <th style="width:40px">#</th>
-              <th>매장명</th>
+              <th>가맹점</th>
               <th class="col-addr">주소</th>
               <th style="width:80px">지역구</th>
               <th style="width:80px">상태</th>
-              <th style="width:70px">경과일</th>
-              <th style="width:80px">방문수</th>
+              <th style="width:100px">연락수단</th>
+              <th style="width:70px">활동수</th>
               <th class="no-sort" style="width:50px"></th>
             </tr>
           </thead>
@@ -543,11 +541,15 @@
     let allStoresCache = [];
 
     // ── 상태 판별 함수 ──
+    // 기존 데이터 호환: 미방문/부재중→미컨택, 계약성사/실패/기타→미팅완료
+    const STATUS_MAP = {'미방문':'미컨택','부재중':'미컨택','계약성사':'미팅완료','실패':'미컨택','기타':'미컨택'};
+    const VALID_STATUSES = ['미컨택','명함전달','미팅대기','미팅완료'];
     function getStoreStatus(store) {
       const visits = store.visits || [];
-      if (visits.length === 0) return '미방문';
+      if (visits.length === 0) return '미컨택';
       const lastVisit = visits[visits.length - 1];
-      return lastVisit.result || '미방문';
+      const raw = lastVisit.result || '미컨택';
+      return STATUS_MAP[raw] || (VALID_STATUSES.includes(raw) ? raw : '미컨택');
     }
 
     // ── 경과일 계산 ──
@@ -579,25 +581,25 @@
     function render(stores) {
       // ── KPI 계산 ──
       const total = stores.length;
-      const visited = stores.filter(s => (s.visits || []).length > 0).length;
-      const unvisited = total - visited;
-      const rate = total > 0 ? ((visited / total) * 100).toFixed(1) : '0.0';
+      const noContact = stores.filter(s => getStoreStatus(s) === '미컨택').length;
+      const contacted = total - noContact;
+      const rate = total > 0 ? ((contacted / total) * 100).toFixed(1) : '0.0';
 
       document.getElementById('kpiTotal').textContent = total.toLocaleString();
-      document.getElementById('kpiVisited').textContent = visited.toLocaleString();
-      document.getElementById('kpiUnvisited').textContent = unvisited.toLocaleString();
+      document.getElementById('kpiContacted').textContent = contacted.toLocaleString();
+      document.getElementById('kpiNoContact').textContent = noContact.toLocaleString();
       document.getElementById('kpiRate').textContent = rate + '%';
 
       // ── 상태별 집계 ──
-      const statusLabels = ['미방문', '명함전달', '미팅완료', '부재중', '계약성사'];
-      const statusColors = ['#dc2626', '#4f46e5', '#059669', '#d97706', '#7c3aed'];
+      const statusLabels = ['미컨택', '명함전달', '미팅대기', '미팅완료'];
+      const statusColors = ['#dc2626', '#4f46e5', '#d97706', '#059669'];
       const statusCounts = statusLabels.map(() => 0);
 
       stores.forEach(s => {
         const st = getStoreStatus(s);
         const idx = statusLabels.indexOf(st);
         if (idx >= 0) statusCounts[idx]++;
-        else statusCounts[0]++; // 알 수 없는 상태는 미방문 처리
+        else statusCounts[0]++;
       });
 
       // ── 도넛 차트 ──
@@ -629,17 +631,17 @@
       const districtMap = {};
       stores.forEach(s => {
         const d = s.district || '기타';
-        if (!districtMap[d]) districtMap[d] = { visited: 0, unvisited: 0 };
-        if ((s.visits || []).length > 0) districtMap[d].visited++;
-        else districtMap[d].unvisited++;
+        if (!districtMap[d]) districtMap[d] = { contacted: 0, noContact: 0 };
+        if (getStoreStatus(s) !== '미컨택') districtMap[d].contacted++;
+        else districtMap[d].noContact++;
       });
       const districtNames = Object.keys(districtMap).sort((a, b) => {
-        const totalA = districtMap[a].visited + districtMap[a].unvisited;
-        const totalB = districtMap[b].visited + districtMap[b].unvisited;
+        const totalA = districtMap[a].contacted + districtMap[a].noContact;
+        const totalB = districtMap[b].contacted + districtMap[b].noContact;
         return totalB - totalA;
       });
-      const districtVisited = districtNames.map(d => districtMap[d].visited);
-      const districtUnvisited = districtNames.map(d => districtMap[d].unvisited);
+      const districtContacted = districtNames.map(d => districtMap[d].contacted);
+      const districtNoContact = districtNames.map(d => districtMap[d].noContact);
 
       // ── 바 차트 ──
       if (chartDistrict) chartDistrict.destroy();
@@ -649,14 +651,14 @@
           labels: districtNames,
           datasets: [
             {
-              label: '방문',
-              data: districtVisited,
+              label: '컨택',
+              data: districtContacted,
               backgroundColor: '#4f46e5',
               borderRadius: 4,
             },
             {
-              label: '미방문',
-              data: districtUnvisited,
+              label: '미컨택',
+              data: districtNoContact,
               backgroundColor: '#e5e7eb',
               borderRadius: 4,
             }
@@ -710,7 +712,7 @@
         data: {
           labels: trendLabels,
           datasets: [{
-            label: '방문 건수',
+            label: '활동 건수',
             data: trendData,
             borderColor: '#4f46e5',
             backgroundColor: 'rgba(79,70,229,0.08)',
@@ -797,17 +799,19 @@
       document.getElementById('tableCount').textContent = '총 ' + allStoresCache.length + '개 중 ' + filtered.length + '개 표시';
 
       if (!filtered.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">조건에 맞는 매장이 없습니다</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">조건에 맞는 가맹점이 없습니다</td></tr>';
         return;
       }
 
       tbody.innerHTML = filtered.map((s, i) => {
         const status = getStoreStatus(s);
-        const visitCount = (s.visits||[]).length;
-        const elapsed = s._elapsed;
-        let badgeClass = 'normal';
-        if (elapsed >= 30) badgeClass = 'urgent';
-        else if (elapsed >= 14) badgeClass = 'warn';
+        const activityCount = (s.visits||[]).length;
+        const contacts = [
+          s.contact_email ? '<span class="ct ct-email">메일</span>' : '',
+          s.contact_linkedin ? '<span class="ct ct-li">LI</span>' : '',
+          s.contact_remember ? '<span class="ct ct-rem">리멤</span>' : '',
+          s.contact_intro ? '<span class="ct ct-intro">소개</span>' : '',
+        ].filter(Boolean).join('') || '<span style="color:#9ca3af">-</span>';
 
         return `<tr>
           <td>${i+1}</td>
@@ -815,8 +819,8 @@
           <td class="col-addr">${escapeHtml(s.address||'')}</td>
           <td>${escapeHtml(s.district||'')}</td>
           <td><span class="status-badge status-${escapeHtml(status)}">${escapeHtml(status)}</span></td>
-          <td><span class="days-badge ${badgeClass}">${elapsed}일</span></td>
-          <td style="text-align:center">${visitCount}</td>
+          <td><div class="contact-tags">${contacts}</div></td>
+          <td style="text-align:center">${activityCount}</td>
           <td><a href="/?store=${s.id}" class="link-map">보기</a></td>
         </tr>`;
       }).join('');
