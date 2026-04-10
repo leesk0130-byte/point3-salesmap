@@ -37,12 +37,16 @@
     }
     .card {
       background: var(--bg-card);
-      border-radius: 20px;
-      padding: 52px 36px 40px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
       border: 1px solid var(--border);
       text-align: center;
       transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
     .logo {
       font-size: 28px;
@@ -101,13 +105,19 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .clock-icon { animation: none !important; }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.97); }
     }
     .clock-icon { animation: pulse 2.5s ease-in-out infinite; }
+
+    /* 접근성: 애니메이션 비활성화 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
 
     .main-text {
       font-size: 20px;
@@ -125,18 +135,19 @@
     }
     .btn {
       width: 100%;
-      padding: 14px;
+      height: 44px;
+      padding: 0 14px;
       font-size: 15px;
       font-weight: 700;
       font-family: inherit;
       color: #fff;
-      background: var(--primary);
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
     }
-    .btn:hover { background: var(--primary-hover); box-shadow: 0 4px 16px var(--primary-glow); }
+    .btn:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); box-shadow: 0 4px 16px var(--primary-glow); transform: translateY(-1px); }
     .btn:active { transform: scale(0.98); }
     .btn:disabled { background: #a5b4fc; cursor: not-allowed; box-shadow: none; }
 
@@ -168,7 +179,7 @@
     }
 
     @media (max-width: 480px) {
-      .card { padding: 40px 24px 32px; }
+      .card { padding: 24px 20px; }
       .main-text { font-size: 18px; }
     }
 
@@ -226,6 +237,13 @@
   </div>
 
   <script>
+    // 다크모드 자동 적용
+    (function() {
+      const saved = localStorage.getItem('point3-dark');
+      if (saved === 'true') document.body.classList.add('dark');
+      else if (saved === 'false') document.body.classList.add('light');
+    })();
+
     const checkBtn = document.getElementById('checkBtn');
     const statusMsg = document.getElementById('statusMsg');
 

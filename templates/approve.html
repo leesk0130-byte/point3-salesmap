@@ -211,8 +211,8 @@
       overflow: hidden;
     }
     .member-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
     .member-card.pending-card {
       border-color: #f59e0b;
@@ -318,6 +318,7 @@
     }
     .btn-sm {
       flex: 1;
+      height: 44px;
       padding: 9px 14px;
       font-size: 13px;
       font-weight: 600;
@@ -326,8 +327,9 @@
       border-radius: 10px;
       cursor: pointer;
       text-align: center;
-      transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
     }
+    .btn-sm:hover { transform: translateY(-1px); }
     .btn-sm:active { transform: scale(0.96); }
     .btn-approve {
       background: #16a34a;
@@ -463,6 +465,31 @@
     body.dark .member-card.pending-card { background: linear-gradient(180deg, #451a0322 0%, var(--bg-card) 40%); border-color: #b45309; }
     body.dark .stat-card { background: var(--bg-card); }
 
+    /* 접근성: 애니메이션 비활성화 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* 다크모드 토글 */
+    .dark-toggle {
+      width: 40px; height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-subtle);
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition), border-color var(--transition);
+      flex-shrink: 0;
+    }
+    .dark-toggle:hover { background: var(--border); }
+
     @media (prefers-color-scheme: dark) {
       body:not(.light) {
         --bg: #0f172a;
@@ -498,7 +525,10 @@
       <a href="/" class="logo" style="text-decoration:none;color:inherit;">{{ team_name or 'Point3' }} <span>CRM</span></a>
       <div class="header-sub">팀원 관리</div>
     </div>
-    <a href="/" class="back-link">← 지도로 돌아가기</a>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="/" class="back-link">← 지도로 돌아가기</a>
+      <button class="dark-toggle" id="darkToggle" aria-label="다크모드 전환">🌙</button>
+    </div>
   </div>
 
   <div class="main">
@@ -816,6 +846,24 @@
       div.textContent = str;
       return div.innerHTML;
     }
+
+    // 다크모드 토글
+    (function() {
+      const saved = localStorage.getItem('point3-dark');
+      if (saved === 'true') document.body.classList.add('dark');
+      else if (saved === 'false') document.body.classList.add('light');
+      updateToggleIcon();
+    })();
+    function updateToggleIcon() {
+      const btn = document.getElementById('darkToggle');
+      if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+    document.getElementById('darkToggle').addEventListener('click', function() {
+      const isDark = document.body.classList.toggle('dark');
+      document.body.classList.toggle('light', !isDark);
+      localStorage.setItem('point3-dark', isDark);
+      updateToggleIcon();
+    });
 
     // 초기 로드
     loadPending();

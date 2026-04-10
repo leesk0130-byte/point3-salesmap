@@ -38,12 +38,16 @@
     }
     .card {
       background: var(--bg-card);
-      border-radius: 20px;
-      padding: 48px 36px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
       border: 1px solid var(--border);
       text-align: center;
       transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
     .logo {
       font-size: 28px;
@@ -72,11 +76,12 @@
     }
     .input-field {
       width: 100%;
-      padding: 14px 16px;
+      height: 44px;
+      padding: 0 16px;
       font-size: 15px;
       font-family: inherit;
       border: 2px solid var(--border);
-      border-radius: 10px;
+      border-radius: 8px;
       outline: none;
       color: var(--fg-secondary);
       background: var(--input-bg);
@@ -90,19 +95,20 @@
     .input-field::placeholder { color: var(--fg-muted); }
     .btn {
       width: 100%;
-      padding: 14px;
+      height: 44px;
+      padding: 0 14px;
       margin-top: 20px;
       font-size: 15px;
       font-weight: 700;
       font-family: inherit;
       color: #fff;
-      background: var(--primary);
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
     }
-    .btn:hover { background: var(--primary-hover); box-shadow: 0 4px 16px var(--primary-glow); }
+    .btn:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); box-shadow: 0 4px 16px var(--primary-glow); transform: translateY(-1px); }
     .btn:active { transform: scale(0.98); }
     .btn:disabled {
       background: #a5b4fc;
@@ -116,8 +122,17 @@
       min-height: 20px;
     }
 
+    /* 접근성: 애니메이션 비활성화 */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
     @media (max-width: 480px) {
-      .card { padding: 36px 24px; }
+      .card { padding: 24px 20px; }
     }
 
     /* Dark mode */
@@ -163,6 +178,13 @@
   </div>
 
   <script>
+    // 다크모드 자동 적용
+    (function() {
+      const saved = localStorage.getItem('point3-dark');
+      if (saved === 'true') document.body.classList.add('dark');
+      else if (saved === 'false') document.body.classList.add('light');
+    })();
+
     const input = document.getElementById('teamName');
     const btn = document.getElementById('submitBtn');
     const errorMsg = document.getElementById('errorMsg');
