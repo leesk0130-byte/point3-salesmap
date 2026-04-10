@@ -374,9 +374,28 @@
     .btn-quick:hover { background: #d1fae5; }
 
     /* ── 연락수단 체크박스 ── */
-    .contact-chk { display:inline-flex; align-items:center; gap:2px; margin-right:4px; cursor:pointer; vertical-align:middle; }
-    .contact-chk input[type="checkbox"] { width:13px; height:13px; margin:0; cursor:pointer; accent-color:#4f46e5; }
-    .cc-label { font-size:9px; font-weight:600; padding:1px 3px; border-radius:3px; user-select:none; }
+    .store-name-link { color: var(--primary); text-decoration: none; font-weight: 600; cursor: pointer; }
+    .store-name-link:hover { text-decoration: underline; }
+
+    /* ── 가맹점 정보 모달 ── */
+    .store-info-overlay { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity .2s; }
+    .store-info-overlay.show { opacity:1; }
+    .store-info-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.4); }
+    .store-info-card { position:relative; background:var(--card-bg); border-radius:16px; box-shadow:0 20px 60px rgba(0,0,0,.2); padding:28px; width:420px; max-width:92vw; max-height:85vh; overflow-y:auto; }
+    .store-info-card h3 { font-size:18px; font-weight:700; margin-bottom:16px; color:var(--fg); }
+    .store-info-card .si-row { display:flex; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+    .store-info-card .si-row:last-child { border-bottom:none; }
+    .store-info-card .si-label { width:80px; flex-shrink:0; color:var(--muted-fg); font-weight:600; }
+    .store-info-card .si-val { flex:1; color:var(--fg); }
+    .store-info-card .si-close { position:absolute; top:16px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--muted-fg); }
+    .store-info-card .si-close:hover { color:var(--fg); }
+    .store-info-card .si-visits { margin-top:14px; }
+    .store-info-card .si-visit-item { padding:6px 10px; margin:4px 0; background:var(--muted); border-radius:8px; font-size:12px; }
+    .store-info-card .si-visit-date { font-weight:600; color:var(--primary); margin-right:8px; }
+
+    .contact-chk { display:inline-flex; align-items:center; gap:3px; margin-right:5px; cursor:pointer; vertical-align:middle; }
+    .contact-chk input[type="checkbox"] { width:14px; height:14px; margin:0; cursor:pointer; accent-color:#4f46e5; }
+    .cc-label { font-size:11px; font-weight:600; padding:2px 5px; border-radius:4px; user-select:none; }
     .cc-email { background:#dbeafe; color:#1d4ed8; }
     .cc-li { background:#e0e7ff; color:#4338ca; }
     .cc-rem { background:#fef3c7; color:#92400e; }
@@ -713,7 +732,7 @@
 
   <!-- 필터 바 -->
   <div class="filter-bar">
-    <input type="text" id="searchInput" placeholder="매장명 / 주소 / 메모 검색...">
+    <input type="text" id="searchInput" placeholder="가맹점 / 주소 / 메모 검색...">
     <select id="statusFilter">
       <option value="">상태: 전체</option>
       <option value="미방문">미방문</option>
@@ -756,13 +775,13 @@
         <tr>
           <th class="col-check"><input type="checkbox" id="checkAll"></th>
           <th class="col-num">#</th>
-          <th>매장명</th>
+          <th>가맹점</th>
           <th class="col-addr">주소</th>
           <th class="col-district">지역구</th>
           <th>연락수단</th>
           <th>상태</th>
           <th>최근방문</th>
-          <th class="col-memo">방문메모</th>
+          <th class="col-memo">메모</th>
           <th>지도</th>
           <th>액션</th>
         </tr>
@@ -846,10 +865,6 @@
       <div>
         <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">메모</label>
         <textarea id="smMemo" placeholder="특이사항, 참고 내용 등" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:60px;resize:vertical;background:var(--bg);color:var(--fg);"></textarea>
-      </div>
-      <div>
-        <label style="font-size:13px;font-weight:600;margin-bottom:4px;display:block;">비고사항</label>
-        <textarea id="smNotes" placeholder="비고사항 입력" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:50px;resize:vertical;background:var(--bg);color:var(--fg);"></textarea>
       </div>
       <div>
         <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">연락 수단</label>
@@ -1080,7 +1095,7 @@ function render() {
     html += `<tr>
       <td class="col-check"><input type="checkbox" data-id="${escAttr(s.id)}" ${checked} onchange="toggleCheck(this)"></td>
       <td class="col-num">${idx + 1}</td>
-      <td class="col-name" title="${escAttr(s.name)}">${esc(s.name)}</td>
+      <td class="col-name"><a href="#" class="store-name-link" onclick="event.preventDefault();showStoreInfo('${escAttr(s.id)}')">${esc(s.name)}</a></td>
       <td class="col-addr" title="${escAttr(s.address)}">${esc(s.address)}</td>
       <td class="col-district">${esc(s.district || '기타')}</td>
       <td style="font-size:11px;white-space:nowrap;">
@@ -1369,6 +1384,53 @@ async function deleteVisit(visitId) {
    ============================ */
 function viewOnMap(id) {
   toggleMapVisibility(id);
+}
+
+function showStoreInfo(id) {
+  const s = allStores.find(x => x.id === id);
+  if (!s) return;
+  const old = document.getElementById('storeInfoOverlay');
+  if (old) old.remove();
+
+  const visits = (s.visits || []).sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  const contactTags = [
+    s.contact_email ? '이메일' : '', s.contact_linkedin ? '링크드인' : '',
+    s.contact_remember ? '리멤버' : '', s.contact_intro ? '소개' : ''
+  ].filter(Boolean).join(', ') || '없음';
+
+  const visitHtml = visits.length
+    ? visits.map(v => `<div class="si-visit-item"><span class="si-visit-date">${v.date||''}</span>${v.memo||''}</div>`).join('')
+    : '<div style="color:var(--muted-fg);font-size:12px;padding:8px 0;">방문 기록 없음</div>';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'storeInfoOverlay';
+  overlay.className = 'store-info-overlay';
+  overlay.innerHTML = `
+    <div class="store-info-backdrop"></div>
+    <div class="store-info-card">
+      <button class="si-close" onclick="closeStoreInfo()">✕</button>
+      <h3>${s.name}</h3>
+      <div class="si-row"><div class="si-label">주소</div><div class="si-val">${s.address||'-'}</div></div>
+      <div class="si-row"><div class="si-label">지역구</div><div class="si-val">${s.district||'기타'}</div></div>
+      <div class="si-row"><div class="si-label">메모</div><div class="si-val">${s.memo||'-'}</div></div>
+      <div class="si-row"><div class="si-label">연락수단</div><div class="si-val">${contactTags}</div></div>
+      <div class="si-row"><div class="si-label">지도</div><div class="si-val">${s.showOnMap !== false ? '📍 표시중' : '⊘ 숨김'}</div></div>
+      <div class="si-visits">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">방문 기록 (${visits.length}건)</div>
+        ${visitHtml}
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('show'));
+  overlay.querySelector('.store-info-backdrop').addEventListener('click', closeStoreInfo);
+}
+
+function closeStoreInfo() {
+  const el = document.getElementById('storeInfoOverlay');
+  if (!el) return;
+  el.classList.remove('show');
+  setTimeout(() => el.remove(), 200);
 }
 
 async function toggleContact(id, field, val) {
