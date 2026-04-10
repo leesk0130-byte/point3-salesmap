@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon.svg">
   <title>{{ team_name }} CRM - 대시보드</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
@@ -193,6 +196,14 @@
     .kpi-card.success .kpi-value { color: var(--success); }
     .kpi-card.danger .kpi-value { color: var(--danger); }
     .kpi-card.violet .kpi-value { color: var(--violet); }
+    .kpi-change {
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .kpi-change.up { color: #059669; }
+    .kpi-change.down { color: #dc2626; }
+    .kpi-change.neutral { color: var(--muted-fg); }
 
     /* ── 차트 그리드 ── */
     .chart-grid {
@@ -224,9 +235,98 @@
       width: 100%;
     }
     .chart-wrap.donut {
-      max-width: 320px;
+      max-width: 280px;
       margin: 0 auto;
     }
+    /* ── 도넛 전환율 ── */
+    .donut-with-rates {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .conversion-rates {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 160px;
+    }
+    .conv-item {
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .conv-label { font-weight: 400; color: var(--muted-fg); font-size: 11px; }
+    .conv-value { font-weight: 700; font-size: 18px; }
+    .conv-value.c1 { color: #dc2626; }
+    .conv-value.c2 { color: #4f46e5; }
+    .conv-value.c3 { color: #d97706; }
+    .conv-value.c4 { color: #059669; }
+
+    /* ── 이번 주 활동 요약 CSS 바차트 ── */
+    .weekly-summary {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      margin-bottom: 28px;
+    }
+    .weekly-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 16px;
+    }
+    .weekly-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      height: 140px;
+      padding: 0 8px;
+    }
+    .weekly-bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .weekly-bar-count {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--fg);
+    }
+    .weekly-bar {
+      width: 100%;
+      max-width: 56px;
+      border-radius: 6px 6px 0 0;
+      background: linear-gradient(180deg, #818cf8, #4f46e5);
+      min-height: 4px;
+      transition: height .4s var(--transition);
+    }
+    .weekly-bar.today {
+      background: linear-gradient(180deg, #fbbf24, #d97706);
+    }
+    .weekly-bar-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      margin-top: 4px;
+    }
+    .weekly-bar-label.today { color: var(--warning); font-weight: 700; }
+
+    /* ── 최근활동 컬럼 ── */
+    .last-activity {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .last-activity-date { font-weight: 500; }
+    .last-activity-ago { color: var(--muted-fg); font-size: 11px; }
 
     /* ── 매장 테이블 ── */
     .table-card {
@@ -409,6 +509,10 @@
       .store-table { font-size: 13px; }
       .store-table th, .store-table td { padding: 8px 6px; }
       .col-addr { display: none; }
+      .col-last-act { display: none; }
+      .donut-with-rates { flex-direction: column; }
+      .conversion-rates { flex-direction: row; flex-wrap: wrap; gap: 10px; min-width: auto; }
+      .weekly-bars { height: 100px; gap: 6px; }
     }
     @media (max-width: 480px) {
       .header-brand h1 { font-size: 17px; }
@@ -448,18 +552,22 @@
       <div class="kpi-card primary">
         <div class="kpi-header"><span class="kpi-label">전체 가맹점</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
         <span class="kpi-value" id="kpiTotal">-</span>
+        <span class="kpi-change neutral" id="kpiTotalChange"></span>
       </div>
       <div class="kpi-card success">
         <div class="kpi-header"><span class="kpi-label">컨택 완료</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
         <span class="kpi-value" id="kpiContacted">-</span>
+        <span class="kpi-change neutral" id="kpiContactedChange"></span>
       </div>
       <div class="kpi-card danger">
         <div class="kpi-header"><span class="kpi-label">미컨택</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
         <span class="kpi-value" id="kpiNoContact">-</span>
+        <span class="kpi-change neutral" id="kpiNoContactChange"></span>
       </div>
       <div class="kpi-card violet">
         <div class="kpi-header"><span class="kpi-label">진행률</span><svg class="kpi-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
         <span class="kpi-value" id="kpiRate">-</span>
+        <span class="kpi-change neutral" id="kpiRateChange"></span>
       </div>
     </div>
 
@@ -467,8 +575,11 @@
     <div class="chart-grid">
       <div class="chart-card">
         <div class="chart-title">영업 파이프라인</div>
-        <div class="chart-wrap donut">
-          <canvas id="chartStatus"></canvas>
+        <div class="donut-with-rates">
+          <div class="chart-wrap donut">
+            <canvas id="chartStatus"></canvas>
+          </div>
+          <div class="conversion-rates" id="conversionRates"></div>
         </div>
       </div>
       <div class="chart-card">
@@ -483,6 +594,12 @@
           <canvas id="chartTrend"></canvas>
         </div>
       </div>
+    </div>
+
+    <!-- 이번 주 활동 요약 -->
+    <div class="weekly-summary">
+      <div class="weekly-title">이번 주 활동 요약</div>
+      <div class="weekly-bars" id="weeklyBars"></div>
     </div>
 
     <!-- 전체 매장 리스트 -->
@@ -521,11 +638,12 @@
               <th style="width:80px">상태</th>
               <th style="width:100px">연락수단</th>
               <th style="width:70px">활동수</th>
+              <th class="col-last-act" style="width:110px">최근활동</th>
               <th class="no-sort" style="width:50px"></th>
             </tr>
           </thead>
           <tbody id="storeTableBody">
-            <tr><td colspan="8" class="empty-msg">데이터 로딩 중...</td></tr>
+            <tr><td colspan="9" class="empty-msg">데이터 로딩 중...</td></tr>
           </tbody>
         </table>
       </div>
@@ -577,6 +695,45 @@
       }
     }
 
+    // ── 주간 범위 계산 (월~일) ──
+    function getWeekRange(offsetWeeks) {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0=일, 1=월...
+      const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayOffset - (offsetWeeks * 7));
+      monday.setHours(0,0,0,0);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23,59,59,999);
+      return { start: monday, end: sunday };
+    }
+
+    function countVisitsInRange(stores, range) {
+      let count = 0;
+      stores.forEach(s => {
+        (s.visits || []).forEach(v => {
+          const d = new Date(v.date);
+          if (d >= range.start && d <= range.end) count++;
+        });
+      });
+      return count;
+    }
+
+    function renderKpiChange(elId, diff) {
+      const el = document.getElementById(elId);
+      if (diff > 0) {
+        el.textContent = '+' + diff + ' \u2191';
+        el.className = 'kpi-change up';
+      } else if (diff < 0) {
+        el.textContent = diff + ' \u2193';
+        el.className = 'kpi-change down';
+      } else {
+        el.textContent = '\u2014 \uBCC0\uB3D9\uC5C6\uC74C';
+        el.className = 'kpi-change neutral';
+      }
+    }
+
     // ── 렌더링 ──
     function render(stores) {
       // ── KPI 계산 ──
@@ -589,6 +746,49 @@
       document.getElementById('kpiContacted').textContent = contacted.toLocaleString();
       document.getElementById('kpiNoContact').textContent = noContact.toLocaleString();
       document.getElementById('kpiRate').textContent = rate + '%';
+
+      // ── 전주 대비 변화 계산 ──
+      const thisWeek = getWeekRange(0);
+      const lastWeek = getWeekRange(1);
+      const thisWeekVisits = countVisitsInRange(stores, thisWeek);
+      const lastWeekVisits = countVisitsInRange(stores, lastWeek);
+      const visitsDiff = thisWeekVisits - lastWeekVisits;
+
+      // 전체 가맹점: 이번주 신규 등록 vs 지난주 신규 등록
+      const newThisWeek = stores.filter(s => { const d = new Date(s.created_at); return d >= thisWeek.start && d <= thisWeek.end; }).length;
+      const newLastWeek = stores.filter(s => { const d = new Date(s.created_at); return d >= lastWeek.start && d <= lastWeek.end; }).length;
+      renderKpiChange('kpiTotalChange', newThisWeek - newLastWeek);
+
+      // 컨택 완료: 이번주 활동 vs 지난주 활동
+      renderKpiChange('kpiContactedChange', visitsDiff);
+
+      // 미컨택: 변화 (감소가 좋은 것이므로 반전 표시)
+      const noContactChangeEl = document.getElementById('kpiNoContactChange');
+      const noContactDiff = -(visitsDiff); // 활동 늘면 미컨택 줄어듬
+      if (visitsDiff > 0) {
+        noContactChangeEl.textContent = visitsDiff + ' \u2193';
+        noContactChangeEl.className = 'kpi-change up';
+      } else if (visitsDiff < 0) {
+        noContactChangeEl.textContent = '+' + Math.abs(visitsDiff) + ' \u2191';
+        noContactChangeEl.className = 'kpi-change down';
+      } else {
+        noContactChangeEl.textContent = '\u2014 \uBCC0\uB3D9\uC5C6\uC74C';
+        noContactChangeEl.className = 'kpi-change neutral';
+      }
+
+      // 진행률 변화
+      const rateDiff = total > 0 ? ((visitsDiff / total) * 100) : 0;
+      const rateChangeEl = document.getElementById('kpiRateChange');
+      if (rateDiff > 0) {
+        rateChangeEl.textContent = '+' + rateDiff.toFixed(1) + '%p \u2191';
+        rateChangeEl.className = 'kpi-change up';
+      } else if (rateDiff < 0) {
+        rateChangeEl.textContent = rateDiff.toFixed(1) + '%p \u2193';
+        rateChangeEl.className = 'kpi-change down';
+      } else {
+        rateChangeEl.textContent = '\u2014 \uBCC0\uB3D9\uC5C6\uC74C';
+        rateChangeEl.className = 'kpi-change neutral';
+      }
 
       // ── 상태별 집계 ──
       const statusLabels = ['미컨택', '명함전달', '미팅대기', '미팅완료'];
@@ -626,6 +826,30 @@
           cutout: '55%',
         }
       });
+
+      // ── 전환율 표시 ──
+      const convEl = document.getElementById('conversionRates');
+      const convPairs = [
+        { label: '미컨택', count: statusCounts[0], cls: 'c1' },
+        { label: '명함전달', count: statusCounts[1], cls: 'c2' },
+        { label: '미팅대기', count: statusCounts[2], cls: 'c3' },
+        { label: '미팅완료', count: statusCounts[3], cls: 'c4' },
+      ];
+      let convHtml = '';
+      convPairs.forEach((p, i) => {
+        const pct = total > 0 ? ((p.count / total) * 100).toFixed(1) : '0.0';
+        convHtml += `<div class="conv-item"><span class="conv-label">${p.label}</span><span class="conv-value ${p.cls}">${pct}% <span style="font-size:12px;font-weight:400;color:var(--muted-fg)">(${p.count}건)</span></span></div>`;
+      });
+      // 단계별 전환 비율
+      if (statusCounts[0] > 0) {
+        const funnelRate = total > 0 ? (((total - statusCounts[0]) / total) * 100).toFixed(0) : '0';
+        convHtml += `<div class="conv-item" style="margin-top:4px;padding-top:8px;border-top:1px solid var(--border)"><span class="conv-label">미컨택 → 명함전달 이상</span><span class="conv-value c2">${funnelRate}%</span></div>`;
+      }
+      if (statusCounts[1] + statusCounts[2] + statusCounts[3] > 0) {
+        const meetRate = ((statusCounts[2] + statusCounts[3]) / (statusCounts[1] + statusCounts[2] + statusCounts[3]) * 100).toFixed(0);
+        convHtml += `<div class="conv-item"><span class="conv-label">명함전달 → 미팅 이상</span><span class="conv-value c3">${meetRate}%</span></div>`;
+      }
+      convEl.innerHTML = convHtml;
 
       // ── 지역구별 집계 ──
       const districtMap = {};
@@ -742,6 +966,36 @@
         }
       });
 
+      // ── 이번 주 활동 요약 (월~일 CSS 바차트) ──
+      const weekDayLabels = ['월','화','수','목','금','토','일'];
+      const thisWeekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(thisWeek.start);
+        d.setDate(d.getDate() + i);
+        thisWeekDays.push(d.toISOString().slice(0, 10));
+      }
+      const weekDayCounts = thisWeekDays.map(() => 0);
+      stores.forEach(s => {
+        (s.visits || []).forEach(v => {
+          const vDate = (v.date || '').slice(0, 10);
+          const idx = thisWeekDays.indexOf(vDate);
+          if (idx >= 0) weekDayCounts[idx]++;
+        });
+      });
+      const maxWeekCount = Math.max(...weekDayCounts, 1);
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const weeklyBarsEl = document.getElementById('weeklyBars');
+      weeklyBarsEl.innerHTML = weekDayLabels.map((label, i) => {
+        const count = weekDayCounts[i];
+        const heightPct = (count / maxWeekCount) * 100;
+        const isToday = thisWeekDays[i] === todayStr;
+        return `<div class="weekly-bar-col">
+          <span class="weekly-bar-count">${count}</span>
+          <div class="weekly-bar${isToday ? ' today' : ''}" style="height:${Math.max(heightPct, 3)}%"></div>
+          <span class="weekly-bar-label${isToday ? ' today' : ''}">${label}${isToday ? '(오늘)' : ''}</span>
+        </div>`;
+      }).join('');
+
       // ── 지역구 필터 옵션 업데이트 ──
       const districts = [...new Set(stores.map(s => s.district).filter(Boolean))].sort((a,b) => a==='기타'?1:b==='기타'?-1:a.localeCompare(b,'ko'));
       const distSel = document.getElementById('filterDistrict');
@@ -799,7 +1053,7 @@
       document.getElementById('tableCount').textContent = '총 ' + allStoresCache.length + '개 중 ' + filtered.length + '개 표시';
 
       if (!filtered.length) {
-        tbody.innerHTML = '<tr><td colspan="8" class="empty-msg">조건에 맞는 가맹점이 없습니다</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">조건에 맞는 가맹점이 없습니다</td></tr>';
         return;
       }
 

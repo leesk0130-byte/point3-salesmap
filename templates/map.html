@@ -8,7 +8,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" id="themeColor" content="#ffffff">
+    <meta name="theme-color" id="themeColor" content="#4f46e5">
+    <link rel="apple-touch-icon" href="/static/icon.svg">
     <title>{{ team_name }} CRM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -207,7 +208,7 @@
             gap: 8px;
         }
         .kpi-card {
-            padding: 12px 14px;
+            padding: 8px 10px;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             background: var(--bg);
@@ -216,13 +217,13 @@
         }
         .kpi-card:hover { border-color: var(--border-strong); }
         .kpi-card-value {
-            font-size: 24px; font-weight: 800; line-height: 1;
+            font-size: 28px; font-weight: 800; line-height: 1;
             letter-spacing: -.5px;
             font-variant-numeric: tabular-nums;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .kpi-card-title {
-            font-size: 11px; font-weight: 500; color: var(--muted-fg);
+            font-size: 10px; font-weight: 500; color: var(--muted-fg);
         }
         /* KPI color variants */
         .kpi-total .kpi-card-value { color: var(--fg); }
@@ -360,6 +361,12 @@
             margin-top: 4px;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
+        .s-card-alert-dot {
+            display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .s-card-alert-dot.warn { background: var(--warning); box-shadow: 0 0 4px rgba(217,119,6,.4); }
+        .s-card-alert-dot.danger { background: var(--danger); box-shadow: 0 0 4px rgba(220,38,38,.4); animation: dot-pulse 1.5s ease-in-out infinite; }
+        @keyframes dot-pulse { 0%,100%{opacity:1}50%{opacity:.4} }
 
         /* ── Badge — Compact ── */
         .badge {
@@ -691,8 +698,8 @@
             .sb-kpi { padding: 10px 16px; }
             .sb-kpi-label { margin-bottom: 8px; }
             .sb-kpi-grid { gap: 6px; }
-            .kpi-card { padding: 10px 12px; }
-            .kpi-card-value { font-size: 20px; }
+            .kpi-card { padding: 8px 10px; }
+            .kpi-card-value { font-size: 24px; }
 
             /* 필터 */
             .sb-status-filter { padding: 10px 16px; }
@@ -1478,6 +1485,14 @@
             }
 
             const statusBadge = statusLabel ? `<span class="badge badge-${statusLabel}" style="margin-left:auto;"><span class="badge-dot"></span>${escapeHtml(statusLabel)}</span>` : '';
+            const quickActionHtml = `<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+    <div style="font-size:10px;font-weight:600;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">빠른 활동</div>
+    <div style="display:flex;gap:6px;">
+        <button onclick="quickPopupVisit('${store.id}','명함전달')" style="flex:1;padding:8px 4px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary);border-radius:6px;font:600 11px/1 inherit;cursor:pointer;transition:all .15s;">명함전달</button>
+        <button onclick="quickPopupVisit('${store.id}','미팅대기')" style="flex:1;padding:8px 4px;background:var(--warning-light);color:var(--warning);border:1px solid var(--warning);border-radius:6px;font:600 11px/1 inherit;cursor:pointer;transition:all .15s;">미팅대기</button>
+        <button onclick="quickPopupVisit('${store.id}','미팅완료')" style="flex:1;padding:8px 4px;background:var(--success-light);color:var(--success);border:1px solid var(--success);border-radius:6px;font:600 11px/1 inherit;cursor:pointer;transition:all .15s;">미팅완료</button>
+    </div>
+</div>`;
             const naviHtml = `<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;display:flex;gap:6px;">
     <a href="https://map.naver.com/v5/directions/-/${store.lng},${store.lat},${encodeURIComponent(store.name)}/-/car" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#03C75A;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">네이버</a>
     <a href="tmap://route?goalx=${store.lng}&goaly=${store.lat}&goalname=${encodeURIComponent(store.name)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#EF4444;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">티맵</a>
@@ -1490,10 +1505,28 @@
                 store.contact_intro ? '<span style="display:inline-block;padding:2px 6px;background:#d1fae5;color:#065f46;border-radius:4px;font-size:10px;font-weight:600;">소개</span>' : '',
             ].filter(Boolean).join(' ');
             const contactHtml = contactTags ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactTags}</div>` : '';
-            m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div>${contactHtml}</div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
+            m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div>${contactHtml}</div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${vHtml}${quickActionHtml}${naviHtml}</div>`, { maxWidth: 400 });
 
             m.bindTooltip(store.name, { direction:'top', offset:[0,-6], className:'premium-tooltip' });
             return m;
+        }
+
+        // ── 빠른 활동 전역 함수 ──
+        async function quickPopupVisit(storeId, result) {
+            const today = new Date().toISOString().slice(0,10);
+            try {
+                const res = await fetch(`/api/stores/${storeId}/visits`, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ date: today, result: result, memo: '' })
+                });
+                if (!res.ok) throw new Error('API 오류');
+                showToast(`${result} 기록 완료`);
+                setTimeout(() => location.reload(), 600);
+            } catch(err) {
+                console.error('빠른 활동 실패', err);
+                showToast('활동 기록 실패', true);
+            }
         }
 
         let hlId = null;
@@ -1569,7 +1602,8 @@
                 }
                 const daysAgo = getDaysAgo(s);
                 const daysColor = getDaysAgoColor(daysAgo);
-                const daysLabel = daysAgo !== null ? `<span style="font-size:10px;font-weight:700;color:${daysColor};margin-left:auto;white-space:nowrap;">${daysAgo}일</span>` : '';
+                const alertDot = daysAgo !== null && daysAgo >= 30 ? '<span class="s-card-alert-dot danger" title="30일 이상 미방문"></span>' : daysAgo !== null && daysAgo >= 14 ? '<span class="s-card-alert-dot warn" title="14일 이상 미방문"></span>' : '';
+                const daysLabel = daysAgo !== null ? `${alertDot}<span style="font-size:10px;font-weight:700;color:${daysColor};margin-left:auto;white-space:nowrap;">${daysAgo}일</span>` : '';
                 const starCls = s.starred ? 'starred' : '';
                 const starIcon = s.starred ? '★' : '☆';
                 const cTags = [s.contact_email?'메일':'',s.contact_linkedin?'LI':'',s.contact_remember?'리멤':'',s.contact_intro?'소개':''].filter(Boolean);
