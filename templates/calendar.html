@@ -67,8 +67,8 @@
     /* ── 헤더 ── */
     .header {
       background: var(--card-bg);
-      padding: 0 32px;
-      height: 64px;
+      padding: 0 24px;
+      height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -84,26 +84,27 @@
       gap: 10px;
     }
     .header-brand h1 {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.5px;
-      color: var(--primary);
+      color: #6366f1;
     }
     .header-brand .subtitle {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 500;
       color: var(--primary);
       padding: 3px 10px;
-      background: var(--primary-light);
+      background: #eef2ff;
       border-radius: 20px;
       letter-spacing: 0.5px;
     }
+    body.dark .header-brand .subtitle { background: var(--primary-light); }
     .header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     .btn-nav {
       background: var(--muted);
       color: var(--text-secondary);
       border: 1px solid var(--border);
-      padding: 8px 20px;
+      padding: 7px 14px;
       border-radius: 8px;
       font-size: 13px;
       font-weight: 500;
@@ -200,9 +201,10 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      border: 1px solid var(--border);
+      gap: 2px;
       border-radius: 10px;
       overflow: hidden;
+      background: var(--border);
     }
     .cal-weekday {
       padding: 10px 4px;
@@ -211,29 +213,34 @@
       font-weight: 600;
       color: var(--muted-fg);
       background: var(--muted);
-      border-bottom: 1px solid var(--border);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .cal-weekday:nth-child(1) { color: #ef4444; }
     .cal-weekday:nth-child(7) { color: #3b82f6; }
 
+    .cal-weekday, .cal-cell { background: var(--card-bg); }
     .cal-cell {
       min-height: 80px;
       padding: 6px 8px;
-      border-right: 1px solid var(--muted);
-      border-bottom: 1px solid var(--muted);
       cursor: pointer;
       transition: all .2s var(--transition);
       position: relative;
     }
-    .cal-cell:nth-child(7n) { border-right: none; }
     .cal-cell:hover {
       background: var(--primary-light);
       transform: scale(1.02);
       z-index: 2;
       box-shadow: 0 2px 8px rgba(0,0,0,.06);
     }
+    .cal-cell:active {
+      transform: scale(0.95);
+    }
+    @keyframes cellPop {
+      0% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+    .cal-cell.pop-anim { animation: cellPop .2s var(--transition); }
     .cal-cell.other-month { background: var(--muted); opacity: 0.6; }
     .cal-cell.other-month .cal-date { color: var(--muted-fg); }
     .cal-cell.today {
@@ -274,10 +281,13 @@
       box-shadow: 0 2px 8px rgba(79,70,229,.3);
     }
     .cal-cell.selected {
+      background: linear-gradient(135deg, #eef2ff 0%, #ede9fe 100%);
       outline: 2px solid var(--primary);
       outline-offset: -2px;
       z-index: 3;
-      background: var(--primary-light);
+    }
+    body.dark .cal-cell.selected {
+      background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
     }
 
     .cal-date {
@@ -290,7 +300,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all .15s var(--transition);
+      transition: all .2s var(--transition);
     }
     .cal-cell:nth-child(7n+1) .cal-date { color: #ef4444; }
     .cal-cell:nth-child(7n) .cal-date { color: #3b82f6; }
@@ -398,19 +408,34 @@
       gap: 10px;
     }
     .visit-item {
+      display: flex;
+      gap: 14px;
       padding: 14px 16px;
       border-radius: 10px;
       border: 1px solid var(--muted);
       background: var(--muted);
       transition: all .2s var(--transition);
-      border-left: 3px solid transparent;
+      position: relative;
+      overflow: hidden;
     }
+    .visit-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+      background: var(--visit-status-color, var(--primary));
+      transition: width .2s var(--transition);
+    }
+    .visit-item:hover::before { width: 6px; }
     .visit-item:hover {
       border-color: var(--border);
-      border-left-color: var(--primary);
       background: var(--primary-light);
       transform: translateX(2px);
     }
+    .visit-item-content { flex: 1; min-width: 0; padding-left: 6px; }
     .visit-store {
       font-size: 14px;
       font-weight: 600;
@@ -450,10 +475,10 @@
       color: var(--muted-fg);
     }
     .empty-state .empty-icon-svg {
-      width: 52px;
-      height: 52px;
+      width: 72px;
+      height: 72px;
       margin: 0 auto 16px;
-      opacity: 0.45;
+      opacity: 0.4;
     }
     .empty-state .empty-icon-svg svg {
       width: 100%;
@@ -494,6 +519,79 @@
     body.dark .badge-gray { background: var(--muted); color: var(--muted-fg); }
     body.dark .empty-state .empty-icon-svg { opacity: 0.25; }
 
+    /* ── 토스트 ── */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.15);
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateX(40px);
+      animation: toastIn .25s var(--transition) forwards;
+    }
+    .toast.toast-out {
+      animation: toastOut .2s var(--transition) forwards;
+    }
+    .toast-success { background: #059669; }
+    .toast-error { background: #dc2626; }
+    @keyframes toastIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(40px); }
+    }
+
+    /* ── 스켈레톤 로딩 ── */
+    .skeleton-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--card-bg);
+      border-radius: 10px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+    .skeleton-row {
+      display: flex;
+      gap: 2px;
+      flex: 1;
+    }
+    .skeleton-cell {
+      flex: 1;
+      background: var(--muted);
+      position: relative;
+      overflow: hidden;
+    }
+    .skeleton-cell::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.4) 50%, transparent 100%);
+      animation: shimmer 1.5s infinite;
+    }
+    body.dark .skeleton-cell::after {
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,.06) 50%, transparent 100%);
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
     /* ── 반응형 ── */
     @media (max-width: 900px) {
       .header { padding: 0 16px; }
@@ -527,14 +625,14 @@
       .card-header { padding: 14px 16px 12px; }
       .card-body { padding: 14px 16px 18px; }
     }
-    .cal-result-btn { padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--fg); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .cal-result-btn { padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--fg); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s var(--transition); }
     .cal-result-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
     .cal-result-btn:hover:not(.active) { background:var(--muted); }
-    .cal-tab { flex:1; padding:8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--muted-fg); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .cal-tab { flex:1; height:36px; padding:0 8px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--muted-fg); font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s var(--transition); }
     .cal-tab.active { background:var(--primary); border-color:var(--primary); color:#fff; }
     .cal-input { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-size:13px; font-family:inherit; margin-bottom:8px; background:var(--bg); color:var(--fg); }
     .cal-input:focus { border-color:var(--primary); outline:none; box-shadow:0 0 0 3px rgba(79,70,229,.08); }
-    .cal-submit-btn { width:100%; padding:10px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .15s; }
+    .cal-submit-btn { width:100%; padding:10px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s var(--transition); }
     .cal-submit-btn:hover { background:#4338ca; }
     .cal-note-item { padding:8px 10px; margin:4px 0; background:var(--muted); border-radius:8px; font-size:12px; color:var(--fg); position:relative; }
     .cal-note-item .cal-note-del { position:absolute; top:6px; right:8px; background:none; border:none; color:var(--muted-fg); cursor:pointer; font-size:14px; }
@@ -542,6 +640,9 @@
   </style>
 </head>
 <body>
+
+  <!-- ── 토스트 컨테이너 ── -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <!-- ── 헤더 ── -->
   <header class="header">
@@ -587,7 +688,7 @@
         <div class="card-body">
           <div id="visitList">
             <div class="empty-state">
-              <div class="empty-icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+              <div class="empty-icon-svg"><svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="14" width="56" height="50" rx="6" stroke="currentColor" stroke-width="2.5"/><path d="M8 26h56" stroke="currentColor" stroke-width="2.5"/><rect x="20" y="8" width="2.5" height="12" rx="1.25" fill="currentColor"/><rect x="49.5" y="8" width="2.5" height="12" rx="1.25" fill="currentColor"/><rect x="18" y="34" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".3"/><rect x="31" y="34" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".3"/><rect x="44" y="34" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".3"/><rect x="18" y="47" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".3"/><rect x="31" y="47" width="10" height="8" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".3"/><circle cx="49" cy="51" r="4" stroke="currentColor" stroke-width="1.5" opacity=".5"/><path d="M49 49v2h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></svg></div>
               <p>날짜를 클릭하면</p>
               <p class="empty-sub">해당일 활동 기록이 표시됩니다</p>
             </div>
@@ -652,9 +753,48 @@
     }
 
     // ══════════════════════════════════════
+    // 토스트
+    // ══════════════════════════════════════
+    function showToast(msg, type) {
+      type = type || 'success';
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      el.className = 'toast toast-' + type;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.classList.add('toast-out');
+        el.addEventListener('animationend', () => el.remove());
+      }, 2500);
+    }
+
+    // ══════════════════════════════════════
+    // 스켈레톤
+    // ══════════════════════════════════════
+    function showSkeleton() {
+      const grid = document.getElementById('calendarGrid');
+      const sk = document.createElement('div');
+      sk.className = 'skeleton-overlay';
+      sk.id = 'calSkeleton';
+      for (let r = 0; r < 6; r++) {
+        let row = '<div class="skeleton-row">';
+        for (let c = 0; c < 7; c++) row += '<div class="skeleton-cell"></div>';
+        row += '</div>';
+        sk.innerHTML += row;
+      }
+      grid.style.position = 'relative';
+      grid.appendChild(sk);
+    }
+    function hideSkeleton() {
+      const sk = document.getElementById('calSkeleton');
+      if (sk) sk.remove();
+    }
+
+    // ══════════════════════════════════════
     // 데이터 로드
     // ══════════════════════════════════════
     async function loadData() {
+      showSkeleton();
       try {
         const [storesRes, notesRes] = await Promise.all([
           fetch('/api/stores', {cache: 'no-store'}),
@@ -681,6 +821,9 @@
         renderSummary();
       } catch (e) {
         console.error('데이터 로드 실패:', e);
+        showToast('데이터 로드 실패', 'error');
+      } finally {
+        hideSkeleton();
       }
     }
 
@@ -778,6 +921,8 @@
       // 셀 클릭 이벤트
       grid.querySelectorAll('.cal-cell:not(.other-month)').forEach(cell => {
         cell.addEventListener('click', () => {
+          cell.classList.add('pop-anim');
+          cell.addEventListener('animationend', () => cell.classList.remove('pop-anim'), {once:true});
           const date = cell.dataset.date;
           selectDate(date);
         });
@@ -826,7 +971,7 @@
 
       if (!visits.length && !notes.length) {
         visitList.innerHTML = '<div class="empty-state">'
-          + '<div class="empty-icon-svg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/></svg></div>'
+          + '<div class="empty-icon-svg"><svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 8h24l16 16v36a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V14a6 6 0 0 1 6-6z" stroke="currentColor" stroke-width="2.5"/><path d="M42 8v16h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="24" y1="38" x2="48" y2="38" stroke="currentColor" stroke-width="2" opacity=".3" stroke-linecap="round"/><line x1="24" y1="46" x2="42" y2="46" stroke="currentColor" stroke-width="2" opacity=".3" stroke-linecap="round"/><line x1="24" y1="54" x2="36" y2="54" stroke="currentColor" stroke-width="2" opacity=".3" stroke-linecap="round"/><circle cx="54" cy="54" r="12" fill="var(--card-bg)" stroke="currentColor" stroke-width="2"/><path d="M54 48v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>'
           + '<p>기록이 없습니다</p>'
           + '<p class="empty-sub">아래에서 활동이나 메모를 추가하세요</p>'
           + '</div>';
@@ -836,14 +981,18 @@
       let html = '';
       if (visits.length) {
         html += '<div class="visit-list">';
+        const STATUS_COLORS = { '명함전달': '#6366f1', '미팅대기': '#f59e0b', '미팅완료': '#10b981' };
         visits.forEach(v => {
           const style = getStatusStyle(v.result);
-          html += '<div class="visit-item">'
+          const statusColor = STATUS_COLORS[v.result] || '#6366f1';
+          html += '<div class="visit-item" style="--visit-status-color:' + statusColor + '">'
+                + '<div class="visit-item-content">'
                 + '<div class="visit-store">' + escapeHtml(v.storeName) + '</div>'
                 + '<div class="visit-meta">'
                 + '<span class="badge ' + style.badge + '">' + escapeHtml(v.result || '기타') + '</span>'
                 + '</div>'
                 + (v.memo ? '<div class="visit-memo">' + escapeHtml(v.memo) + '</div>' : '')
+                + '</div>'
                 + '</div>';
         });
         html += '</div>';
@@ -946,35 +1095,37 @@
 
     async function submitCalNote() {
       const memo = document.getElementById('calNoteMemo').value.trim();
-      if (!memo) { alert('메모를 입력하세요'); return; }
+      if (!memo) { showToast('메모를 입력하세요', 'error'); return; }
       try {
         const res = await fetch('/api/calendar-notes', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ date: selectedDate, memo })
         });
-        if (!res.ok) { alert('저장 실패'); return; }
+        if (!res.ok) { showToast('저장 실패', 'error'); return; }
         document.getElementById('calNoteMemo').value = '';
+        showToast('메모가 저장되었습니다');
         await loadData();
         if (selectedDate) renderVisitPanel(selectedDate);
-      } catch(e) { alert('저장 실패'); }
+      } catch(e) { showToast('저장 실패', 'error'); }
     }
 
     async function deleteCalNote(noteId) {
       try {
         const res = await fetch('/api/calendar-notes/' + noteId, {method:'DELETE'});
         if (res.ok) {
+          showToast('메모가 삭제되었습니다');
           await loadData();
           if (selectedDate) renderVisitPanel(selectedDate);
         }
-      } catch(e) { alert('삭제 실패'); }
+      } catch(e) { showToast('삭제 실패', 'error'); }
     }
 
     async function submitCalVisit() {
       const storeId = document.getElementById('calStore').value;
       const result = document.getElementById('calResult').value;
       const memo = document.getElementById('calMemo').value.trim();
-      if (!storeId) { alert('가맹점을 선택하세요'); return; }
+      if (!storeId) { showToast('가맹점을 선택하세요', 'error'); return; }
 
       try {
         const res = await fetch(`/api/stores/${storeId}/visits`, {
@@ -982,12 +1133,12 @@
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ date: selectedDate, result, memo })
         });
-        if (!res.ok) { const d = await res.json(); alert(d.error || '저장 실패'); return; }
-        closeCalAddForm();
+        if (!res.ok) { const d = await res.json(); showToast(d.error || '저장 실패', 'error'); return; }
+        showToast('활동이 저장되었습니다');
         await loadData();
         if (selectedDate) renderVisitPanel(selectedDate);
       } catch(e) {
-        alert('저장 실패');
+        showToast('저장 실패', 'error');
       }
     }
 
