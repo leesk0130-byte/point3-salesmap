@@ -860,23 +860,6 @@
         <textarea id="smMemo" placeholder="특이사항, 참고 내용 등" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;min-height:60px;resize:vertical;background:var(--bg);color:var(--fg);"></textarea>
       </div>
       <div>
-        <label style="font-size:13px;font-weight:600;margin-bottom:6px;display:block;">연락 수단</label>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;">
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
-            <input type="checkbox" id="smContactEmail" style="accent-color:var(--primary);width:15px;height:15px;"> 이메일
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
-            <input type="checkbox" id="smContactLinkedin" style="accent-color:var(--primary);width:15px;height:15px;"> 링크드인
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
-            <input type="checkbox" id="smContactRemember" style="accent-color:var(--primary);width:15px;height:15px;"> 리멤버
-          </label>
-          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);">
-            <input type="checkbox" id="smContactIntro" style="accent-color:var(--primary);width:15px;height:15px;"> 소개
-          </label>
-        </div>
-      </div>
-      <div>
         <label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer;">
           <input type="checkbox" id="smShowOnMap" checked style="accent-color:#059669;width:17px;height:17px;">
           지도에 표시
@@ -1470,10 +1453,6 @@ function openAddStoreModal(store) {
   document.getElementById('smWebsite').value = isEdit ? (store.website || '') : '';
   document.getElementById('smLat').value = isEdit ? (store.lat || '') : '';
   document.getElementById('smLng').value = isEdit ? (store.lng || '') : '';
-  document.getElementById('smContactEmail').checked = isEdit ? !!store.contact_email : false;
-  document.getElementById('smContactLinkedin').checked = isEdit ? !!store.contact_linkedin : false;
-  document.getElementById('smContactRemember').checked = isEdit ? !!store.contact_remember : false;
-  document.getElementById('smContactIntro').checked = isEdit ? !!store.contact_intro : false;
   document.getElementById('smShowOnMap').checked = isEdit ? store.showOnMap !== false : true;
   modal.style.display = 'flex';
 }
@@ -1493,10 +1472,6 @@ async function submitStore() {
     address,
     memo: document.getElementById('smMemo').value.trim(),
     website: document.getElementById('smWebsite').value.trim(),
-    contact_email: document.getElementById('smContactEmail').checked,
-    contact_linkedin: document.getElementById('smContactLinkedin').checked,
-    contact_remember: document.getElementById('smContactRemember').checked,
-    contact_intro: document.getElementById('smContactIntro').checked,
     showOnMap: document.getElementById('smShowOnMap').checked,
     lat: document.getElementById('smLat').value ? parseFloat(document.getElementById('smLat').value) : null,
     lng: document.getElementById('smLng').value ? parseFloat(document.getElementById('smLng').value) : null,

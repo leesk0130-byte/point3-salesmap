@@ -1157,27 +1157,6 @@
                 <textarea class="dp-input" id="dpMemo"></textarea>
             </div>
             <div class="dp-field">
-                <div class="dp-label">비고사항</div>
-                <textarea class="dp-input" id="dpNotes" placeholder="비고사항 입력" style="min-height:60px;resize:vertical;"></textarea>
-            </div>
-            <div class="dp-field">
-                <div class="dp-label">연락 수단</div>
-                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
-                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
-                        <input type="checkbox" id="dpContactEmail" style="accent-color:var(--primary);width:16px;height:16px;"> 이메일
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
-                        <input type="checkbox" id="dpContactLinkedin" style="accent-color:var(--primary);width:16px;height:16px;"> 링크드인
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
-                        <input type="checkbox" id="dpContactRemember" style="accent-color:var(--primary);width:16px;height:16px;"> 리멤버
-                    </label>
-                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
-                        <input type="checkbox" id="dpContactIntro" style="accent-color:var(--primary);width:16px;height:16px;"> 소개
-                    </label>
-                </div>
-            </div>
-            <div class="dp-field">
                 <div class="dp-label">지도 표시</div>
                 <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin-top:4px;">
                     <input type="checkbox" id="dpShowOnMap" checked style="accent-color:var(--success);width:18px;height:18px;">
@@ -1806,11 +1785,6 @@
             document.getElementById('dpName').value = s.name || '';
             document.getElementById('dpAddress').value = s.address || '';
             document.getElementById('dpMemo').value = s.memo || '';
-            document.getElementById('dpNotes').value = s.notes || '';
-            document.getElementById('dpContactEmail').checked = !!s.contact_email;
-            document.getElementById('dpContactLinkedin').checked = !!s.contact_linkedin;
-            document.getElementById('dpContactRemember').checked = !!s.contact_remember;
-            document.getElementById('dpContactIntro').checked = !!s.contact_intro;
             document.getElementById('dpShowOnMap').checked = s.showOnMap !== false;
             document.getElementById('dpShowOnMapLabel').textContent = (s.showOnMap !== false) ? '지도에 표시' : '지도에서 숨김';
             document.getElementById('dpTitle').textContent = s.name || '가맹점 상세';
@@ -1863,11 +1837,6 @@
                 name: document.getElementById('dpName').value.trim(),
                 address: document.getElementById('dpAddress').value.trim(),
                 memo: document.getElementById('dpMemo').value.trim(),
-                notes: document.getElementById('dpNotes').value.trim(),
-                contact_email: document.getElementById('dpContactEmail').checked,
-                contact_linkedin: document.getElementById('dpContactLinkedin').checked,
-                contact_remember: document.getElementById('dpContactRemember').checked,
-                contact_intro: document.getElementById('dpContactIntro').checked,
                 showOnMap: document.getElementById('dpShowOnMap').checked,
             };
             if (!payload.name || !payload.address) { alert('가맹점명과 주소는 필수입니다.'); return; }
