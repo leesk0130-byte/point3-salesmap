@@ -496,7 +496,7 @@
     /* ── 반응형 ── */
     @media (max-width: 768px) {
       .header { padding: 0 16px; }
-      .container { padding: 16px 12px 40px; }
+      .container { padding: 16px 12px 60px; }
       .kpi-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
@@ -513,6 +513,28 @@
       .donut-with-rates { flex-direction: column; }
       .conversion-rates { flex-direction: row; flex-wrap: wrap; gap: 10px; min-width: auto; }
       .weekly-bars { height: 100px; gap: 6px; }
+      /* 테이블 가로 스크롤 + 첫 번째 열(가맹점) 고정 */
+      .store-table th:nth-child(2),
+      .store-table td:nth-child(2) {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background: var(--card-bg);
+      }
+      .store-table th:nth-child(2) {
+        z-index: 11;
+      }
+      .store-table th:nth-child(2)::after,
+      .store-table td:nth-child(2)::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -6px;
+        bottom: 0;
+        width: 6px;
+        background: linear-gradient(to right, rgba(0,0,0,.06), transparent);
+        pointer-events: none;
+      }
     }
     @media (max-width: 480px) {
       .header-brand h1 { font-size: 17px; }
@@ -1067,6 +1089,17 @@
           s.contact_intro ? '<span class="ct ct-intro">소개</span>' : '',
         ].filter(Boolean).join('') || '<span style="color:#9ca3af">-</span>';
 
+        // 최근활동 계산
+        const sortedVisits = [...(s.visits||[])].sort((a,b) => (b.date||'').localeCompare(a.date||''));
+        let lastActHtml = '<span style="color:#9ca3af">-</span>';
+        if (sortedVisits.length > 0) {
+          const lastDate = (sortedVisits[0].date || '').slice(0, 10);
+          const elapsed = daysSince(lastDate);
+          const badgeCls = elapsed >= 14 ? 'urgent' : elapsed >= 7 ? 'warn' : 'normal';
+          const agoText = elapsed === 0 ? '오늘' : elapsed + '일 전';
+          lastActHtml = `<div class="last-activity"><span class="last-activity-date">${lastDate.replace(/-/g,'.')}</span><br><span class="days-badge ${badgeCls}">${agoText}</span></div>`;
+        }
+
         return `<tr>
           <td>${i+1}</td>
           <td style="font-weight:500">${escapeHtml(s.name)}</td>
@@ -1075,6 +1108,7 @@
           <td><span class="status-badge status-${escapeHtml(status)}">${escapeHtml(status)}</span></td>
           <td><div class="contact-tags">${contacts}</div></td>
           <td style="text-align:center">${activityCount}</td>
+          <td class="col-last-act">${lastActHtml}</td>
           <td><a href="/?store=${s.id}" class="link-map">보기</a></td>
         </tr>`;
       }).join('');
