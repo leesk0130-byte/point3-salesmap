@@ -1378,8 +1378,12 @@ function showStoreInfo(id) {
   ].filter(Boolean).join(', ') || '없음';
 
   const visitHtml = visits.length
-    ? visits.map(v => `<div class="si-visit-item"><span class="si-visit-date">${v.date||''}</span>${v.memo||''}</div>`).join('')
-    : '<div style="color:var(--muted-fg);font-size:12px;padding:8px 0;">방문 기록 없음</div>';
+    ? visits.map(v => {
+        const rawR = v.result||'기타';
+        const r = STATUS_MAP[rawR] || (VALID_STATUSES.includes(rawR) ? rawR : '미컨택');
+        return `<div class="si-visit-item"><span class="si-visit-date">${v.date||''}</span><span class="badge badge-${r}" style="font-size:10px;padding:2px 8px;margin-right:6px;">${r}</span>${v.memo||''}</div>`;
+      }).join('')
+    : '<div style="color:var(--muted-fg);font-size:12px;padding:8px 0;">활동 기록 없음</div>';
 
   const overlay = document.createElement('div');
   overlay.id = 'storeInfoOverlay';

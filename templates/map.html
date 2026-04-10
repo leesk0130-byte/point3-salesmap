@@ -1468,8 +1468,9 @@
             const statusLabel = status === 'personal' ? '' : status;
             let vHtml;
             if (visits.length) {
-                vHtml = `<div class="pop-section-label">방문 기록</div><div class="pop-visits">${visits.map(v => {
-                    const r = v.result||'기타', memo = v.memo ? `<span class="pop-v-memo">${escapeHtml(v.memo)}</span>` : '';
+                vHtml = `<div class="pop-section-label">활동 기록</div><div class="pop-visits">${visits.map(v => {
+                    const rawR = v.result||'기타', r = STATUS_MAP[rawR] || (VALID_STATUSES.includes(rawR) ? rawR : '미컨택');
+                    const memo = v.memo ? `<span class="pop-v-memo">${escapeHtml(v.memo)}</span>` : '';
                     return `<div class="pop-v"><div class="pop-v-top"><span class="pop-v-date">${fmtDate(v.date||v.visited_at)}</span><span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span></div>${memo}</div>`;
                 }).join('')}</div>`;
             } else {
@@ -1489,8 +1490,7 @@
                 store.contact_intro ? '<span style="display:inline-block;padding:2px 6px;background:#d1fae5;color:#065f46;border-radius:4px;font-size:10px;font-weight:600;">소개</span>' : '',
             ].filter(Boolean).join(' ');
             const contactHtml = contactTags ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactTags}</div>` : '';
-            const notesHtml = store.notes ? `<div style="margin-top:6px;padding:6px 8px;background:var(--muted);border-radius:6px;font-size:11px;color:var(--muted-fg);">📝 ${escapeHtml(store.notes)}</div>` : '';
-            m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div>${contactHtml}</div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${notesHtml}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
+            m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div>${contactHtml}</div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
 
             m.bindTooltip(store.name, { direction:'top', offset:[0,-6], className:'premium-tooltip' });
             return m;
@@ -1563,8 +1563,7 @@
                 const status = getStoreStatus(s);
                 let tag;
                 if (lv) {
-                    const r = lv.result||'기타';
-                    tag = `<span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span><span class="s-date">${fmtDate(lv.date||lv.visited_at)}</span>`;
+                    tag = `<span class="badge badge-${status}"><span class="badge-dot"></span>${escapeHtml(status)}</span><span class="s-date">${fmtDate(lv.date||lv.visited_at)}</span>`;
                 } else {
                     tag = `<span class="badge badge-미컨택"><span class="badge-dot"></span>미컨택</span>`;
                 }
@@ -1706,7 +1705,7 @@
 
                 let visitInfo = '';
                 if (lv) {
-                    visitInfo = `<span class="badge badge-${lv.result||'기타'}"><span class="badge-dot"></span>${escapeHtml(lv.result||'기타')}</span>`;
+                    visitInfo = `<span class="badge badge-${status}"><span class="badge-dot"></span>${escapeHtml(status)}</span>`;
                     if (lv.memo) visitInfo += `<div class="fl-card-memo">${escapeHtml(lv.memo)}</div>`;
                     // 방문수 표시 제거
                 } else {
@@ -1820,7 +1819,8 @@
                 return;
             }
             list.innerHTML = visits.map(v => {
-                const r = v.result || '기타';
+                const rawR = v.result || '기타';
+                const r = STATUS_MAP[rawR] || (VALID_STATUSES.includes(rawR) ? rawR : '미컨택');
                 return `<div class="dp-visit-item">
                     <div class="dp-visit-top">
                         <span style="color:var(--muted-fg);font-size:11px;">${fmtDate(v.date)}</span>
