@@ -640,6 +640,12 @@ def add_store():
         "lng": data.get("lng"),
         "district": extract_district(address),
         "memo": data.get("memo", ""),
+        "notes": data.get("notes", ""),
+        "contact_email": data.get("contact_email", False),
+        "contact_linkedin": data.get("contact_linkedin", False),
+        "contact_remember": data.get("contact_remember", False),
+        "contact_intro": data.get("contact_intro", False),
+        "showOnMap": data.get("showOnMap", True),
         "visits": [],
         "teamName": user.get("teamName", ""),
         "created_at": datetime.now().isoformat(),
@@ -674,7 +680,9 @@ def update_store(store_id):
             if store.get("teamName") != user_team:
                 return jsonify({"error": "권한이 없습니다."}), 403
             # 전달된 필드만 업데이트
-            for key in ["name", "address", "lat", "lng", "memo"]:
+            for key in ["name", "address", "lat", "lng", "memo", "notes",
+                         "contact_email", "contact_linkedin", "contact_remember",
+                         "contact_intro", "showOnMap"]:
                 if key in data:
                     stores[i][key] = data[key]
             # 주소가 변경되면 district 재추출
@@ -1054,8 +1062,9 @@ def export_csv():
 
     writer = csv.writer(output)
     writer.writerow([
-        "가맹점명", "주소", "지역구", "메모",
-        "최근방문일", "최근방문결과", "총방문수",
+        "가맹점명", "주소", "지역구", "메모", "비고사항",
+        "이메일", "링크드인", "리멤버", "소개",
+        "지도표시", "최근방문일", "최근방문결과", "총방문수",
         "즐겨찾기", "등록일",
     ])
 
@@ -1068,6 +1077,12 @@ def export_csv():
             store.get("address", ""),
             store.get("district", ""),
             store.get("memo", ""),
+            store.get("notes", ""),
+            "Y" if store.get("contact_email") else "N",
+            "Y" if store.get("contact_linkedin") else "N",
+            "Y" if store.get("contact_remember") else "N",
+            "Y" if store.get("contact_intro") else "N",
+            "Y" if store.get("showOnMap", True) else "N",
             last_date,
             last_result,
             len(visits),
@@ -1117,7 +1132,9 @@ def export_excel():
     # 시트1: 가맹점 목록
     ws1 = wb.active
     ws1.title = "가맹점 목록"
-    headers1 = ["가맹점명", "주소", "지역구", "메모", "최근방문일", "최근방문결과", "총방문수", "즐겨찾기", "등록일"]
+    headers1 = ["가맹점명", "주소", "지역구", "메모", "비고사항",
+                 "이메일", "링크드인", "리멤버", "소개", "지도표시",
+                 "최근방문일", "최근방문결과", "총방문수", "즐겨찾기", "등록일"]
     ws1.append(headers1)
     style_header_row(ws1, len(headers1))
 
@@ -1130,6 +1147,12 @@ def export_excel():
             store.get("address", ""),
             store.get("district", ""),
             store.get("memo", ""),
+            store.get("notes", ""),
+            "Y" if store.get("contact_email") else "N",
+            "Y" if store.get("contact_linkedin") else "N",
+            "Y" if store.get("contact_remember") else "N",
+            "Y" if store.get("contact_intro") else "N",
+            "Y" if store.get("showOnMap", True) else "N",
             last_date,
             last_result,
             len(visits),

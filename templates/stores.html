@@ -749,11 +749,13 @@
           <th>매장명</th>
           <th class="col-addr">주소</th>
           <th class="col-district">지역구</th>
+          <th>연락</th>
           <th>상태</th>
           <th>최근방문</th>
           <th class="col-memo">방문메모</th>
           <th>경과일</th>
           <th>방문수</th>
+          <th>지도</th>
           <th>즐겨찾기</th>
           <th>액션</th>
         </tr>
@@ -988,7 +990,7 @@ function render() {
   document.getElementById('statRate').textContent = rate;
 
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="12"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
+    body.innerHTML = '<tr><td colspan="14"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
     return;
   }
 
@@ -1010,11 +1012,18 @@ function render() {
       <td class="col-name" title="${escAttr(s.name)}">${esc(s.name)}</td>
       <td class="col-addr" title="${escAttr(s.address)}">${esc(s.address)}</td>
       <td class="col-district">${esc(s.district || '기타')}</td>
+      <td style="font-size:11px;white-space:nowrap;">${[
+        s.contact_email ? '<span title="이메일" style="display:inline-block;padding:1px 4px;background:#dbeafe;color:#1d4ed8;border-radius:3px;font-size:9px;font-weight:600;">메일</span>' : '',
+        s.contact_linkedin ? '<span title="링크드인" style="display:inline-block;padding:1px 4px;background:#e0e7ff;color:#4338ca;border-radius:3px;font-size:9px;font-weight:600;">LI</span>' : '',
+        s.contact_remember ? '<span title="리멤버" style="display:inline-block;padding:1px 4px;background:#fef3c7;color:#92400e;border-radius:3px;font-size:9px;font-weight:600;">리멤</span>' : '',
+        s.contact_intro ? '<span title="소개" style="display:inline-block;padding:1px 4px;background:#d1fae5;color:#065f46;border-radius:3px;font-size:9px;font-weight:600;">소개</span>' : '',
+      ].filter(Boolean).join(' ') || '<span style="color:var(--muted-fg);">-</span>'}</td>
       <td><span class="badge badge-${escAttr(status)}">${esc(status)}</span></td>
       <td style="white-space:nowrap; font-size:12px;">${esc(lastDate)}</td>
       <td class="col-memo" title="${escAttr(lastMemo)}">${esc(lastMemo)}</td>
       <td><span class="${daysClass(days)}">${daysText}</span></td>
       <td style="text-align:center;">${visitCount}</td>
+      <td style="text-align:center;"><button class="star-btn ${s.showOnMap !== false ? 'active' : ''}" onclick="toggleMapVisibility('${escAttr(s.id)}')" title="${s.showOnMap !== false ? '지도에서 숨기기' : '지도에 표시하기'}" style="font-size:16px;">${s.showOnMap !== false ? '📍' : '⊘'}</button></td>
       <td style="text-align:center;"><button class="star-btn ${starred ? 'active' : ''}" onclick="toggleStar('${escAttr(s.id)}')">${starred ? '\u2605' : '\u2606'}</button></td>
       <td>
         <div class="actions">
@@ -1125,6 +1134,26 @@ async function toggleStar(id) {
     }
   } catch (e) {
     toast('즐겨찾기 실패', 'error');
+  }
+}
+
+async function toggleMapVisibility(id) {
+  const s = allStores.find(s => s.id === id);
+  if (!s) return;
+  const newVal = s.showOnMap === false ? true : false;
+  try {
+    const res = await fetch(`/api/stores/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ showOnMap: newVal })
+    });
+    if (res.ok) {
+      s.showOnMap = newVal;
+      render();
+      toast(newVal ? '지도에 표시됩니다' : '지도에서 숨겼습니다', 'success');
+    }
+  } catch (e) {
+    toast('변경 실패', 'error');
   }
 }
 

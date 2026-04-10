@@ -622,6 +622,33 @@
           <label>메모</label>
           <textarea id="storeMemo" placeholder="특이사항, 참고 내용 등"></textarea>
         </div>
+        <div class="form-group full">
+          <label>비고사항</label>
+          <textarea id="storeNotes" placeholder="비고사항 입력"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>연락 수단</label>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
+              <input type="checkbox" id="contactEmail" style="accent-color:var(--primary);width:16px;height:16px;"> 이메일
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
+              <input type="checkbox" id="contactLinkedin" style="accent-color:var(--primary);width:16px;height:16px;"> 링크드인
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
+              <input type="checkbox" id="contactRemember" style="accent-color:var(--primary);width:16px;height:16px;"> 리멤버
+            </label>
+            <label style="display:flex;align-items:center;gap:5px;font-size:14px;cursor:pointer;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:all .15s;">
+              <input type="checkbox" id="contactIntro" style="accent-color:var(--primary);width:16px;height:16px;"> 소개
+            </label>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label style="display:flex;align-items:center;gap:8px;">
+            <input type="checkbox" id="storeShowOnMap" checked style="accent-color:#059669;width:18px;height:18px;">
+            지도에 표시
+          </label>
+        </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submitBtn">저장</button>
           <button type="button" class="btn btn-secondary" onclick="resetForm()" id="cancelBtn" style="display:none;">취소</button>
@@ -734,6 +761,12 @@ async function handleSubmit(e) {
     name: document.getElementById('storeName').value.trim(),
     address: document.getElementById('storeAddress').value.trim(),
     memo: document.getElementById('storeMemo').value.trim(),
+    notes: document.getElementById('storeNotes').value.trim(),
+    contact_email: document.getElementById('contactEmail').checked,
+    contact_linkedin: document.getElementById('contactLinkedin').checked,
+    contact_remember: document.getElementById('contactRemember').checked,
+    contact_intro: document.getElementById('contactIntro').checked,
+    showOnMap: document.getElementById('storeShowOnMap').checked,
     lat: document.getElementById('storeLat').value ? parseFloat(document.getElementById('storeLat').value) : null,
     lng: document.getElementById('storeLng').value ? parseFloat(document.getElementById('storeLng').value) : null,
   };
@@ -803,6 +836,12 @@ function editStore(id) {
   document.getElementById('storeName').value = store.name || '';
   document.getElementById('storeAddress').value = store.address || '';
   document.getElementById('storeMemo').value = store.memo || '';
+  document.getElementById('storeNotes').value = store.notes || '';
+  document.getElementById('contactEmail').checked = !!store.contact_email;
+  document.getElementById('contactLinkedin').checked = !!store.contact_linkedin;
+  document.getElementById('contactRemember').checked = !!store.contact_remember;
+  document.getElementById('contactIntro').checked = !!store.contact_intro;
+  document.getElementById('storeShowOnMap').checked = store.showOnMap !== false;
   document.getElementById('storeLat').value = store.lat || '';
   document.getElementById('storeLng').value = store.lng || '';
 
@@ -818,6 +857,7 @@ function resetForm() {
   document.getElementById('editId').value = '';
   document.getElementById('storeLat').value = '';
   document.getElementById('storeLng').value = '';
+  document.getElementById('storeShowOnMap').checked = true;
   document.getElementById('formTitle').textContent = '가맹점 등록';
   document.getElementById('submitBtn').textContent = '저장';
   document.getElementById('cancelBtn').style.display = 'none';

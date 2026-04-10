@@ -1173,6 +1173,34 @@
                 <div class="dp-label">메모</div>
                 <textarea class="dp-input" id="dpMemo"></textarea>
             </div>
+            <div class="dp-field">
+                <div class="dp-label">비고사항</div>
+                <textarea class="dp-input" id="dpNotes" placeholder="비고사항 입력" style="min-height:60px;resize:vertical;"></textarea>
+            </div>
+            <div class="dp-field">
+                <div class="dp-label">연락 수단</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
+                        <input type="checkbox" id="dpContactEmail" style="accent-color:var(--primary);width:16px;height:16px;"> 이메일
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
+                        <input type="checkbox" id="dpContactLinkedin" style="accent-color:var(--primary);width:16px;height:16px;"> 링크드인
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
+                        <input type="checkbox" id="dpContactRemember" style="accent-color:var(--primary);width:16px;height:16px;"> 리멤버
+                    </label>
+                    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);transition:all .15s;">
+                        <input type="checkbox" id="dpContactIntro" style="accent-color:var(--primary);width:16px;height:16px;"> 소개
+                    </label>
+                </div>
+            </div>
+            <div class="dp-field">
+                <div class="dp-label">지도 표시</div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin-top:4px;">
+                    <input type="checkbox" id="dpShowOnMap" checked style="accent-color:var(--success);width:18px;height:18px;">
+                    <span id="dpShowOnMapLabel" style="font-weight:500;">지도에 표시</span>
+                </label>
+            </div>
             <button class="dp-btn dp-btn-primary" onclick="saveDetail()">저장</button>
             <button class="dp-btn dp-btn-danger" onclick="deleteDetail()">삭제</button>
 
@@ -1493,7 +1521,15 @@
     <a href="tmap://route?goalx=${store.lng}&goaly=${store.lat}&goalname=${encodeURIComponent(store.name)}" target="_blank" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;background:#EF4444;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;">티맵</a>
 </div>
 <button onclick="openDetail('${store.id}')" style="width:100%;margin-top:8px;padding:12px;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:8px;font:700 14px/1 inherit;cursor:pointer;box-shadow:0 2px 8px rgba(79,70,229,.3);">상세 / 수정</button>`;
-            m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div></div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
+            const contactTags = [
+                store.contact_email ? '<span style="display:inline-block;padding:2px 6px;background:#dbeafe;color:#1d4ed8;border-radius:4px;font-size:10px;font-weight:600;">이메일</span>' : '',
+                store.contact_linkedin ? '<span style="display:inline-block;padding:2px 6px;background:#e0e7ff;color:#4338ca;border-radius:4px;font-size:10px;font-weight:600;">링크드인</span>' : '',
+                store.contact_remember ? '<span style="display:inline-block;padding:2px 6px;background:#fef3c7;color:#92400e;border-radius:4px;font-size:10px;font-weight:600;">리멤버</span>' : '',
+                store.contact_intro ? '<span style="display:inline-block;padding:2px 6px;background:#d1fae5;color:#065f46;border-radius:4px;font-size:10px;font-weight:600;">소개</span>' : '',
+            ].filter(Boolean).join(' ');
+            const contactHtml = contactTags ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactTags}</div>` : '';
+            const notesHtml = store.notes ? `<div style="margin-top:6px;padding:6px 8px;background:var(--muted);border-radius:6px;font-size:11px;color:var(--muted-fg);">📝 ${escapeHtml(store.notes)}</div>` : '';
+            m.bindPopup(`<div class="pop-head"><div style="display:flex;align-items:center;gap:8px;"><div class="pop-name" style="flex:1;min-width:0;">${escapeHtml(store.name)}</div>${statusBadge}</div><div class="pop-addr">${escapeHtml(store.address||'')}</div>${contactHtml}</div><div class="pop-body">${store.memo?`<div class="pop-memo">${escapeHtml(store.memo)}</div>`:''}${notesHtml}${vHtml}${naviHtml}</div>`, { maxWidth: 400 });
 
             m.bindTooltip(store.name, { direction:'top', offset:[0,-6], className:'premium-tooltip' });
             return m;
@@ -1517,6 +1553,7 @@
         // 상태+검색+즐겨찾기 필터 (마커용: 지역필터 제외)
         function getFilteredForMap() {
             return allStores.filter(s => {
+                if (s.showOnMap === false) return false;
                 if (filterStarred && !s.starred) return false;
                 if (activeStatus) { if (getStoreStatus(s) !== activeStatus) return false; }
                 if (searchQuery) { const q = searchQuery.toLowerCase(); return s.name.toLowerCase().includes(q) || (s.address||'').toLowerCase().includes(q); }
@@ -1575,7 +1612,10 @@
                 const daysLabel = daysAgo !== null ? `<span style="font-size:10px;font-weight:700;color:${daysColor};margin-left:auto;white-space:nowrap;">${daysAgo}일</span>` : '';
                 const starCls = s.starred ? 'starred' : '';
                 const starIcon = s.starred ? '★' : '☆';
-                return `<div class="s-card${activeCardId===s.id?' active':''}" data-id="${s.id}" data-status="${status}"><div class="s-card-top"><button class="s-card-star ${starCls}" data-star-id="${s.id}" style="width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:${s.starred?'#f59e0b':'#d1d5db'};font-size:15px;flex-shrink:0;border:none;background:none;padding:0;transition:all .15s;">${starIcon}</button><div class="s-card-name">${escapeHtml(s.name)}</div><div class="s-card-footer">${tag}${daysLabel}</div></div><div class="s-card-addr">${escapeHtml(s.address||'')}</div>${lv&&lv.memo?`<div class="s-card-memo">${escapeHtml(lv.memo)}</div>`:''}</div>`;
+                const cTags = [s.contact_email?'메일':'',s.contact_linkedin?'LI':'',s.contact_remember?'리멤':'',s.contact_intro?'소개':''].filter(Boolean);
+                const cHtml = cTags.length ? `<div style="display:flex;gap:3px;margin-top:3px;">${cTags.map(t=>`<span style="padding:1px 4px;background:${t==='메일'?'#dbeafe':t==='LI'?'#e0e7ff':t==='리멤'?'#fef3c7':'#d1fae5'};color:${t==='메일'?'#1d4ed8':t==='LI'?'#4338ca':t==='리멤'?'#92400e':'#065f46'};border-radius:3px;font-size:9px;font-weight:600;">${t}</span>`).join('')}</div>` : '';
+                const mapIcon = s.showOnMap === false ? '<span title="지도 숨김" style="font-size:10px;color:var(--muted-fg);margin-left:4px;">⊘</span>' : '';
+                return `<div class="s-card${activeCardId===s.id?' active':''}" data-id="${s.id}" data-status="${status}"><div class="s-card-top"><button class="s-card-star ${starCls}" data-star-id="${s.id}" style="width:22px;height:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:${s.starred?'#f59e0b':'#d1d5db'};font-size:15px;flex-shrink:0;border:none;background:none;padding:0;transition:all .15s;">${starIcon}</button><div class="s-card-name">${escapeHtml(s.name)}${mapIcon}</div><div class="s-card-footer">${tag}${daysLabel}</div></div><div class="s-card-addr">${escapeHtml(s.address||'')}</div>${cHtml}${lv&&lv.memo?`<div class="s-card-memo">${escapeHtml(lv.memo)}</div>`:''}</div>`;
             }).join('');
 
             // 별표 클릭 이벤트
@@ -1773,6 +1813,9 @@
             });
         }
         initResultBtnGroup();
+        document.getElementById('dpShowOnMap').addEventListener('change', function() {
+            document.getElementById('dpShowOnMapLabel').textContent = this.checked ? '지도에 표시' : '지도에서 숨김';
+        });
 
         function openDetail(storeId) {
             const s = allStores.find(x => x.id === storeId);
@@ -1781,6 +1824,13 @@
             document.getElementById('dpName').value = s.name || '';
             document.getElementById('dpAddress').value = s.address || '';
             document.getElementById('dpMemo').value = s.memo || '';
+            document.getElementById('dpNotes').value = s.notes || '';
+            document.getElementById('dpContactEmail').checked = !!s.contact_email;
+            document.getElementById('dpContactLinkedin').checked = !!s.contact_linkedin;
+            document.getElementById('dpContactRemember').checked = !!s.contact_remember;
+            document.getElementById('dpContactIntro').checked = !!s.contact_intro;
+            document.getElementById('dpShowOnMap').checked = s.showOnMap !== false;
+            document.getElementById('dpShowOnMapLabel').textContent = (s.showOnMap !== false) ? '지도에 표시' : '지도에서 숨김';
             document.getElementById('dpTitle').textContent = s.name || '가맹점 상세';
             // 상태배지
             const status = getStoreStatus(s);
@@ -1831,6 +1881,12 @@
                 name: document.getElementById('dpName').value.trim(),
                 address: document.getElementById('dpAddress').value.trim(),
                 memo: document.getElementById('dpMemo').value.trim(),
+                notes: document.getElementById('dpNotes').value.trim(),
+                contact_email: document.getElementById('dpContactEmail').checked,
+                contact_linkedin: document.getElementById('dpContactLinkedin').checked,
+                contact_remember: document.getElementById('dpContactRemember').checked,
+                contact_intro: document.getElementById('dpContactIntro').checked,
+                showOnMap: document.getElementById('dpShowOnMap').checked,
             };
             if (!payload.name || !payload.address) { alert('가맹점명과 주소는 필수입니다.'); return; }
             try {
