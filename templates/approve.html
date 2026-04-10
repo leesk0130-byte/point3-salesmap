@@ -12,7 +12,7 @@
       --primary-glow: rgba(79, 70, 229, 0.25);
       --bg: #f8fafc;
       --bg-card: #ffffff;
-      --bg-subtle: #f8fafc;
+      --bg-subtle: #f1f5f9;
       --fg: #0f172a;
       --fg-secondary: #1e293b;
       --fg-muted: #94a3b8;
@@ -26,6 +26,7 @@
     body {
       font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
       background: var(--bg);
+      color: var(--fg);
       min-height: 100vh;
       transition: background var(--transition), color var(--transition);
     }
@@ -72,28 +73,58 @@
 
     /* 메인 */
     .main {
-      max-width: 900px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 32px 20px 60px;
     }
 
-    /* 섹션 */
-    .section {
-      background: var(--bg-card);
-      border-radius: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.03);
-      border: 1px solid var(--border);
+    /* 팀 통계 배너 */
+    .team-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
       margin-bottom: 28px;
-      overflow: hidden;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 22px;
       transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
     }
+    .stat-card:hover {
+      box-shadow: 0 4px 20px rgba(79,70,229,0.08);
+    }
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    .stat-sub {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 4px;
+    }
+
+    /* 섹션 */
+    .section {
+      margin-bottom: 28px;
+    }
     .section-header {
-      padding: 20px 24px 16px;
-      border-bottom: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       gap: 10px;
-      transition: border-color var(--transition);
+      margin-bottom: 16px;
+      padding: 0 4px;
     }
     .section-title {
       font-size: 17px;
@@ -122,64 +153,179 @@
       color: #16a34a;
     }
 
-    /* 테이블 */
-    .table-wrap {
-      overflow-x: auto;
+    /* 경고 배너 (대기 팀원) */
+    .pending-banner {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1.5px solid #f59e0b;
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 28px;
+      display: none;
+      align-items: center;
+      gap: 14px;
+      animation: bannerPulse 2s ease-in-out infinite alternate;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    .pending-banner.show { display: flex; }
+    .pending-banner-icon {
+      width: 44px;
+      height: 44px;
+      background: #f59e0b;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
     }
-    thead th {
-      padding: 12px 16px;
-      text-align: left;
-      font-size: 12px;
+    .pending-banner-text {
+      font-size: 15px;
       font-weight: 600;
-      color: var(--fg-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      background: var(--bg-subtle);
-      white-space: nowrap;
-      transition: background var(--transition), color var(--transition);
+      color: #92400e;
     }
-    tbody td {
-      padding: 14px 16px;
-      font-size: 14px;
-      color: var(--fg-body);
-      border-top: 1px solid var(--border-subtle);
-      white-space: nowrap;
-      transition: color var(--transition), border-color var(--transition);
+    .pending-banner-sub {
+      font-size: 13px;
+      color: #b45309;
+      margin-top: 2px;
+      font-weight: 400;
     }
-    tbody tr {
-      transition: background var(--transition);
-    }
-    tbody tr:hover {
-      background: var(--bg-subtle);
+    @keyframes bannerPulse {
+      from { box-shadow: 0 0 0 0 rgba(245,158,11,0.15); }
+      to { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
     }
 
+    /* 카드 그리드 */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    /* 팀원 카드 */
+    .member-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.15s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .member-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+    }
+    .member-card.pending-card {
+      border-color: #f59e0b;
+      background: linear-gradient(180deg, #fffbeb 0%, var(--bg-card) 40%);
+    }
+    .member-card.pending-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+    }
+    .pending-card .avatar {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+    }
+    .card-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--fg-secondary);
+      transition: color var(--transition);
+    }
+    .card-username {
+      font-size: 12px;
+      color: var(--fg-muted);
+      margin-top: 2px;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+    .meta-label {
+      color: var(--fg-muted);
+      font-weight: 500;
+    }
+    .meta-value {
+      color: var(--fg-body);
+      font-weight: 600;
+      transition: color var(--transition);
+    }
     .status-tag {
       display: inline-block;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .status-approved { background: #dcfce7; color: #16a34a; }
+    .status-pending { background: #fef3c7; color: #d97706; }
+
+    .team-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
       padding: 4px 10px;
+      background: #eef2ff;
+      color: #4f46e5;
+      border-radius: 6px;
       font-size: 12px;
       font-weight: 600;
-      border-radius: 6px;
-      background: #dcfce7;
-      color: #16a34a;
+      cursor: pointer;
+      transition: background var(--transition);
     }
+    .team-tag:hover { background: #e0e7ff; }
 
     /* 버튼 */
-    .action-btns {
+    .card-actions {
       display: flex;
       gap: 8px;
+      margin-top: 4px;
     }
     .btn-sm {
-      padding: 6px 14px;
+      flex: 1;
+      padding: 9px 14px;
       font-size: 13px;
       font-weight: 600;
       font-family: inherit;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
+      text-align: center;
       transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
     }
     .btn-sm:active { transform: scale(0.96); }
@@ -193,23 +339,54 @@
       color: #dc2626;
     }
     .btn-reject:hover { background: #fecaca; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15); }
+    .btn-delete {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    .btn-delete:hover { background: #fee2e2; box-shadow: 0 4px 12px rgba(220,38,38,0.12); }
+    .btn-admin {
+      background: var(--bg-subtle);
+      color: var(--fg-muted);
+      cursor: default;
+      font-size: 12px;
+    }
 
-    .empty-row {
-      padding: 40px 16px;
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 48px 16px;
       text-align: center;
       font-size: 14px;
       color: var(--fg-muted);
-      transition: color var(--transition);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      transition: background var(--transition), border-color var(--transition), color var(--transition);
+    }
+    .empty-icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      opacity: 0.5;
     }
 
     /* 로딩 */
     .loading {
-      padding: 40px;
+      grid-column: 1 / -1;
+      padding: 48px;
       text-align: center;
       color: var(--fg-muted);
       font-size: 14px;
       transition: color var(--transition);
     }
+    .loading-spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     /* 토스트 */
     .toast-container {
@@ -243,13 +420,19 @@
       to { opacity: 0; }
     }
 
+    /* 반응형 */
+    @media (max-width: 900px) {
+      .card-grid { grid-template-columns: repeat(2, 1fr); }
+      .team-stats { grid-template-columns: repeat(3, 1fr); }
+    }
     @media (max-width: 640px) {
       .header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
       .main { padding: 20px 12px 40px; }
-      .section-header { padding: 16px; }
-      thead th, tbody td { padding: 10px 12px; font-size: 13px; }
-      .action-btns { flex-direction: column; gap: 4px; }
-      .btn-sm { padding: 8px 12px; text-align: center; }
+      .card-grid { grid-template-columns: 1fr; }
+      .team-stats { grid-template-columns: 1fr; gap: 10px; }
+      .stat-card { padding: 16px; }
+      .stat-value { font-size: 22px; }
+      .pending-banner { flex-direction: column; text-align: center; }
     }
 
     /* Dark mode */
@@ -266,11 +449,19 @@
     }
     body.dark .badge-pending { background: #451a03; color: #fbbf24; }
     body.dark .badge-approved { background: #14532d; color: #4ade80; }
-    body.dark .status-tag { background: #14532d; color: #4ade80; }
+    body.dark .status-approved { background: #14532d; color: #4ade80; }
+    body.dark .status-pending { background: #451a03; color: #fbbf24; }
     body.dark .btn-approve { background: #16a34a; }
     body.dark .btn-reject { background: #451a1a; color: #fca5a5; }
     body.dark .btn-reject:hover { background: #7f1d1d; }
-    body.dark thead th { background: #0f172a; }
+    body.dark .btn-delete { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+    body.dark .team-tag { background: #312e81; color: #a5b4fc; }
+    body.dark .team-tag:hover { background: #3730a3; }
+    body.dark .pending-banner { background: linear-gradient(135deg, #451a03 0%, #78350f 100%); border-color: #b45309; }
+    body.dark .pending-banner-text { color: #fbbf24; }
+    body.dark .pending-banner-sub { color: #fcd34d; }
+    body.dark .member-card.pending-card { background: linear-gradient(180deg, #451a0322 0%, var(--bg-card) 40%); border-color: #b45309; }
+    body.dark .stat-card { background: var(--bg-card); }
 
     @media (prefers-color-scheme: dark) {
       body:not(.light) {
@@ -286,11 +477,18 @@
       }
       body:not(.light) .badge-pending { background: #451a03; color: #fbbf24; }
       body:not(.light) .badge-approved { background: #14532d; color: #4ade80; }
-      body:not(.light) .status-tag { background: #14532d; color: #4ade80; }
+      body:not(.light) .status-approved { background: #14532d; color: #4ade80; }
+      body:not(.light) .status-pending { background: #451a03; color: #fbbf24; }
       body:not(.light) .btn-approve { background: #16a34a; }
       body:not(.light) .btn-reject { background: #451a1a; color: #fca5a5; }
       body:not(.light) .btn-reject:hover { background: #7f1d1d; }
-      body:not(.light) thead th { background: #0f172a; }
+      body:not(.light) .btn-delete { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+      body:not(.light) .team-tag { background: #312e81; color: #a5b4fc; }
+      body:not(.light) .team-tag:hover { background: #3730a3; }
+      body:not(.light) .pending-banner { background: linear-gradient(135deg, #451a03 0%, #78350f 100%); border-color: #b45309; }
+      body:not(.light) .pending-banner-text { color: #fbbf24; }
+      body:not(.light) .pending-banner-sub { color: #fcd34d; }
+      body:not(.light) .member-card.pending-card { background: linear-gradient(180deg, #451a0322 0%, var(--bg-card) 40%); border-color: #b45309; }
     }
   </style>
 </head>
@@ -304,14 +502,42 @@
   </div>
 
   <div class="main">
+    <!-- 팀 통계 -->
+    <div class="team-stats" id="teamStats">
+      <div class="stat-card">
+        <div class="stat-label">전체 팀원</div>
+        <div class="stat-value" id="statTotal">-</div>
+        <div class="stat-sub">승인 + 대기</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">팀 총 가맹점</div>
+        <div class="stat-value" id="statStores">-</div>
+        <div class="stat-sub">등록된 가맹점 수</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">팀 총 활동</div>
+        <div class="stat-value" id="statVisits">-</div>
+        <div class="stat-sub">방문/메모 기록</div>
+      </div>
+    </div>
+
+    <!-- 대기 경고 배너 -->
+    <div class="pending-banner" id="pendingBanner">
+      <div class="pending-banner-icon">⏳</div>
+      <div>
+        <div class="pending-banner-text" id="pendingBannerText">승인 대기 중인 팀원이 있습니다</div>
+        <div class="pending-banner-sub" id="pendingBannerSub">아래에서 확인하고 승인 처리해주세요</div>
+      </div>
+    </div>
+
     <!-- 대기 중 팀원 -->
-    <div class="section">
+    <div class="section" id="pendingSection" style="display:none;">
       <div class="section-header">
         <div class="section-title">승인 대기 중</div>
         <div class="badge badge-pending" id="pendingCount">0</div>
       </div>
-      <div id="pendingBody">
-        <div class="loading">불러오는 중...</div>
+      <div class="card-grid" id="pendingGrid">
+        <div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>
       </div>
     </div>
 
@@ -321,8 +547,8 @@
         <div class="section-title">승인된 팀원</div>
         <div class="badge badge-approved" id="approvedCount">0</div>
       </div>
-      <div id="approvedBody">
-        <div class="loading">불러오는 중...</div>
+      <div class="card-grid" id="approvedGrid">
+        <div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>
       </div>
     </div>
   </div>
@@ -350,10 +576,95 @@
       return y + '.' + m + '.' + day;
     }
 
+    // 이니셜 추출
+    function getInitials(name) {
+      if (!name || name === '-') return '?';
+      return name.charAt(0).toUpperCase();
+    }
+
+    // 카드 HTML 생성 (대기)
+    function pendingCardHTML(u) {
+      const name = u.name || u.displayName || '-';
+      const username = u.username || u.id || '-';
+      const teamName = u.teamName || '-';
+      const date = formatDate(u.createdAt || u.joinedAt);
+      const uid = u.id || u.userId;
+      return `
+        <div class="member-card pending-card">
+          <div class="card-top">
+            <div class="avatar">${esc(getInitials(name))}</div>
+            <div>
+              <div class="card-name">${esc(name)}</div>
+              <div class="card-username">@${esc(username)}</div>
+            </div>
+          </div>
+          <div class="card-meta">
+            <div class="meta-row">
+              <span class="meta-label">상태</span>
+              <span class="status-tag status-pending">대기</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">팀</span>
+              <span class="meta-value">${esc(teamName)}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">가입일</span>
+              <span class="meta-value">${date}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-sm btn-approve" onclick="approve('${esc(uid)}')">승인</button>
+            <button class="btn-sm btn-reject" onclick="reject('${esc(uid)}')">거절</button>
+          </div>
+        </div>`;
+    }
+
+    // 카드 HTML 생성 (승인)
+    function approvedCardHTML(u) {
+      const name = u.name || '-';
+      const username = u.username || '-';
+      const email = u.email || '-';
+      const teamName = u.teamName || '-';
+      const uid = u.id;
+      const isSuperadmin = u.role === 'superadmin';
+      return `
+        <div class="member-card">
+          <div class="card-top">
+            <div class="avatar">${esc(getInitials(name))}</div>
+            <div>
+              <div class="card-name">${esc(name)}</div>
+              <div class="card-username">@${esc(username)}</div>
+            </div>
+          </div>
+          <div class="card-meta">
+            <div class="meta-row">
+              <span class="meta-label">상태</span>
+              <span class="status-tag status-approved">승인</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">팀</span>
+              <span class="team-tag" onclick="editTeam('${esc(uid)}','${esc(teamName)}')">${esc(teamName)} ✎</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">이메일</span>
+              <span class="meta-value" style="font-size:12px;">${esc(email)}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            ${isSuperadmin
+              ? '<button class="btn-sm btn-admin">관리자</button>'
+              : `<button class="btn-sm btn-delete" onclick="deleteUser('${esc(uid)}','${esc(name)}')">삭제</button>`
+            }
+          </div>
+        </div>`;
+    }
+
     // 대기 목록 로드
     async function loadPending() {
-      const body = document.getElementById('pendingBody');
+      const grid = document.getElementById('pendingGrid');
       const badge = document.getElementById('pendingCount');
+      const section = document.getElementById('pendingSection');
+      const banner = document.getElementById('pendingBanner');
       try {
         const res = await fetch('/api/admin/pending-users');
         if (!res.ok) throw new Error();
@@ -361,37 +672,29 @@
         badge.textContent = users.length;
 
         if (users.length === 0) {
-          body.innerHTML = '<div class="empty-row">대기 중인 팀원이 없습니다.</div>';
+          section.style.display = 'none';
+          banner.classList.remove('show');
+          grid.innerHTML = '';
           return;
         }
 
-        let html = '<div class="table-wrap"><table><thead><tr>';
-        html += '<th>이름</th><th>아이디</th><th>팀이름</th><th>가입일</th><th>관리</th>';
-        html += '</tr></thead><tbody>';
+        section.style.display = '';
+        banner.classList.add('show');
+        document.getElementById('pendingBannerText').textContent =
+          `승인 대기 중인 팀원이 ${users.length}명 있습니다`;
+        document.getElementById('pendingBannerSub').textContent =
+          '아래에서 확인하고 승인 처리해주세요';
 
-        users.forEach(u => {
-          html += '<tr>';
-          html += '<td>' + esc(u.name || u.displayName || '-') + '</td>';
-          html += '<td>' + esc(u.username || u.id || '-') + '</td>';
-          html += '<td>' + esc(u.teamName || '-') + '</td>';
-          html += '<td>' + formatDate(u.createdAt || u.joinedAt) + '</td>';
-          html += '<td><div class="action-btns">';
-          html += '<button class="btn-sm btn-approve" onclick="approve(\'' + esc(u.id || u.userId) + '\')">승인</button>';
-          html += '<button class="btn-sm btn-reject" onclick="reject(\'' + esc(u.id || u.userId) + '\')">거절</button>';
-          html += '</div></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table></div>';
-        body.innerHTML = html;
+        grid.innerHTML = users.map(u => pendingCardHTML(u)).join('');
       } catch (e) {
-        body.innerHTML = '<div class="empty-row" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
+        section.style.display = '';
+        grid.innerHTML = '<div class="empty-state" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
       }
     }
 
     // 승인 목록 로드
     async function loadApproved() {
-      const body = document.getElementById('approvedBody');
+      const grid = document.getElementById('approvedGrid');
       const badge = document.getElementById('approvedCount');
       try {
         const res = await fetch('/api/admin/approved-users');
@@ -400,32 +703,44 @@
         badge.textContent = users.length;
 
         if (users.length === 0) {
-          body.innerHTML = '<div class="empty-row">승인된 팀원이 없습니다.</div>';
+          grid.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div>승인된 팀원이 없습니다.</div>';
           return;
         }
 
-        let html = '<div class="table-wrap"><table><thead><tr>';
-        html += '<th>이름</th><th>아이디</th><th>이메일</th><th>팀이름</th><th>관리</th>';
-        html += '</tr></thead><tbody>';
-
-        users.forEach(u => {
-          html += '<tr>';
-          html += '<td>' + esc(u.name || '-') + '</td>';
-          html += '<td>' + esc(u.username || '-') + '</td>';
-          html += '<td style="font-size:12px;color:#6b7280;">' + esc(u.email || '-') + '</td>';
-          html += '<td><span class="team-edit" onclick="editTeam(\'' + esc(u.id) + '\',\'' + esc(u.teamName || '') + '\')" style="cursor:pointer;padding:4px 10px;background:#eef2ff;color:#4f46e5;border-radius:6px;font-size:12px;font-weight:600;">' + esc(u.teamName || '-') + ' ✎</span></td>';
-          if (u.role === 'superadmin') {
-            html += '<td><span style="font-size:11px;color:#94a3b8;">관리자</span></td>';
-          } else {
-            html += '<td><button onclick="deleteUser(\'' + esc(u.id) + '\',\'' + esc(u.name) + '\')" style="padding:6px 12px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">삭제</button></td>';
-          }
-          html += '</tr>';
-        });
-
-        html += '</tbody></table></div>';
-        body.innerHTML = html;
+        grid.innerHTML = users.map(u => approvedCardHTML(u)).join('');
       } catch (e) {
-        body.innerHTML = '<div class="empty-row" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
+        grid.innerHTML = '<div class="empty-state" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
+      }
+    }
+
+    // 팀 통계 로드
+    async function loadTeamStats() {
+      try {
+        const [pendingRes, approvedRes, storesRes] = await Promise.all([
+          fetch('/api/admin/pending-users'),
+          fetch('/api/admin/approved-users'),
+          fetch('/api/stores')
+        ]);
+        const pending = pendingRes.ok ? await pendingRes.json() : [];
+        const approved = approvedRes.ok ? await approvedRes.json() : [];
+        const stores = storesRes.ok ? await storesRes.json() : [];
+
+        const totalMembers = pending.length + approved.length;
+        const totalStores = Array.isArray(stores) ? stores.length : 0;
+        let totalVisits = 0;
+        if (Array.isArray(stores)) {
+          stores.forEach(s => {
+            if (Array.isArray(s.visits)) {
+              totalVisits += s.visits.length;
+            }
+          });
+        }
+
+        document.getElementById('statTotal').textContent = totalMembers;
+        document.getElementById('statStores').textContent = totalStores.toLocaleString();
+        document.getElementById('statVisits').textContent = totalVisits.toLocaleString();
+      } catch (e) {
+        // 통계 실패해도 조용히 처리
       }
     }
 
@@ -441,6 +756,7 @@
         showToast('승인 완료', 'success');
         loadPending();
         loadApproved();
+        loadTeamStats();
       } catch (e) {
         showToast('승인 처리에 실패했습니다.', 'error');
       }
@@ -458,6 +774,7 @@
         showToast('거절 완료', 'success');
         loadPending();
         loadApproved();
+        loadTeamStats();
       } catch (e) {
         showToast('거절 처리에 실패했습니다.', 'error');
       }
@@ -474,6 +791,7 @@
         if (!res.ok) throw new Error();
         showToast(name + ' 삭제 완료', 'success');
         loadApproved();
+        loadTeamStats();
       } catch(e) { showToast('삭제 실패', 'error'); }
     }
 
@@ -502,6 +820,7 @@
     // 초기 로드
     loadPending();
     loadApproved();
+    loadTeamStats();
   </script>
 </body>
 </html>
