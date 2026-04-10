@@ -373,6 +373,16 @@
     .btn-quick { background: #ecfdf5; color: #059669; }
     .btn-quick:hover { background: #d1fae5; }
 
+    /* ── 연락수단 체크박스 ── */
+    .contact-chk { display:inline-flex; align-items:center; gap:2px; margin-right:4px; cursor:pointer; vertical-align:middle; }
+    .contact-chk input[type="checkbox"] { width:13px; height:13px; margin:0; cursor:pointer; accent-color:#4f46e5; }
+    .cc-label { font-size:9px; font-weight:600; padding:1px 3px; border-radius:3px; user-select:none; }
+    .cc-email { background:#dbeafe; color:#1d4ed8; }
+    .cc-li { background:#e0e7ff; color:#4338ca; }
+    .cc-rem { background:#fef3c7; color:#92400e; }
+    .cc-intro { background:#d1fae5; color:#065f46; }
+    .contact-chk input:not(:checked) + .cc-label { opacity:0.4; }
+
     /* ── 빠른방문 메뉴 ── */
     .quick-menu {
       display: none;
@@ -681,7 +691,6 @@
   </a>
   <nav class="header-nav">
     <a href="/" class="nav-link">지도</a>
-    <a href="/admin" class="nav-link">가맹점 등록</a>
     <a href="/stores" class="nav-link active">가맹점 목록</a>
     <a href="/dashboard" class="nav-link">대시보드</a>
     <a href="/calendar" class="nav-link">캘린더</a>
@@ -750,18 +759,16 @@
           <th>매장명</th>
           <th class="col-addr">주소</th>
           <th class="col-district">지역구</th>
-          <th>연락</th>
+          <th>연락수단</th>
           <th>상태</th>
           <th>최근방문</th>
           <th class="col-memo">방문메모</th>
-          <th>경과일</th>
           <th>지도</th>
-          <th>즐겨찾기</th>
           <th>액션</th>
         </tr>
       </thead>
       <tbody id="storeBody">
-        <tr><td colspan="12" class="loading">데이터 불러오는 중...</td></tr>
+        <tr><td colspan="10" class="loading">데이터 불러오는 중...</td></tr>
       </tbody>
     </table>
   </div>
@@ -1054,7 +1061,7 @@ function render() {
   document.getElementById('statRate').textContent = rate;
 
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="13"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
+    body.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
     return;
   }
 
@@ -1076,21 +1083,18 @@ function render() {
       <td class="col-name" title="${escAttr(s.name)}">${esc(s.name)}</td>
       <td class="col-addr" title="${escAttr(s.address)}">${esc(s.address)}</td>
       <td class="col-district">${esc(s.district || '기타')}</td>
-      <td style="font-size:11px;white-space:nowrap;">${[
-        s.contact_email ? '<span title="이메일" style="display:inline-block;padding:1px 4px;background:#dbeafe;color:#1d4ed8;border-radius:3px;font-size:9px;font-weight:600;">메일</span>' : '',
-        s.contact_linkedin ? '<span title="링크드인" style="display:inline-block;padding:1px 4px;background:#e0e7ff;color:#4338ca;border-radius:3px;font-size:9px;font-weight:600;">LI</span>' : '',
-        s.contact_remember ? '<span title="리멤버" style="display:inline-block;padding:1px 4px;background:#fef3c7;color:#92400e;border-radius:3px;font-size:9px;font-weight:600;">리멤</span>' : '',
-        s.contact_intro ? '<span title="소개" style="display:inline-block;padding:1px 4px;background:#d1fae5;color:#065f46;border-radius:3px;font-size:9px;font-weight:600;">소개</span>' : '',
-      ].filter(Boolean).join(' ') || '<span style="color:var(--muted-fg);">-</span>'}</td>
+      <td style="font-size:11px;white-space:nowrap;">
+        <label class="contact-chk" title="이메일"><input type="checkbox" ${s.contact_email ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_email',this.checked)"><span class="cc-label cc-email">메일</span></label>
+        <label class="contact-chk" title="링크드인"><input type="checkbox" ${s.contact_linkedin ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_linkedin',this.checked)"><span class="cc-label cc-li">LI</span></label>
+        <label class="contact-chk" title="리멤버"><input type="checkbox" ${s.contact_remember ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_remember',this.checked)"><span class="cc-label cc-rem">리멤</span></label>
+        <label class="contact-chk" title="소개"><input type="checkbox" ${s.contact_intro ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_intro',this.checked)"><span class="cc-label cc-intro">소개</span></label>
+      </td>
       <td><span class="badge badge-${escAttr(status)}">${esc(status)}</span></td>
       <td style="white-space:nowrap; font-size:12px;">${esc(lastDate)}</td>
       <td class="col-memo" title="${escAttr(lastMemo)}">${esc(lastMemo)}</td>
-      <td><span class="${daysClass(days)}">${daysText}</span></td>
       <td style="text-align:center;"><button class="star-btn ${s.showOnMap !== false ? 'active' : ''}" onclick="toggleMapVisibility('${escAttr(s.id)}')" title="${s.showOnMap !== false ? '지도에서 숨기기' : '지도에 표시하기'}" style="font-size:16px;">${s.showOnMap !== false ? '📍' : '⊘'}</button></td>
-      <td style="text-align:center;"><button class="star-btn ${starred ? 'active' : ''}" onclick="toggleStar('${escAttr(s.id)}')">${starred ? '\u2605' : '\u2606'}</button></td>
       <td>
         <div class="actions">
-          <button class="btn-sm btn-map" onclick="viewOnMap('${escAttr(s.id)}')">지도</button>
           <button class="btn-sm btn-visit" onclick="openVisitModal('${escAttr(s.id)}')">방문</button>
           <button class="btn-sm btn-quick" onclick="showQuickMenu('${escAttr(s.id)}', '${escAttr(s.name)}', event)">빠른</button>
           <button class="btn-sm btn-edit" onclick="editStore('${escAttr(s.id)}')">수정</button>
@@ -1364,11 +1368,23 @@ async function deleteVisit(visitId) {
    Navigation
    ============================ */
 function viewOnMap(id) {
+  toggleMapVisibility(id);
+}
+
+async function toggleContact(id, field, val) {
   const store = allStores.find(s => s.id === id);
-  if (store && store.lat && store.lng) {
-    window.location.href = `/?lat=${store.lat}&lng=${store.lng}&zoom=17&highlight=${id}`;
-  } else {
-    toast('좌표 정보가 없습니다', 'error');
+  if (!store) return;
+  try {
+    const res = await fetch(`/api/stores/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ [field]: val })
+    });
+    if (!res.ok) throw new Error();
+    store[field] = val;
+  } catch(e) {
+    toast('연락수단 저장 실패', 'error');
+    renderTable();
   }
 }
 
