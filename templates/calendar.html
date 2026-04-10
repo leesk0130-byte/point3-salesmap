@@ -499,10 +499,10 @@
       .header { padding: 0 16px; }
       .main-layout {
         flex-direction: column;
-        padding: 16px 12px 40px;
+        padding: 16px 12px 60px;
         gap: 16px;
       }
-      .side-panel { width: 100%; }
+      .side-panel { width: 100%; order: 2; }
       .cal-cell { min-height: 60px; padding: 4px; }
       .cal-date { font-size: 12px; width: 24px; height: 24px; }
       .cal-dot { width: 5px; height: 5px; }
@@ -511,10 +511,19 @@
       .summary-item { font-size: 12px; padding: 4px 10px; }
     }
 
+    @media (max-width: 768px) {
+      /* 캘린더 셀 최소 높이 축소 */
+      .cal-cell { min-height: 40px; }
+      /* 입력 폼 터치 친화적 */
+      .cal-submit-btn { min-height: 44px; font-size: 14px; }
+      .cal-tab { min-height: 44px; font-size: 13px; }
+      .cal-input { min-height: 44px; font-size: 14px; padding: 10px 12px; }
+      .cal-result-btn { min-height: 44px; padding: 8px 14px; }
+    }
+
     @media (max-width: 480px) {
       .header-brand h1 { font-size: 17px; }
       .btn-nav { padding: 6px 12px; font-size: 12px; }
-      .cal-cell { min-height: 48px; }
       .card-header { padding: 14px 16px 12px; }
       .card-body { padding: 14px 16px 18px; }
     }
