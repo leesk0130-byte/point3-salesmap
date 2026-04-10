@@ -138,6 +138,20 @@
       font-size: 15px;
     }
     .summary-bar .dot { color: var(--border); }
+    .summary-bar .status-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+    .summary-bar .status-badge-count { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+    .sbc-미컨택 { background: #fef2f2; color: #dc2626; }
+    .sbc-명함전달 { background: #eef2ff; color: #4f46e5; }
+    .sbc-미팅대기 { background: #fffbeb; color: #d97706; }
+    .sbc-미팅완료 { background: #ecfdf5; color: #059669; }
+    body.dark .sbc-미컨택 { background: var(--danger-light); color: #fca5a5; }
+    body.dark .sbc-명함전달 { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .sbc-미팅대기 { background: var(--warning-light); color: #fcd34d; }
+    body.dark .sbc-미팅완료 { background: var(--success-light); color: #6ee7b7; }
+
+    .bulk-status-select { padding: 5px 10px; border: 1px solid #fca5a5; border-radius: 6px; font-size: 12px; font-family: inherit; background: #fff; color: #991b1b; cursor: pointer; outline: none; }
+    .btn-bulk-status { padding: 6px 14px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; font-family: inherit; cursor: pointer; }
+    .btn-bulk-status:hover { background: #4338ca; }
 
     /* ── 필터 바 ── */
     .filter-bar {
@@ -284,6 +298,7 @@
       white-space: nowrap;
       position: sticky;
       top: 0;
+      z-index: 10;
     }
     tbody tr {
       border-bottom: 1px solid var(--muted);
@@ -293,6 +308,8 @@
     tbody tr:hover {
       background: var(--primary-light);
       border-left-color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
     }
     tbody tr:last-child { border-bottom: none; }
     tbody td {
@@ -671,6 +688,54 @@
       .filter-bar { gap: 6px; }
       .container { padding: 12px 12px 40px; }
     }
+    @media (max-width: 768px) {
+      .filter-bar {
+        gap: 4px;
+        padding: 10px 12px;
+      }
+      .filter-bar select {
+        padding: 6px 8px;
+        font-size: 12px;
+      }
+      .filter-bar input[type="text"] {
+        min-width: 120px;
+        padding: 8px 10px 8px 34px;
+        font-size: 13px;
+      }
+      .btn-export {
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .container { padding-bottom: 60px; }
+      /* 첫 번째 열(가맹점명) 고정 */
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+      }
+      table thead th:nth-child(3),
+      table tbody td:nth-child(3) {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background: var(--card-bg);
+      }
+      table thead th:nth-child(3) {
+        background: var(--muted);
+        z-index: 11;
+      }
+      table thead th:nth-child(3)::after,
+      table tbody td:nth-child(3)::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -6px;
+        bottom: 0;
+        width: 6px;
+        background: linear-gradient(to right, rgba(0,0,0,.06), transparent);
+        pointer-events: none;
+      }
+    }
     @media (max-width: 600px) {
       .header { padding: 0 12px; }
       .header-nav { gap: 2px; }
@@ -724,6 +789,7 @@
     <span class="stat">미방문 <span class="stat-value" id="statUnvisited">-</span>개</span>
     <span class="dot">&middot;</span>
     <span class="stat">방문율 <span class="stat-value" id="statRate">-</span>%</span>
+    <div class="status-badges" id="statusBadges"></div>
   </div>
 
   <!-- 필터 바 -->
@@ -758,6 +824,14 @@
   <!-- 일괄 작업 바 -->
   <div class="bulk-bar" id="bulkBar">
     <span id="bulkCount">0</span>개 선택됨
+    <select class="bulk-status-select" id="bulkStatusSelect">
+      <option value="">상태 변경...</option>
+      <option value="미컨택">미컨택</option>
+      <option value="명함전달">명함전달</option>
+      <option value="미팅대기">미팅대기</option>
+      <option value="미팅완료">미팅완료</option>
+    </select>
+    <button class="btn-bulk-status" onclick="bulkStatusChange()">상태 변경</button>
     <button class="btn-bulk-delete" onclick="bulkDelete()">선택 삭제</button>
     <button class="btn-bulk-cancel" onclick="clearSelection()">선택 해제</button>
   </div>
@@ -1054,6 +1128,14 @@ function render() {
   document.getElementById('statUnvisited').textContent = unvisited;
   document.getElementById('statRate').textContent = rate;
 
+  // 상태별 카운트 배지
+  const statusCounts = {};
+  VALID_STATUSES.forEach(st => statusCounts[st] = 0);
+  allStores.forEach(s => { statusCounts[getStatus(s)]++; });
+  document.getElementById('statusBadges').innerHTML = VALID_STATUSES
+    .map(st => `<span class="status-badge-count sbc-${st}">${esc(st)} ${statusCounts[st]}개</span>`)
+    .join('');
+
   if (!list.length) {
     body.innerHTML = '<tr><td colspan="10"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
     return;
@@ -1084,7 +1166,7 @@ function render() {
         <label class="contact-chk" title="소개"><input type="checkbox" ${s.contact_intro ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_intro',this.checked)"><span class="cc-label cc-intro">소개</span></label>
       </td>
       <td><span class="badge badge-${escAttr(status)}">${esc(status)}</span></td>
-      <td style="white-space:nowrap; font-size:12px;">${esc(lastDate)}</td>
+      <td style="white-space:nowrap; font-size:12px;">${last ? `${esc(last.date.slice(5))} <span class="${daysClass(days)}" style="font-size:11px;">(${days}일전)</span>` : '<span class="days-gray">-</span>'}</td>
       <td class="col-memo" title="${escAttr(lastMemo)}">${esc(lastMemo)}</td>
       <td style="text-align:center;"><button class="star-btn ${s.showOnMap !== false ? 'active' : ''}" onclick="toggleMapVisibility('${escAttr(s.id)}')" title="${s.showOnMap !== false ? '지도에서 숨기기' : '지도에 표시하기'}" style="font-size:16px;">${s.showOnMap !== false ? '📍' : '⊘'}</button></td>
       <td>
@@ -1160,6 +1242,44 @@ async function bulkDelete() {
   } catch (e) {
     toast('삭제 요청 실패', 'error');
   }
+}
+
+/* ============================
+   Bulk Status Change
+   ============================ */
+async function bulkStatusChange() {
+  const newStatus = document.getElementById('bulkStatusSelect').value;
+  if (!newStatus) { toast('변경할 상태를 선택하세요', 'error'); return; }
+  if (!selectedIds.size) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const id of selectedIds) {
+    try {
+      const res = await fetch(`/api/stores/${id}/visits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: today, result: newStatus, memo: '일괄 상태 변경' }),
+      });
+      if (res.ok) successCount++;
+      else failCount++;
+    } catch (e) {
+      failCount++;
+    }
+  }
+
+  if (successCount > 0) {
+    toast(`${successCount}개 매장 상태 → ${newStatus} 변경 완료`, 'success');
+  }
+  if (failCount > 0) {
+    toast(`${failCount}개 매장 변경 실패`, 'error');
+  }
+  selectedIds.clear();
+  document.getElementById('checkAll').checked = false;
+  document.getElementById('bulkStatusSelect').value = '';
+  await loadStores();
 }
 
 /* ============================
