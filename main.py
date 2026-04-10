@@ -583,9 +583,9 @@ def index():
 
 @app.route("/admin")
 @login_required
-@superadmin_required
 def admin_page():
-    return render_template("admin.html")
+    user = get_current_user()
+    return render_template("admin.html", is_superadmin=(user.get("role") == "superadmin"))
 
 
 @app.route("/dashboard")

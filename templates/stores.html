@@ -754,7 +754,6 @@
           <th>최근방문</th>
           <th class="col-memo">방문메모</th>
           <th>경과일</th>
-          <th>방문수</th>
           <th>지도</th>
           <th>즐겨찾기</th>
           <th>액션</th>
@@ -990,7 +989,7 @@ function render() {
   document.getElementById('statRate').textContent = rate;
 
   if (!list.length) {
-    body.innerHTML = '<tr><td colspan="14"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
+    body.innerHTML = '<tr><td colspan="13"><div class="empty-state"><p>표시할 데이터가 없습니다</p><small>필터를 변경하거나 가맹점을 등록하세요</small></div></td></tr>';
     return;
   }
 
@@ -1022,13 +1021,12 @@ function render() {
       <td style="white-space:nowrap; font-size:12px;">${esc(lastDate)}</td>
       <td class="col-memo" title="${escAttr(lastMemo)}">${esc(lastMemo)}</td>
       <td><span class="${daysClass(days)}">${daysText}</span></td>
-      <td style="text-align:center;">${visitCount}</td>
       <td style="text-align:center;"><button class="star-btn ${s.showOnMap !== false ? 'active' : ''}" onclick="toggleMapVisibility('${escAttr(s.id)}')" title="${s.showOnMap !== false ? '지도에서 숨기기' : '지도에 표시하기'}" style="font-size:16px;">${s.showOnMap !== false ? '📍' : '⊘'}</button></td>
       <td style="text-align:center;"><button class="star-btn ${starred ? 'active' : ''}" onclick="toggleStar('${escAttr(s.id)}')">${starred ? '\u2605' : '\u2606'}</button></td>
       <td>
         <div class="actions">
           <button class="btn-sm btn-map" onclick="viewOnMap('${escAttr(s.id)}')">지도</button>
-          <button class="btn-sm btn-visit" onclick="openVisitModal('${escAttr(s.id)}')">방문${visitCount > 0 ? '(' + visitCount + ')' : ''}</button>
+          <button class="btn-sm btn-visit" onclick="openVisitModal('${escAttr(s.id)}')">방문</button>
           <button class="btn-sm btn-quick" onclick="showQuickMenu('${escAttr(s.id)}', '${escAttr(s.name)}', event)">빠른</button>
           <button class="btn-sm btn-edit" onclick="editStore('${escAttr(s.id)}')">수정</button>
         </div>

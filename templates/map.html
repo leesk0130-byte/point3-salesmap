@@ -1507,7 +1507,7 @@
             const statusLabel = status === 'personal' ? '' : status;
             let vHtml;
             if (visits.length) {
-                vHtml = `<div class="pop-section-label">방문 기록 (${visits.length}회)</div><div class="pop-visits">${visits.map(v => {
+                vHtml = `<div class="pop-section-label">방문 기록</div><div class="pop-visits">${visits.map(v => {
                     const r = v.result||'기타', memo = v.memo ? `<span class="pop-v-memo">${escapeHtml(v.memo)}</span>` : '';
                     return `<div class="pop-v"><div class="pop-v-top"><span class="pop-v-date">${fmtDate(v.date||v.visited_at)}</span><span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span></div>${memo}</div>`;
                 }).join('')}</div>`;
@@ -1603,7 +1603,7 @@
                 let tag;
                 if (lv) {
                     const r = lv.result||'기타';
-                    tag = `<span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span><span class="s-date">${fmtDate(lv.date||lv.visited_at)}</span>${vc>1?`<span class="s-extra">+${vc-1}회</span>`:''}`;
+                    tag = `<span class="badge badge-${r}"><span class="badge-dot"></span>${escapeHtml(r)}</span><span class="s-date">${fmtDate(lv.date||lv.visited_at)}</span>`;
                 } else {
                     tag = `<span class="badge badge-미방문"><span class="badge-dot"></span>미방문</span>`;
                 }
@@ -1747,7 +1747,7 @@
                 if (lv) {
                     visitInfo = `<span class="badge badge-${lv.result||'기타'}"><span class="badge-dot"></span>${escapeHtml(lv.result||'기타')}</span>`;
                     if (lv.memo) visitInfo += `<div class="fl-card-memo">${escapeHtml(lv.memo)}</div>`;
-                    if (vc > 1) visitInfo += `<span style="font-size:11px;color:var(--muted-fg);">외 ${vc-1}건</span>`;
+                    // 방문수 표시 제거
                 } else {
                     visitInfo = '<span class="badge badge-미방문"><span class="badge-dot"></span>미방문</span>';
                 }
