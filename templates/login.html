@@ -25,35 +25,173 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
   body {
     font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
     background: var(--bg);
-    background-image: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.08) 0%, transparent 60%);
     min-height: 100vh;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
     transition: background var(--transition), color var(--transition);
   }
-  .card {
-    background: var(--bg-card);
-    border-radius: 20px;
-    box-shadow: 0 4px 32px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
-    border: 1px solid var(--border);
+
+  /* ── Split Layout ── */
+  .split-container {
+    display: flex;
     width: 100%;
-    max-width: 400px;
-    padding: 36px 32px 32px;
-    transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+    min-height: 100vh;
   }
-  .logo {
+
+  /* ── Left: Brand Panel ── */
+  .brand-panel {
+    width: 50%;
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 40%, #7c3aed 70%, #8b5cf6 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-panel::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  .brand-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -15%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .brand-content {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    text-align: center;
+  }
+  .brand-logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    margin-bottom: 28px;
+    gap: 14px;
+    margin-bottom: 16px;
   }
-  .logo-icon {
+  .brand-logo-icon {
+    width: 56px; height: 56px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .brand-logo-icon svg { width: 28px; height: 28px; }
+  .brand-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .brand-slogan {
+    font-size: 18px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 48px;
+    line-height: 1.6;
+  }
+  .brand-features {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+  .brand-feature {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    transition: background 0.3s, transform 0.3s;
+    animation: fadeUp 0.6s ease-out backwards;
+  }
+  .brand-feature:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateX(6px);
+  }
+  .brand-feature:nth-child(1) { animation-delay: 0.1s; }
+  .brand-feature:nth-child(2) { animation-delay: 0.2s; }
+  .brand-feature:nth-child(3) { animation-delay: 0.3s; }
+
+  .feature-icon {
+    width: 44px; height: 44px; min-width: 44px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .feature-icon svg { width: 22px; height: 22px; }
+  .feature-text h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+    text-align: left;
+  }
+  .feature-text p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 400;
+    line-height: 1.4;
+    text-align: left;
+  }
+  .brand-footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 48px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+  }
+
+  /* ── Right: Form Panel ── */
+  .form-panel {
+    width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    background: var(--bg);
+    transition: background var(--transition);
+  }
+
+  .card {
+    width: 100%;
+    max-width: 420px;
+    animation: fadeUp 0.5s ease-out;
+  }
+  .card-header { margin-bottom: 32px; }
+  .card-header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .card-header-icon {
     width: 40px; height: 40px;
     background: var(--primary);
     border-radius: 50%;
@@ -63,14 +201,57 @@
     box-shadow: 0 4px 12px var(--primary-glow);
     transition: background var(--transition), box-shadow var(--transition);
   }
-  .logo-icon svg { width: 20px; height: 20px; }
-  .logo-text {
+  .card-header-icon svg { width: 20px; height: 20px; }
+  .card-header-text {
     font-size: 22px;
     font-weight: 700;
     color: var(--fg-secondary);
     transition: color var(--transition);
   }
-  /* 알림 배너 */
+  .card-header-sub {
+    font-size: 14px;
+    color: var(--fg-muted);
+    font-weight: 400;
+    margin-top: 4px;
+    transition: color var(--transition);
+  }
+
+  /* ── Dark Toggle ── */
+  .dark-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: var(--bg-card);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: all var(--transition);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .dark-toggle:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 12px var(--primary-glow);
+  }
+  .dark-toggle svg {
+    width: 18px; height: 18px;
+    stroke: var(--fg-muted);
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke var(--transition);
+  }
+  .dark-toggle .icon-sun { display: none; }
+  .dark-toggle .icon-moon { display: block; }
+  body.dark .dark-toggle .icon-sun { display: block; }
+  body.dark .dark-toggle .icon-moon { display: none; }
+
+  /* ── Alert ── */
   .alert {
     padding: 10px 14px;
     border-radius: 10px;
@@ -82,7 +263,8 @@
   }
   .alert.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
   .alert.success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-  /* 탭 */
+
+  /* ── Tabs ── */
   .tabs {
     display: flex;
     border-bottom: 2px solid var(--border);
@@ -106,47 +288,127 @@
     color: var(--primary);
     border-bottom-color: var(--primary);
   }
-  /* 폼 */
+
+  /* ── Forms ── */
   .form { display: none; }
   .form.active { display: block; }
-  .field { margin-bottom: 14px; }
+  .field { margin-bottom: 14px; position: relative; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--fg-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: color var(--transition);
+  }
   .field input {
     width: 100%;
-    height: 44px;
-    padding: 0 14px;
+    height: 48px;
+    padding: 0 16px;
     border: 1.5px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 14px;
     font-family: inherit;
     color: var(--fg-secondary);
     background: var(--input-bg);
     outline: none;
-    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition), transform 0.15s ease;
   }
   .field input:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-glow);
     background: var(--bg-card);
+    transform: translateY(-1px);
   }
   .field input::placeholder { color: var(--fg-muted); }
+
   .btn {
     width: 100%;
-    height: 48px;
-    background: var(--primary);
+    height: 50px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
     color: #fff;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 15px;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
-    margin-top: 6px;
-    transition: background var(--transition), box-shadow var(--transition), transform 0.1s ease;
+    margin-top: 8px;
+    transition: box-shadow var(--transition), transform 0.1s ease;
+    position: relative;
+    overflow: hidden;
   }
-  .btn:hover { background: var(--primary-hover); box-shadow: 0 4px 16px var(--primary-glow); }
-  .btn:active { background: var(--primary-active); transform: scale(0.98); }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn:hover {
+    box-shadow: 0 6px 24px var(--primary-glow);
+    transform: translateY(-1px);
+  }
+  .btn:hover::after { opacity: 1; }
+  .btn:active { transform: scale(0.98) translateY(0); }
 
-  /* Dark mode */
+  /* ── Divider ── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    transition: background var(--transition);
+  }
+  .divider-text {
+    font-size: 12px;
+    color: var(--fg-muted);
+    font-weight: 500;
+    transition: color var(--transition);
+  }
+
+  /* ── Google Btn ── */
+  #googleBtn {
+    width: 100%;
+    height: 50px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-card);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg-secondary);
+    font-family: inherit;
+    transition: all var(--transition);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  #googleBtn:hover {
+    border-color: var(--fg-muted);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+  }
+
+  .email-hint {
+    font-size: 11px;
+    color: var(--fg-muted);
+    margin-top: 4px;
+    display: block;
+    transition: color var(--transition);
+  }
+
+  /* ── Dark mode ── */
   body.dark {
     --bg: #0f172a;
     --bg-card: #1e293b;
@@ -156,12 +418,15 @@
     --border: #334155;
     --input-bg: #0f172a;
     --primary-glow: rgba(99, 102, 241, 0.3);
-    background-image: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%);
   }
   body.dark .alert.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
   body.dark .alert.success { background: #14532d; color: #86efac; border-color: #166534; }
   body.dark #googleBtn { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
   body.dark #googleBtn:hover { background: #334155 !important; }
+  body.dark .brand-panel {
+    background: linear-gradient(135deg, #312e81 0%, #4c1d95 40%, #5b21b6 70%, #6d28d9 100%);
+  }
+  body.dark .dark-toggle { background: #1e293b; border-color: #334155; }
 
   @media (prefers-color-scheme: dark) {
     body:not(.light) {
@@ -173,89 +438,206 @@
       --border: #334155;
       --input-bg: #0f172a;
       --primary-glow: rgba(99, 102, 241, 0.3);
-      background-image: radial-gradient(ellipse at 50% 0%, rgba(99,102,241,0.12) 0%, transparent 60%);
     }
     body:not(.light) .alert.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
     body:not(.light) .alert.success { background: #14532d; color: #86efac; border-color: #166534; }
     body:not(.light) #googleBtn { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
     body:not(.light) #googleBtn:hover { background: #334155 !important; }
+    body:not(.light) .brand-panel {
+      background: linear-gradient(135deg, #312e81 0%, #4c1d95 40%, #5b21b6 70%, #6d28d9 100%);
+    }
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .brand-panel { display: none; }
+    .form-panel {
+      width: 100%;
+      padding: 24px 20px;
+    }
+    .card { max-width: 100%; }
+  }
+
+  /* ── Animation ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <!-- 로고 -->
-  <div class="logo">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
-        <circle cx="12" cy="10" r="3"/>
-      </svg>
-    </div>
-    <span class="logo-text">{{ team_name or 'Point3' }} CRM</span>
-  </div>
-  <div style="text-align:center;font-size:13px;color:var(--fg-muted);margin-top:-20px;margin-bottom:24px;font-weight:500;transition:color .2s;">영업팀 전용 CRM</div>
+<!-- Dark Mode Toggle -->
+<button class="dark-toggle" id="darkToggle" aria-label="다크모드 전환">
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
 
-  <!-- 알림 -->
-  <div id="alert" class="alert"></div>
+<div class="split-container">
 
-  <!-- 탭 -->
-  <div class="tabs">
-    <div class="tab active" data-tab="login">로그인</div>
-    <div class="tab" data-tab="signup">회원가입</div>
-  </div>
-
-  <!-- 로그인 폼 -->
-  <form id="form-login" class="form active" onsubmit="return handleLogin(event)">
-    <div class="field">
-      <input type="text" id="login-username" placeholder="아이디" required autocomplete="username">
-    </div>
-    <div class="field">
-      <input type="password" id="login-password" placeholder="비밀번호" required autocomplete="current-password">
-    </div>
-    <button type="submit" class="btn">로그인</button>
-    <div id="google-section" style="display:none;">
-      <div style="display:flex;align-items:center;gap:12px;margin:16px 0;">
-        <div style="flex:1;height:1px;background:#e2e8f0;"></div>
-        <span style="font-size:12px;color:#94a3b8;">또는</span>
-        <div style="flex:1;height:1px;background:#e2e8f0;"></div>
+  <!-- Left: Brand Panel -->
+  <div class="brand-panel">
+    <div class="brand-content">
+      <div class="brand-logo">
+        <div class="brand-logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <span class="brand-title">Point3</span>
       </div>
-      <div id="g_id_onload"
-        data-client_id=""
-        data-callback="handleGoogleLogin"
-        data-auto_prompt="false">
-      </div>
-      <button type="button" id="googleBtn" onclick="triggerGoogleLogin()" style="width:100%;height:48px;border:1.5px solid var(--border);border-radius:10px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;color:var(--fg-secondary);font-family:inherit;transition:all .2s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Google로 로그인
-      </button>
-    </div>
-  </form>
+      <p class="brand-slogan">영업을 한눈에, 팀과 함께</p>
 
-  <!-- 회원가입 폼 -->
-  <form id="form-signup" class="form" onsubmit="return handleSignup(event)">
-    <div class="field">
-      <input type="text" id="signup-name" placeholder="이름" required>
+      <div class="brand-features">
+        <div class="brand-feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <h4>영업 지도</h4>
+            <p>가맹점 위치를 지도 위에서 한눈에 관리</p>
+          </div>
+        </div>
+        <div class="brand-feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <h4>대시보드</h4>
+            <p>실시간 영업 현황과 팀 성과를 한곳에서</p>
+          </div>
+        </div>
+        <div class="brand-feature">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
+          <div class="feature-text">
+            <h4>방문 캘린더</h4>
+            <p>팀원별 방문 일정을 체계적으로 추적</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-footer">&copy; 2025 Point3 CRM. All rights reserved.</div>
     </div>
-    <div class="field">
-      <input type="text" id="signup-username" placeholder="아이디" required autocomplete="username">
+  </div>
+
+  <!-- Right: Form Panel -->
+  <div class="form-panel">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-logo">
+          <div class="card-header-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+          </div>
+          <span class="card-header-text">{{ team_name or 'Point3' }} CRM</span>
+        </div>
+        <p class="card-header-sub">계정에 로그인하여 영업을 시작하세요</p>
+      </div>
+
+      <!-- 알림 -->
+      <div id="alert" class="alert"></div>
+
+      <!-- 탭 -->
+      <div class="tabs">
+        <div class="tab active" data-tab="login">로그인</div>
+        <div class="tab" data-tab="signup">회원가입</div>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <form id="form-login" class="form active" onsubmit="return handleLogin(event)">
+        <div class="field">
+          <label for="login-username">아이디</label>
+          <input type="text" id="login-username" placeholder="아이디를 입력하세요" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="login-password">비밀번호</label>
+          <input type="password" id="login-password" placeholder="비밀번호를 입력하세요" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn">로그인</button>
+        <div id="google-section" style="display:none;">
+          <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">또는</span>
+            <div class="divider-line"></div>
+          </div>
+          <div id="g_id_onload"
+            data-client_id=""
+            data-callback="handleGoogleLogin"
+            data-auto_prompt="false">
+          </div>
+          <button type="button" id="googleBtn" onclick="triggerGoogleLogin()">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Google로 로그인
+          </button>
+        </div>
+      </form>
+
+      <!-- 회원가입 폼 -->
+      <form id="form-signup" class="form" onsubmit="return handleSignup(event)">
+        <div class="field">
+          <label for="signup-name">이름</label>
+          <input type="text" id="signup-name" placeholder="이름을 입력하세요" required>
+        </div>
+        <div class="field">
+          <label for="signup-username">아이디</label>
+          <input type="text" id="signup-username" placeholder="사용할 아이디" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="signup-email">이메일</label>
+          <input type="email" id="signup-email" placeholder="example@email.com" required autocomplete="email">
+          <span class="email-hint">승인 알림이 발송됩니다. 정확한 이메일을 입력하세요.</span>
+        </div>
+        <div class="field">
+          <label for="signup-password">비밀번호</label>
+          <input type="password" id="signup-password" placeholder="4자 이상" minlength="4" required autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label for="signup-password-confirm">비밀번호 확인</label>
+          <input type="password" id="signup-password-confirm" placeholder="비밀번호를 다시 입력하세요" minlength="4" required autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn">회원가입</button>
+      </form>
     </div>
-    <div class="field">
-      <input type="email" id="signup-email" placeholder="이메일" required autocomplete="email">
-      <span style="font-size:11px;color:#94a3b8;margin-top:4px;display:block;">승인 알림이 발송됩니다. 정확한 이메일을 입력하세요.</span>
-    </div>
-    <div class="field">
-      <input type="password" id="signup-password" placeholder="비밀번호 (4자 이상)" minlength="4" required autocomplete="new-password">
-    </div>
-    <div class="field">
-      <input type="password" id="signup-password-confirm" placeholder="비밀번호 확인" minlength="4" required autocomplete="new-password">
-    </div>
-    <button type="submit" class="btn">회원가입</button>
-  </form>
+  </div>
 </div>
 
 <script>
+  /* 다크모드 초기화 */
+  (function() {
+    var stored = localStorage.getItem('point3-dark');
+    if (stored === 'true') {
+      document.body.classList.add('dark');
+    } else if (stored === 'false') {
+      document.body.classList.add('light');
+    }
+  })();
+
+  /* 다크모드 토글 */
+  document.getElementById('darkToggle').addEventListener('click', function() {
+    var isDark = document.body.classList.toggle('dark');
+    document.body.classList.remove('light');
+    if (!isDark) document.body.classList.add('light');
+    localStorage.setItem('point3-dark', isDark ? 'true' : 'false');
+  });
+
   /* 탭 전환 */
   document.querySelectorAll('.tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
