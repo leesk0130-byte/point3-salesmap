@@ -1903,8 +1903,12 @@
             const id = document.getElementById('dpId').value;
             try {
                 const res = await fetch(`/api/stores/${id}`, {method:'DELETE'});
-                if (res.ok) { closeDetail(); await loadStores(); }
-            } catch(e) { alert('삭제 실패'); }
+                if (res.ok) { closeDetail(); await loadStores(); showToast('삭제되었습니다'); }
+                else {
+                    const err = await res.json().catch(()=>({}));
+                    showToast(err.error || '삭제에 실패했습니다', true);
+                }
+            } catch(e) { showToast('서버 연결 실패. 잠시 후 다시 시도해주세요.', true); }
         }
         async function addDetailVisit() {
             const id = document.getElementById('dpId').value;
@@ -1922,8 +1926,11 @@
                     await loadStores();
                     const s = allStores.find(x => x.id === id);
                     if (s) renderDetailVisits(s);
+                } else {
+                    const err = await res.json().catch(()=>({}));
+                    showToast(err.error || '방문 추가 실패', true);
                 }
-            } catch(e) { alert('방문 추가 실패'); }
+            } catch(e) { showToast('서버 연결 실패. 잠시 후 다시 시도해주세요.', true); }
         }
         async function deleteDetailVisit(visitId) {
             const id = document.getElementById('dpId').value;
@@ -1933,8 +1940,12 @@
                     await loadStores();
                     const s = allStores.find(x => x.id === id);
                     if (s) renderDetailVisits(s);
+                    showToast('삭제되었습니다');
+                } else {
+                    const err = await res.json().catch(()=>({}));
+                    showToast(err.error || '삭제에 실패했습니다', true);
                 }
-            } catch(e) { alert('삭제 실패'); }
+            } catch(e) { showToast('서버 연결 실패. 잠시 후 다시 시도해주세요.', true); }
         }
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && document.getElementById('detailPanel').classList.contains('open')) closeDetail();

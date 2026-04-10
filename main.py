@@ -10,6 +10,7 @@ import time
 import csv
 import io
 import hashlib
+import threading
 from datetime import datetime
 from urllib.parse import quote
 from functools import wraps
@@ -152,7 +153,7 @@ _stores_cache = {"data": None, "ts": 0}
 
 def load_stores():
     now = time.time()
-    if _stores_cache["data"] is not None and (now - _stores_cache["ts"]) < 5:
+    if _stores_cache["data"] is not None and (now - _stores_cache["ts"]) < 30:
         return _stores_cache["data"]
     result = fs_get_collection("stores")
     _stores_cache["data"] = result
@@ -861,6 +862,8 @@ def delete_visit(store_id, visit_id):
     """매장의 방문 기록 삭제"""
     user = get_current_user()
     user_team = user.get("teamName", "")
+    # 캐시 무효화 후 최신 데이터로 작업
+    _invalidate_cache()
     stores = load_stores()
 
     for i, store in enumerate(stores):
@@ -869,12 +872,14 @@ def delete_visit(store_id, visit_id):
                 return jsonify({"error": "권한이 없습니다."}), 403
             visits = store.get("visits", [])
             original_len = len(visits)
-            stores[i]["visits"] = [v for v in visits if v["id"] != visit_id]
+            # 깊은 복사로 캐시 오염 방지
+            updated_store = dict(store)
+            updated_store["visits"] = [v for v in visits if v.get("id") != visit_id]
 
-            if len(stores[i]["visits"]) == original_len:
+            if len(updated_store["visits"]) == original_len:
                 return jsonify({"error": "방문 기록을 찾을 수 없습니다."}), 404
 
-            if not save_store(stores[i]):
+            if not save_store(updated_store):
                 return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
             return jsonify({"message": "방문 기록 삭제 완료"}), 200
 
@@ -1270,7 +1275,7 @@ _notes_cache = {"data": None, "ts": 0}
 
 def load_notes():
     now = time.time()
-    if _notes_cache["data"] is not None and (now - _notes_cache["ts"]) < 5:
+    if _notes_cache["data"] is not None and (now - _notes_cache["ts"]) < 30:
         return _notes_cache["data"]
     result = fs_get_collection("calendar_notes")
     _notes_cache["data"] = result
@@ -1436,8 +1441,31 @@ def stats_activity_by_day():
     return jsonify(days)
 
 
+# ══════════════════════════════════════════
+#  Keep-alive (Render Free tier 슬립 방지)
+# ══════════════════════════════════════════
+
+@app.route("/health")
+def health_check():
+    return "ok", 200
+
+def _keep_alive():
+    """10분마다 자기 서버에 핑을 보내 Render 슬립 방지"""
+    import urllib.request
+    url = "https://point3-salesmap.onrender.com/health"
+    while True:
+        time.sleep(600)  # 10분
+        try:
+            urllib.request.urlopen(url, timeout=10)
+        except Exception:
+            pass
+
 # ── 초기화 + 서버 실행 ──
 ensure_superadmin()
+
+# keep-alive 스레드 시작 (gunicorn에서도 동작)
+_keep_alive_thread = threading.Thread(target=_keep_alive, daemon=True)
+_keep_alive_thread.start()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "true").lower() == "true")
