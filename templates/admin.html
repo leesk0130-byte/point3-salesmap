@@ -664,8 +664,8 @@ async function checkDuplicate(name) {
 /* ============= Minimap ============= */
 function updateMinimap(lat, lng) {
   const container = document.getElementById('minimapContainer');
-  // Kakao Static Map API
-  const url = `https://dapi.kakao.com/v2/maps/staticmap?appkey=12a6d5580904db14be2b073e8e114a4f&center=${lng},${lat}&level=3&w=600&h=200&markers=type:d|size:mid|pos:${lng} ${lat}&CX=${lng}&CY=${lat}`;
+  // Backend proxy for Kakao Static Map API (no API key exposed)
+  const url = `/api/kakao-staticmap?lat=${lat}&lng=${lng}&width=600&height=200`;
   container.innerHTML = `<img src="${url}" alt="지도" onerror="this.parentElement.innerHTML='지도를 불러올 수 없습니다'">`;
 }
 

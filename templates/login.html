@@ -412,7 +412,7 @@
     transition: all var(--transition);
     box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   }
-  #googleBtn:hover {
+  #googleBtn:hover, #googleBtnSignup:hover {
     border-color: var(--fg-muted);
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     transform: translateY(-1px);
@@ -424,6 +424,74 @@
     margin-top: 4px;
     display: block;
     transition: color var(--transition);
+  }
+
+  /* ── Agreement Checkboxes ── */
+  .agreement-section {
+    margin-top: 16px;
+    margin-bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .agreement-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .agreement-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .agreement-item label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg-secondary);
+    cursor: pointer;
+    transition: color var(--transition);
+    line-height: 1.4;
+  }
+  .agreement-item label .required-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #dc2626;
+    margin-right: 4px;
+  }
+  .agreement-item label a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--transition);
+  }
+  .agreement-item label a:hover {
+    color: var(--primary-hover);
+  }
+
+  /* ── Page Footer Links ── */
+  .page-footer {
+    text-align: center;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    transition: border-color var(--transition);
+  }
+  .page-footer a {
+    font-size: 12px;
+    color: var(--fg-muted);
+    text-decoration: none;
+    transition: color var(--transition);
+  }
+  .page-footer a:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+  .page-footer .sep {
+    margin: 0 8px;
+    color: var(--border);
+    font-size: 12px;
   }
 
   /* ── Dark mode ── */
@@ -439,8 +507,8 @@
   }
   body.dark .alert.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
   body.dark .alert.success { background: #14532d; color: #86efac; border-color: #166534; }
-  body.dark #googleBtn { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
-  body.dark #googleBtn:hover { background: #334155 !important; }
+  body.dark #googleBtn, body.dark #googleBtnSignup { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+  body.dark #googleBtn:hover, body.dark #googleBtnSignup:hover { background: #334155 !important; }
   body.dark .brand-panel {
     background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #3b0764 70%, #4c1d95 100%);
   }
@@ -459,8 +527,8 @@
     }
     body:not(.light) .alert.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
     body:not(.light) .alert.success { background: #14532d; color: #86efac; border-color: #166534; }
-    body:not(.light) #googleBtn { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
-    body:not(.light) #googleBtn:hover { background: #334155 !important; }
+    body:not(.light) #googleBtn, body:not(.light) #googleBtnSignup { background: #1e293b !important; color: #e2e8f0 !important; border-color: #475569 !important; }
+    body:not(.light) #googleBtn:hover, body:not(.light) #googleBtnSignup:hover { background: #334155 !important; }
     body:not(.light) .brand-panel {
       background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #3b0764 70%, #4c1d95 100%);
     }
@@ -631,8 +699,38 @@
           <label for="signup-password-confirm">비밀번호 확인</label>
           <input type="password" id="signup-password-confirm" placeholder="비밀번호를 다시 입력하세요" minlength="4" required autocomplete="new-password">
         </div>
+        <div class="agreement-section">
+          <div class="agreement-item">
+            <input type="checkbox" id="agree-terms">
+            <label for="agree-terms"><span class="required-badge">[필수]</span> <a href="/terms" target="_blank">서비스 이용약관</a> 동의</label>
+          </div>
+          <div class="agreement-item">
+            <input type="checkbox" id="agree-privacy">
+            <label for="agree-privacy"><span class="required-badge">[필수]</span> <a href="/privacy" target="_blank">개인정보 수집 및 이용</a> 동의</label>
+          </div>
+        </div>
         <button type="submit" class="btn">회원가입</button>
+        <div id="google-section-signup" style="display:none;">
+          <div class="divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">또는</span>
+            <div class="divider-line"></div>
+          </div>
+          <button type="button" id="googleBtnSignup" onclick="triggerGoogleLogin()" style="width:100%;height:50px;border:1.5px solid var(--border);border-radius:12px;background:var(--bg-card);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px;font-weight:600;color:var(--fg-secondary);font-family:inherit;transition:all var(--transition);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+            Google로 가입
+          </button>
+        </div>
       </form>
+
+      <!-- 페이지 하단 링크 -->
+      <div class="page-footer">
+        <a href="/terms" target="_blank">이용약관</a>
+        <span class="sep">|</span>
+        <a href="/privacy" target="_blank">개인정보처리방침</a>
+        <span class="sep">|</span>
+        <a href="/licenses" target="_blank">오픈소스 라이선스</a>
+      </div>
     </div>
   </div>
 </div>
@@ -717,6 +815,7 @@
     if (!name || !username || !email || !password) { showAlert('모든 항목을 입력하세요.', 'error'); return false; }
     if (password.length < 4) { showAlert('비밀번호는 4자 이상이어야 합니다.', 'error'); return false; }
     if (password !== confirm) { showAlert('비밀번호가 일치하지 않습니다.', 'error'); return false; }
+    if (!checkAgreements()) return false;
     try {
       var res = await fetch('/auth/signup', {
         method: 'POST',
@@ -733,6 +832,23 @@
       showAlert('서버에 연결할 수 없습니다.', 'error');
     }
     return false;
+  }
+
+  /* 약관 동의 검증 */
+  function checkAgreements() {
+    var terms = document.getElementById('agree-terms').checked;
+    var privacy = document.getElementById('agree-privacy').checked;
+    if (!terms || !privacy) {
+      showAlert('약관에 동의해주세요.', 'error');
+      return false;
+    }
+    return true;
+  }
+
+  /* 현재 회원가입 탭이 활성화되어 있는지 확인 */
+  function isSignupTabActive() {
+    var signupTab = document.querySelector('.tab[data-tab="signup"]');
+    return signupTab && signupTab.classList.contains('active');
   }
 
   // ── Google 로그인 ──
@@ -758,6 +874,7 @@
   var _googleClientId = '{{ google_client_id }}';
 
   function triggerGoogleLogin() {
+    if (isSignupTabActive() && !checkAgreements()) return;
     if (!window.google || !window.google.accounts) {
       alert('Google 로그인을 로딩 중입니다. 잠시 후 다시 시도하세요.');
       return;
@@ -773,6 +890,7 @@
   (function() {
     if (_googleClientId) {
       document.getElementById('google-section').style.display = 'block';
+      document.getElementById('google-section-signup').style.display = 'block';
     }
   })();
 </script>

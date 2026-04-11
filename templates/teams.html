@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon.svg">
+  <title>전체 팀 관리 — {{ team_name }} CRM</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --primary-glow: rgba(79, 70, 229, 0.25);
+      --bg: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --fg: #0f172a;
+      --fg-secondary: #1e293b;
+      --fg-muted: #94a3b8;
+      --fg-body: #334155;
+      --border: #e2e8f0;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
+      background: var(--bg); color: var(--fg);
+      min-height: 100vh;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-card); border-bottom: 1px solid var(--border);
+      padding: 16px 24px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+    }
+    .header-left { display: flex; align-items: baseline; gap: 12px; }
+    .logo { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; text-decoration: none; }
+    .logo span { color: #818cf8; font-weight: 600; }
+    .header-sub { font-size: 14px; color: #64748b; font-weight: 500; }
+    .back-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: var(--primary-hover); }
+
+    /* Hamburger */
+    .hamburger-btn {
+      display: none; width: 44px; height: 44px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--bg-card); cursor: pointer;
+      align-items: center; justify-content: center;
+      font-size: 22px; color: var(--fg); flex-shrink: 0;
+    }
+    .hamburger-btn:hover { background: var(--bg-subtle); }
+    .mobile-nav-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.3); backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity .25s;
+    }
+    .mobile-nav-overlay.open { opacity: 1; }
+    .mobile-nav {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 280px; max-width: 80vw;
+      background: var(--bg-card); z-index: 9999;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,.1); overflow-y: auto;
+    }
+    .mobile-nav.open { transform: translateX(0); }
+    .mobile-nav-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mobile-nav-header span { font-size: 16px; font-weight: 700; color: var(--fg); }
+    .mobile-nav-close {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      cursor: pointer; font-size: 18px; color: var(--fg-muted);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mobile-nav-links { padding: 12px; flex: 1; }
+    .mobile-nav-links a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      font-size: 15px; font-weight: 500;
+      color: var(--fg); text-decoration: none;
+    }
+    .mobile-nav-links a:hover { background: var(--bg-subtle); }
+    .mobile-nav-links a.active { background: #eef2ff; color: var(--primary); font-weight: 600; }
+    .mobile-nav-links a svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .mobile-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .mobile-nav-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #dc2626; text-decoration: none;
+    }
+    .mobile-nav-footer a:hover { background: #fef2f2; }
+    body.dark .mobile-nav-footer a:hover { background: #451a1a; }
+    body.dark .mobile-nav-links a.active { background: #312e81; }
+
+    @media (max-width: 768px) {
+      .header { padding: 14px 12px; }
+      .back-link { display: none; }
+      .hamburger-btn { display: flex; }
+    }
+
+    /* Main */
+    .main { max-width: 1200px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    /* Overview stats */
+    .overview-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 22px;
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .stat-card:hover { box-shadow: 0 4px 20px rgba(79,70,229,0.08); }
+    .stat-label { font-size: 12px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+    .stat-sub { font-size: 12px; color: var(--fg-muted); margin-top: 4px; }
+
+    /* Section */
+    .section { margin-bottom: 28px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 0 4px; }
+    .section-title { font-size: 17px; font-weight: 700; color: var(--fg-secondary); }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 24px; height: 24px; padding: 0 8px;
+      font-size: 12px; font-weight: 700; border-radius: 12px;
+      background: #eef2ff; color: var(--primary);
+    }
+
+    /* Team cards */
+    .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+
+    .team-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.15s ease;
+    }
+    .team-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+    .team-card-header {
+      padding: 20px 22px 16px;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 14px;
+    }
+    .team-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 800; color: #fff; flex-shrink: 0;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+    }
+    .team-header-info { flex: 1; }
+    .team-name { font-size: 18px; font-weight: 800; color: #312e81; }
+    .team-created { font-size: 12px; color: #6366f1; margin-top: 2px; }
+
+    .team-card-body { padding: 18px 22px; }
+
+    .team-mini-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .mini-stat { text-align: center; padding: 10px 4px; background: var(--bg-subtle); border-radius: 10px; }
+    .mini-stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .mini-stat-label { font-size: 10px; color: var(--fg-muted); font-weight: 500; margin-top: 2px; }
+
+    /* Member list inside card */
+    .team-members-list { margin-bottom: 14px; }
+    .team-member-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px;
+      transition: background var(--transition);
+    }
+    .team-member-row:hover { background: var(--bg-subtle); }
+    .member-avatar {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .member-avatar.active { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .member-avatar.pending { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+    .member-avatar.inactive { background: #94a3b8; }
+    .member-info { flex: 1; min-width: 0; }
+    .member-name { font-size: 13px; font-weight: 600; color: var(--fg-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .member-meta { font-size: 11px; color: var(--fg-muted); }
+    .member-status {
+      padding: 2px 8px; font-size: 10px; font-weight: 700;
+      border-radius: 4px; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0;
+    }
+    .member-status.approved { background: #dcfce7; color: #16a34a; }
+    .member-status.pending { background: #fef3c7; color: #d97706; }
+    .member-status.inactive { background: #f1f5f9; color: #94a3b8; }
+
+    .show-more-btn {
+      display: block; width: 100%; padding: 8px; margin-top: 6px;
+      font-size: 12px; font-weight: 600; color: var(--primary);
+      background: var(--bg-subtle); border: 1px solid var(--border);
+      border-radius: 8px; cursor: pointer; text-align: center;
+      font-family: inherit;
+    }
+    .show-more-btn:hover { background: #eef2ff; }
+
+    /* Card actions */
+    .team-card-actions {
+      display: flex; gap: 8px; padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-team {
+      flex: 1; height: 38px; padding: 9px 14px; font-size: 13px;
+      font-weight: 600; font-family: inherit; border: none;
+      border-radius: 10px; cursor: pointer; text-align: center;
+      transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+    }
+    .btn-team:hover { transform: translateY(-1px); }
+    .btn-team:active { transform: scale(0.96); }
+    .btn-manage { background: #eef2ff; color: var(--primary); border: 1px solid #c7d2fe; }
+    .btn-manage:hover { background: #e0e7ff; box-shadow: 0 4px 12px rgba(79,70,229,0.12); }
+    .btn-danger { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .btn-danger:hover { background: #fee2e2; box-shadow: 0 4px 12px rgba(220,38,38,0.12); }
+    .btn-primary-team { background: var(--primary); color: #fff; }
+    .btn-primary-team:hover { background: var(--primary-hover); box-shadow: 0 4px 12px var(--primary-glow); }
+
+    .empty-state {
+      grid-column: 1 / -1; padding: 48px 16px; text-align: center;
+      font-size: 14px; color: var(--fg-muted);
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+    }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
+
+    /* Loading */
+    .loading { grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--fg-muted); font-size: 14px; }
+    .loading-spinner {
+      width: 28px; height: 28px; border: 3px solid var(--border);
+      border-top-color: var(--primary); border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Toast */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+    .toast {
+      padding: 12px 20px; border-radius: 10px; font-size: 14px;
+      font-weight: 600; color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
+      max-width: 320px;
+    }
+    .toast-success { background: #16a34a; }
+    .toast-error { background: #dc2626; }
+    .toast-info { background: #4f46e5; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .team-grid { grid-template-columns: 1fr; }
+      .overview-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
+      .main { padding: 20px 12px 40px; }
+      .overview-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-card { padding: 16px; }
+      .stat-value { font-size: 22px; }
+      .team-mini-stats { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Dark mode */
+    body.dark {
+      --bg: #0f172a; --bg-card: #1e293b; --bg-subtle: #1e293b;
+      --fg: #f1f5f9; --fg-secondary: #e2e8f0; --fg-muted: #64748b;
+      --fg-body: #cbd5e1; --border: #334155;
+    }
+    body.dark .badge { background: #312e81; color: #a5b4fc; }
+    body.dark .team-card-header { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); }
+    body.dark .team-name { color: #c7d2fe; }
+    body.dark .team-created { color: #818cf8; }
+    body.dark .member-status.approved { background: #14532d; color: #4ade80; }
+    body.dark .member-status.pending { background: #451a03; color: #fbbf24; }
+    body.dark .member-status.inactive { background: #1e293b; color: #64748b; }
+    body.dark .btn-manage { background: #312e81; color: #a5b4fc; border-color: #4338ca; }
+    body.dark .btn-manage:hover { background: #3730a3; }
+    body.dark .btn-danger { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+    body.dark .btn-danger:hover { background: #7f1d1d; }
+    body.dark .show-more-btn { background: #0f172a; border-color: #475569; color: #818cf8; }
+
+    @media (prefers-color-scheme: dark) {
+      body:not(.light) {
+        --bg: #0f172a; --bg-card: #1e293b; --bg-subtle: #1e293b;
+        --fg: #f1f5f9; --fg-secondary: #e2e8f0; --fg-muted: #64748b;
+        --fg-body: #cbd5e1; --border: #334155;
+      }
+      body:not(.light) .badge { background: #312e81; color: #a5b4fc; }
+      body:not(.light) .team-card-header { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); }
+      body:not(.light) .team-name { color: #c7d2fe; }
+      body:not(.light) .team-created { color: #818cf8; }
+      body:not(.light) .member-status.approved { background: #14532d; color: #4ade80; }
+      body:not(.light) .member-status.pending { background: #451a03; color: #fbbf24; }
+      body:not(.light) .btn-manage { background: #312e81; color: #a5b4fc; border-color: #4338ca; }
+      body:not(.light) .btn-danger { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+      body:not(.light) .show-more-btn { background: #0f172a; border-color: #475569; color: #818cf8; }
+    }
+
+    /* Dark toggle */
+    .dark-toggle {
+      width: 40px; height: 40px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--bg-subtle); cursor: pointer;
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+      transition: background var(--transition), border-color var(--transition); flex-shrink: 0;
+    }
+    .dark-toggle:hover { background: var(--border); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <a href="/" class="logo">{{ team_name or 'Point3' }} <span>CRM</span></a>
+      <div class="header-sub">전체 팀 관리</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <a href="/approve" class="back-link">&larr; 팀원 관리</a>
+      <a href="/" class="back-link">&larr; 지도</a>
+      <button class="dark-toggle" id="darkToggle" aria-label="다크모드 전환">&#127769;</button>
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="메뉴 열기">&#9776;</button>
+    </div>
+  </div>
+
+  <!-- Mobile nav -->
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+  <nav class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+      <span>{{ team_name or 'Point3' }} CRM</span>
+      <button class="mobile-nav-close" id="mobileNavClose">&times;</button>
+    </div>
+    <div class="mobile-nav-links">
+      <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>지도</a>
+      <a href="/stores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>가맹점 목록</a>
+      <a href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>대시보드</a>
+      <a href="/calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>캘린더</a>
+      <a href="/approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>팀원 관리</a>
+      <a href="/teams" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8M8 12h8"/></svg>전체 팀 관리</a>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="/auth/logout"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</a>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- Overview stats -->
+    <div class="overview-stats">
+      <div class="stat-card">
+        <div class="stat-label">전체 팀 수</div>
+        <div class="stat-value" id="statTeams">-</div>
+        <div class="stat-sub">CRM 이용 중인 팀</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">전체 사용자</div>
+        <div class="stat-value" id="statUsers">-</div>
+        <div class="stat-sub">모든 팀 합산</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">전체 매장</div>
+        <div class="stat-value" id="statStores">-</div>
+        <div class="stat-sub">모든 팀 합산</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">전체 방문</div>
+        <div class="stat-value" id="statVisits">-</div>
+        <div class="stat-sub">모든 팀 합산</div>
+      </div>
+    </div>
+
+    <!-- Teams list -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">팀 목록</div>
+        <div class="badge" id="teamCount">0</div>
+      </div>
+      <div class="team-grid" id="teamGrid">
+        <div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const ROLE_LABELS = { superadmin: '최고관리자', admin: '관리자', user: '팀원', viewer: '뷰어' };
+    let allTeams = [];
+
+    function showToast(message, type) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast toast-' + type;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function esc(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function getInitials(name) {
+      if (!name || name === '-') return '?';
+      return name.charAt(0).toUpperCase();
+    }
+
+    function teamColors(index) {
+      const colors = [
+        ['#6366f1','#4f46e5'], ['#ec4899','#db2777'], ['#14b8a6','#0d9488'],
+        ['#f59e0b','#d97706'], ['#8b5cf6','#7c3aed'], ['#06b6d4','#0891b2'],
+        ['#ef4444','#dc2626'], ['#10b981','#059669']
+      ];
+      return colors[index % colors.length];
+    }
+
+    function teamCardHTML(team, index) {
+      const [c1, c2] = teamColors(index);
+      const initial = getInitials(team.teamName);
+      const users = team.users || [];
+      const maxShow = 5;
+      const showUsers = users.slice(0, maxShow);
+      const remainingCount = users.length - maxShow;
+
+      let membersHTML = showUsers.map(u => {
+        let statusClass = 'active';
+        let statusText = '활동';
+        if (!u.isApproved) {
+          statusClass = 'pending';
+          statusText = '대기';
+        }
+        const roleLabel = ROLE_LABELS[u.role] || '팀원';
+        return `
+          <div class="team-member-row">
+            <div class="member-avatar ${statusClass}">${esc(getInitials(u.name))}</div>
+            <div class="member-info">
+              <div class="member-name">${esc(u.name)} <span style="color:var(--fg-muted);font-weight:400;font-size:11px;">@${esc(u.username)}</span></div>
+              <div class="member-meta">${roleLabel}${u.email ? ' · ' + esc(u.email) : ''}</div>
+            </div>
+            <span class="member-status ${statusClass}">${statusText}</span>
+          </div>`;
+      }).join('');
+
+      if (remainingCount > 0) {
+        membersHTML += `<button class="show-more-btn" onclick="this.style.display='none';this.nextElementSibling.style.display='block'">+ ${remainingCount}명 더 보기</button>`;
+        const hiddenUsers = users.slice(maxShow);
+        membersHTML += `<div style="display:none">${hiddenUsers.map(u => {
+          let sc = u.isApproved ? 'active' : 'pending';
+          let st = u.isApproved ? '활동' : '대기';
+          return `<div class="team-member-row">
+            <div class="member-avatar ${sc}">${esc(getInitials(u.name))}</div>
+            <div class="member-info">
+              <div class="member-name">${esc(u.name)} <span style="color:var(--fg-muted);font-weight:400;font-size:11px;">@${esc(u.username)}</span></div>
+              <div class="member-meta">${ROLE_LABELS[u.role] || '팀원'}</div>
+            </div>
+            <span class="member-status ${sc}">${st}</span>
+          </div>`;
+        }).join('')}</div>`;
+      }
+
+      if (users.length === 0) {
+        membersHTML = '<div style="text-align:center;padding:12px;color:var(--fg-muted);font-size:13px;">멤버 없음</div>';
+      }
+
+      const isDefaultTeam = team.teamName.toLowerCase() === 'point3';
+
+      return `
+        <div class="team-card">
+          <div class="team-card-header">
+            <div class="team-icon" style="background:linear-gradient(135deg,${c1},${c2})">${esc(initial)}</div>
+            <div class="team-header-info">
+              <div class="team-name">${esc(team.teamName)}</div>
+              <div class="team-created">멤버 ${team.members}명</div>
+            </div>
+          </div>
+          <div class="team-card-body">
+            <div class="team-mini-stats">
+              <div class="mini-stat">
+                <div class="mini-stat-val">${team.approved}</div>
+                <div class="mini-stat-label">승인</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">${team.pending}</div>
+                <div class="mini-stat-label">대기</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">${team.stores.toLocaleString()}</div>
+                <div class="mini-stat-label">매장</div>
+              </div>
+              <div class="mini-stat">
+                <div class="mini-stat-val">${team.visits.toLocaleString()}</div>
+                <div class="mini-stat-label">방문</div>
+              </div>
+            </div>
+            <div class="team-members-list">
+              ${membersHTML}
+            </div>
+            <div class="team-card-actions">
+              <a href="/approve" class="btn-team btn-manage" style="text-decoration:none;display:flex;align-items:center;justify-content:center;">팀원 관리</a>
+              ${isDefaultTeam
+                ? ''
+                : `<button class="btn-team btn-danger" onclick="deleteTeam('${esc(team.teamName)}')">팀 삭제</button>`
+              }
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function loadTeams() {
+      const grid = document.getElementById('teamGrid');
+      try {
+        const res = await fetch('/api/admin/all-teams');
+        if (!res.ok) throw new Error();
+        allTeams = await res.json();
+
+        document.getElementById('teamCount').textContent = allTeams.length;
+        document.getElementById('statTeams').textContent = allTeams.length;
+
+        let totalUsers = 0, totalStores = 0, totalVisits = 0;
+        allTeams.forEach(t => {
+          totalUsers += t.members;
+          totalStores += t.stores;
+          totalVisits += t.visits;
+        });
+        document.getElementById('statUsers').textContent = totalUsers.toLocaleString();
+        document.getElementById('statStores').textContent = totalStores.toLocaleString();
+        document.getElementById('statVisits').textContent = totalVisits.toLocaleString();
+
+        if (allTeams.length === 0) {
+          grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏢</div>등록된 팀이 없습니다.</div>';
+          return;
+        }
+        grid.innerHTML = allTeams.map((t, i) => teamCardHTML(t, i)).join('');
+      } catch (e) {
+        grid.innerHTML = '<div class="empty-state" style="color:#ef4444">팀 목록을 불러오지 못했습니다.</div>';
+      }
+    }
+
+    async function deleteTeam(teamName) {
+      if (!confirm(`"${teamName}" 팀을 삭제하시겠습니까?\n\n이 팀의 모든 멤버와 매장 데이터가 삭제됩니다.\n이 작업은 되돌릴 수 없습니다.`)) return;
+      if (!confirm(`정말로 "${teamName}" 팀을 삭제하시겠습니까?\n\n한번 더 확인합니다.`)) return;
+      try {
+        const res = await fetch('/api/admin/delete-team', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({teamName})
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        showToast(data.message, 'success');
+        await loadTeams();
+      } catch(e) {
+        showToast(e.message || '팀 삭제 실패', 'error');
+      }
+    }
+
+    // Dark mode
+    (function() {
+      const saved = localStorage.getItem('point3-dark');
+      if (saved === 'true') document.body.classList.add('dark');
+      else if (saved === 'false') document.body.classList.add('light');
+      updateToggleIcon();
+    })();
+    function updateToggleIcon() {
+      const btn = document.getElementById('darkToggle');
+      if (btn) btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+    document.getElementById('darkToggle').addEventListener('click', function() {
+      const isDark = document.body.classList.toggle('dark');
+      document.body.classList.toggle('light', !isDark);
+      localStorage.setItem('point3-dark', isDark);
+      updateToggleIcon();
+    });
+
+    // Mobile nav
+    (function() {
+      var btn = document.getElementById('hamburgerBtn');
+      var nav = document.getElementById('mobileNav');
+      var overlay = document.getElementById('mobileNavOverlay');
+      var closeBtn = document.getElementById('mobileNavClose');
+      if (!btn || !nav) return;
+      function openNav() {
+        nav.classList.add('open'); overlay.style.display = 'block';
+        requestAnimationFrame(function() { overlay.classList.add('open'); });
+        document.body.style.overflow = 'hidden';
+      }
+      function closeNav() {
+        nav.classList.remove('open'); overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(function() { overlay.style.display = 'none'; }, 250);
+      }
+      btn.addEventListener('click', openNav);
+      closeBtn.addEventListener('click', closeNav);
+      overlay.addEventListener('click', closeNav);
+    })();
+
+    // Init
+    loadTeams();
+  </script>
+</body>
+</html>

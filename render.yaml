@@ -6,4 +6,16 @@ services:
     startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120 --keep-alive 5
     envVars:
       - key: FLASK_DEBUG
-        value: false
+        value: "false"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: FIREBASE_PROJECT_ID
+        value: "point3-salesmap99"
+      - key: FIREBASE_API_KEY
+        sync: false
+      - key: KAKAO_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SUPERADMIN_PW
+        sync: false

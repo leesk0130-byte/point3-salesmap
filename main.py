@@ -11,6 +11,8 @@ import csv
 import io
 import hashlib
 import threading
+
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from urllib.parse import quote
 from functools import wraps
@@ -33,9 +35,9 @@ SUPERADMIN_USERNAME = "leesk0130"
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "734818849350-qlm4r3mlbksfrv41hm38l78vscu29biu.apps.googleusercontent.com")
 
 # ── Firestore 설정 ──
-FIREBASE_PROJECT_ID = "point3-salesmap99"
+FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID", "point3-salesmap99")
 FIRESTORE_BASE = f"https://firestore.googleapis.com/v1/projects/{FIREBASE_PROJECT_ID}/databases/(default)/documents"
-FIREBASE_API_KEY = "AIzaSyA7u_44ljLdf5yxyihKO0qU51DkMZyiV_w"
+FIREBASE_API_KEY = os.environ.get("FIREBASE_API_KEY", "AIzaSyA7u_44ljLdf5yxyihKO0qU51DkMZyiV_w")
 
 # 로컬 폴백용 경로
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -219,7 +221,20 @@ def save_users(users):
 # ══════════════════════════════════════════
 
 def hash_pw(pw):
-    return hashlib.sha256(pw.encode()).hexdigest()
+    """새 비밀번호 해싱 (werkzeug/bcrypt 방식)"""
+    return generate_password_hash(pw)
+
+
+def _is_legacy_sha256(stored):
+    """저장된 해시가 레거시 SHA256인지 판별 (64자 hex)"""
+    return len(stored) == 64 and all(c in '0123456789abcdef' for c in stored)
+
+
+def _verify_password(stored, plain):
+    """비밀번호 검증: 레거시 SHA256 또는 werkzeug 해시 모두 지원"""
+    if _is_legacy_sha256(stored):
+        return hashlib.sha256(plain.encode()).hexdigest() == stored
+    return check_password_hash(stored, plain)
 
 
 def get_current_user():
@@ -267,6 +282,8 @@ def superadmin_required(f):
 
 
 # ── 초기 관리자 계정 자동 생성 ──
+SUPERADMIN_DEFAULT_PW = os.environ.get("SUPERADMIN_PW", "Point3Admin!2026")
+
 def ensure_superadmin():
     users = load_users()
     for u in users:
@@ -275,7 +292,7 @@ def ensure_superadmin():
     admin = {
         "id": str(uuid.uuid4()),
         "username": SUPERADMIN_USERNAME,
-        "password": hash_pw("12345"),
+        "password": hash_pw(SUPERADMIN_DEFAULT_PW),
         "name": "관리자",
         "teamName": "point3",
         "isApproved": True,
@@ -312,7 +329,7 @@ def get_last_visit(store):
 
 
 # ── 카카오 지오코딩 함수 ──
-KAKAO_API_KEY = "12a6d5580904db14be2b073e8e114a4f"
+KAKAO_API_KEY = os.environ.get("KAKAO_API_KEY", "12a6d5580904db14be2b073e8e114a4f")
 
 def geocode_address(address):
     """
@@ -401,7 +418,11 @@ def auth_login():
 
     users = load_users()
     for u in users:
-        if u["username"] == username and u["password"] == hash_pw(password):
+        if u["username"] == username and _verify_password(u.get("password", ""), password):
+            # SHA256 → bcrypt 자동 마이그레이션
+            if _is_legacy_sha256(u.get("password", "")):
+                u["password"] = hash_pw(password)
+                save_user(u)
             session["user_id"] = u["id"]
             return jsonify({
                 "message": "로그인 성공",
@@ -518,6 +539,15 @@ def approve_page():
     if user.get("role") != "superadmin":
         return redirect("/")
     return render_template("approve.html", team_name=user.get("teamName", ""))
+
+
+@app.route("/teams")
+@login_required
+def teams_page():
+    user = get_current_user()
+    if user.get("role") != "superadmin":
+        return redirect("/")
+    return render_template("teams.html", team_name=user.get("teamName", ""))
 
 
 # ── 관리자 API ──
@@ -758,6 +788,76 @@ def recent_stores():
     my_stores = [s for s in stores if s.get("teamName") == team]
     my_stores.sort(key=lambda s: s.get("created_at", ""), reverse=True)
     return jsonify(my_stores[:5])
+
+
+@app.route("/api/admin/all-teams")
+@superadmin_required
+def admin_all_teams():
+    """전체 팀 목록 + 통계 (슈퍼관리자용)"""
+    users = load_users()
+    stores = load_stores()
+
+    teams = {}
+    for u in users:
+        tn = u.get("teamName", "").strip()
+        if not tn:
+            continue
+        if tn not in teams:
+            teams[tn] = {"teamName": tn, "members": 0, "approved": 0, "pending": 0,
+                         "inactive": 0, "stores": 0, "visits": 0, "users": []}
+        t = teams[tn]
+        t["members"] += 1
+        if u.get("isApproved"):
+            t["approved"] += 1
+        elif u.get("teamName"):
+            t["pending"] += 1
+        t["users"].append({
+            "id": u.get("id", ""), "name": u.get("name", ""), "username": u.get("username", ""),
+            "email": u.get("email", ""), "role": u.get("role", "user"),
+            "isApproved": u.get("isApproved", False),
+            "created_at": u.get("created_at", "")
+        })
+
+    for s in stores:
+        tn = s.get("teamName", "").strip()
+        if tn in teams:
+            teams[tn]["stores"] += 1
+            visits = s.get("visits", [])
+            if isinstance(visits, list):
+                teams[tn]["visits"] += len(visits)
+
+    result = sorted(teams.values(), key=lambda x: x["members"], reverse=True)
+    return jsonify(result)
+
+
+@app.route("/api/admin/delete-team", methods=["POST"])
+@superadmin_required
+def admin_delete_team():
+    """팀 전체 삭제 (멤버 + 매장 모두 삭제)"""
+    data = request.get_json()
+    team_name = (data.get("teamName") or "").strip()
+    if not team_name:
+        return jsonify({"error": "teamName이 필요합니다."}), 400
+    if team_name.lower() == "point3":
+        return jsonify({"error": "기본 팀은 삭제할 수 없습니다."}), 400
+
+    users = load_users()
+    stores = load_stores()
+    deleted_users = 0
+    deleted_stores = 0
+
+    for u in users:
+        if u.get("teamName", "").strip() == team_name and u.get("role") != "superadmin":
+            fs_delete_doc("users", u["id"])
+            deleted_users += 1
+
+    for s in stores:
+        if s.get("teamName", "").strip() == team_name:
+            fs_delete_doc("stores", s["id"])
+            deleted_stores += 1
+
+    _invalidate_cache()
+    return jsonify({"message": f"팀 '{team_name}' 삭제 완료 (멤버 {deleted_users}명, 매장 {deleted_stores}개)"})
 
 
 @app.route("/api/admin/update-team", methods=["POST"])
@@ -2173,6 +2273,43 @@ def get_inactive_stores():
 
     inactive.sort(key=lambda x: x.get("days_ago", 9999), reverse=True)
     return jsonify({"stores": inactive, "count": len(inactive)})
+
+
+# ══════════════════════════════════════════
+#  카카오 Static Map 프록시
+# ══════════════════════════════════════════
+
+@app.route("/api/kakao-staticmap")
+@login_required
+def kakao_staticmap():
+    """카카오 Static Map 프록시 — API 키 숨김"""
+    lat = request.args.get("lat", "")
+    lng = request.args.get("lng", "")
+    width = request.args.get("width", "300")
+    height = request.args.get("height", "200")
+    level = request.args.get("level", "3")
+
+    url = f"https://dapi.kakao.com/v2/maps/staticmap?center={lng},{lat}&level={level}&w={width}&h={height}&maptype=roadmap&marker=color:red|{lng},{lat}"
+    headers = {"Authorization": f"KakaoAK {KAKAO_API_KEY}"}
+    resp = requests.get(url, headers=headers, timeout=10)
+    return Response(resp.content, content_type=resp.headers.get('content-type', 'image/png'))
+
+
+# ══════════════════════════════════════════
+#  법적 페이지 라우트
+# ══════════════════════════════════════════
+
+@app.route("/privacy")
+def privacy_page():
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms_page():
+    return render_template("terms.html")
+
+@app.route("/licenses")
+def licenses_page():
+    return render_template("licenses.html")
 
 
 # ══════════════════════════════════════════
