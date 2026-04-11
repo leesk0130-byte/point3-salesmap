@@ -1125,6 +1125,7 @@
     <a href="/dashboard" class="nav-link">대시보드</a>
     <a href="/calendar" class="nav-link">캘린더</a>
     <button class="btn-dark-toggle" id="darkToggle" onclick="toggleDark()" title="다크모드">&#127769;</button>
+    <button class="btn-dark-toggle" onclick="openChangePw()" title="비밀번호 변경" style="font-size:14px;">&#128274;</button>
   </nav>
   <button class="hamburger-btn" id="hamburgerBtn" aria-label="메뉴 열기">&#9776;</button>
 </header>
@@ -2456,5 +2457,23 @@ render = function() {
 };
 </script>
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<!-- 비밀번호 변경 모달 -->
+<div id="changePwOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:9999;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)closeChangePw()">
+  <div style="background:var(--card-bg,#fff);border-radius:16px;padding:28px;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h3 style="font-size:17px;font-weight:700;color:var(--fg,#111);">비밀번호 변경</h3><button onclick="closeChangePw()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted-fg,#888);padding:4px 8px;border-radius:6px;">&times;</button></div>
+    <div id="changePwMsg" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;font-weight:500;"></div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label style="font-size:12px;font-weight:600;color:var(--muted-fg,#666);margin-bottom:4px;display:block;">현재 비밀번호</label><input type="password" id="cpwCurrent" style="width:100%;padding:10px 14px;border:1.5px solid var(--border,#e5e7eb);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg,#fff);color:var(--fg,#111);outline:none;box-sizing:border-box;" placeholder="현재 비밀번호"></div>
+      <div><label style="font-size:12px;font-weight:600;color:var(--muted-fg,#666);margin-bottom:4px;display:block;">새 비밀번호</label><input type="password" id="cpwNew" style="width:100%;padding:10px 14px;border:1.5px solid var(--border,#e5e7eb);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg,#fff);color:var(--fg,#111);outline:none;box-sizing:border-box;" placeholder="6자 이상"></div>
+      <div><label style="font-size:12px;font-weight:600;color:var(--muted-fg,#666);margin-bottom:4px;display:block;">새 비밀번호 확인</label><input type="password" id="cpwConfirm" style="width:100%;padding:10px 14px;border:1.5px solid var(--border,#e5e7eb);border-radius:8px;font-size:14px;font-family:inherit;background:var(--bg,#fff);color:var(--fg,#111);outline:none;box-sizing:border-box;" placeholder="다시 입력"></div>
+      <button id="cpwBtn" onclick="submitChangePw()" style="width:100%;padding:12px;border:none;border-radius:8px;background:#4f46e5;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:4px;">변경하기</button>
+    </div>
+  </div>
+</div>
+<script>
+function openChangePw(){document.getElementById('changePwOverlay').style.display='flex';document.getElementById('cpwCurrent').value='';document.getElementById('cpwNew').value='';document.getElementById('cpwConfirm').value='';document.getElementById('changePwMsg').style.display='none';}
+function closeChangePw(){document.getElementById('changePwOverlay').style.display='none';}
+async function submitChangePw(){const cur=document.getElementById('cpwCurrent').value,nw=document.getElementById('cpwNew').value,cf=document.getElementById('cpwConfirm').value,msg=document.getElementById('changePwMsg'),btn=document.getElementById('cpwBtn');if(!cur||!nw){msg.style.display='block';msg.style.background='#fef2f2';msg.style.color='#dc2626';msg.textContent='모든 항목을 입력하세요.';return;}if(nw!==cf){msg.style.display='block';msg.style.background='#fef2f2';msg.style.color='#dc2626';msg.textContent='새 비밀번호가 일치하지 않습니다.';return;}if(nw.length<6){msg.style.display='block';msg.style.background='#fef2f2';msg.style.color='#dc2626';msg.textContent='비밀번호는 6자 이상이어야 합니다.';return;}btn.disabled=true;btn.textContent='변경 중...';try{const res=await fetch('/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({current:cur,new:nw,confirm:cf})});const data=await res.json();if(res.ok){msg.style.display='block';msg.style.background='#ecfdf5';msg.style.color='#059669';msg.textContent=data.message;setTimeout(closeChangePw,1500);}else{msg.style.display='block';msg.style.background='#fef2f2';msg.style.color='#dc2626';msg.textContent=data.error||'변경 실패';}}catch(e){msg.style.display='block';msg.style.background='#fef2f2';msg.style.color='#dc2626';msg.textContent='서버 오류';}finally{btn.disabled=false;btn.textContent='변경하기';}}
+</script>
 </body>
 </html>

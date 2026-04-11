@@ -493,6 +493,45 @@ def auth_me():
     })
 
 
+@app.route("/auth/change-password", methods=["POST"])
+def auth_change_password():
+    """비밀번호 변경"""
+    user = get_current_user()
+    if not user:
+        return jsonify({"error": "로그인 필요"}), 401
+
+    body = request.get_json(force=True)
+    current_pw = body.get("current", "").strip()
+    new_pw = body.get("new", "").strip()
+    confirm_pw = body.get("confirm", "").strip()
+
+    if not current_pw or not new_pw:
+        return jsonify({"error": "현재 비밀번호와 새 비밀번호를 입력하세요."}), 400
+
+    if new_pw != confirm_pw:
+        return jsonify({"error": "새 비밀번호가 일치하지 않습니다."}), 400
+
+    if len(new_pw) < 6:
+        return jsonify({"error": "비밀번호는 6자 이상이어야 합니다."}), 400
+
+    # Google OAuth 사용자는 비밀번호 변경 불가
+    if user.get("provider") == "google":
+        return jsonify({"error": "Google 계정은 비밀번호를 변경할 수 없습니다."}), 400
+
+    # 현재 비밀번호 확인
+    stored = user.get("password", "")
+    if not _verify_password(stored, current_pw):
+        return jsonify({"error": "현재 비밀번호가 틀렸습니다."}), 400
+
+    # 새 비밀번호 저장
+    new_hash = hash_pw(new_pw)
+    user_data = dict(user)
+    user_data["password"] = new_hash
+    save_user(user_data)
+
+    return jsonify({"message": "비밀번호가 변경되었습니다."})
+
+
 @app.route("/team-setup")
 def team_setup_page():
     user = get_current_user()
