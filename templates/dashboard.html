@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icon.svg">
   <title>{{ team_name }} CRM - 대시보드</title>
@@ -111,6 +113,70 @@
       transition: all .2s var(--transition);
     }
     .btn-nav:hover { background: var(--border); color: var(--fg); border-color: var(--border); }
+
+    /* ── 모바일 햄버거 메뉴 ── */
+    .hamburger-btn {
+      display: none; width: 44px; height: 44px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--card-bg); cursor: pointer;
+      align-items: center; justify-content: center;
+      font-size: 22px; color: var(--fg); flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:hover { background: var(--muted); }
+    .mobile-nav-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.3); backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity .25s;
+    }
+    .mobile-nav-overlay.open { opacity: 1; }
+    .mobile-nav {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 280px; max-width: 80vw;
+      background: var(--card-bg); z-index: 9999;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,.1); overflow-y: auto;
+    }
+    .mobile-nav.open { transform: translateX(0); }
+    .mobile-nav-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mobile-nav-header span { font-size: 16px; font-weight: 700; color: var(--fg); }
+    .mobile-nav-close {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card-bg);
+      cursor: pointer; font-size: 18px; color: var(--muted-fg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mobile-nav-links { padding: 12px; flex: 1; }
+    .mobile-nav-links a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      font-size: 15px; font-weight: 500;
+      color: var(--fg); text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mobile-nav-links a:hover { background: var(--muted); }
+    .mobile-nav-links a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .mobile-nav-links a svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .mobile-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .mobile-nav-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #dc2626; text-decoration: none;
+    }
+    .mobile-nav-footer a:hover { background: #fef2f2; }
+    body.dark .mobile-nav-footer a:hover { background: #451a1a; }
+
+    @media (max-width: 768px) {
+      .header-right { display: none; }
+      .hamburger-btn { display: flex; }
+      .header { padding: 0 12px; }
+    }
+
     .btn-refresh {
       background: #4f46e5;
       color: #fff;
@@ -845,6 +911,357 @@
       .kpi-card { padding: 14px 16px; }
       .kpi-value { font-size: 22px; }
     }
+
+    /* ── 월 목표 설정 카드 ── */
+    .goal-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .goal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .goal-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .goal-remaining {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      background: var(--muted);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .goal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .goal-item {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .goal-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .goal-item-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .goal-item-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .goal-progress-bg {
+      height: 12px;
+      background: var(--muted);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .goal-progress-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width .6s cubic-bezier(0.4, 0, 0.2, 1);
+      min-width: 0;
+    }
+    .goal-progress-fill.activity { background: linear-gradient(90deg, #4f46e5, #818cf8); }
+    .goal-progress-fill.contact { background: linear-gradient(90deg, #059669, #34d399); }
+    .goal-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .goal-input {
+      width: 80px;
+      padding: 5px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-secondary);
+      background: var(--muted);
+      outline: none;
+      text-align: center;
+    }
+    .goal-input:focus { border-color: var(--primary); }
+    .goal-set-btn {
+      padding: 5px 12px;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: #fff;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .goal-set-btn:hover { opacity: .85; }
+    @media (max-width: 768px) {
+      .goal-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── 기간 비교 모달 ── */
+    .compare-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all .2s;
+    }
+    .compare-overlay.show { opacity: 1; visibility: visible; }
+    .compare-modal {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      transform: translateY(20px);
+      transition: transform .2s;
+    }
+    .compare-overlay.show .compare-modal { transform: translateY(0); }
+    .compare-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .compare-title { font-size: 18px; font-weight: 700; color: var(--fg); }
+    .compare-close {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--muted-fg);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .compare-close:hover { background: var(--muted); color: var(--fg); }
+    .compare-select-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .compare-select-row select {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-secondary);
+      background: var(--muted);
+      outline: none;
+    }
+    .compare-select-row select:focus { border-color: var(--primary); }
+    .compare-vs { font-size: 14px; font-weight: 700; color: var(--muted-fg); }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 60px 1fr;
+      gap: 0;
+    }
+    .compare-col {
+      padding: 12px;
+    }
+    .compare-col-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0;
+      padding-top: 12px;
+    }
+    .compare-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--muted);
+    }
+    .compare-row-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted-fg);
+      text-transform: uppercase;
+    }
+    .compare-row-val {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--fg);
+    }
+    .compare-diff {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 56px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .compare-diff.up { color: #059669; }
+    .compare-diff.down { color: #dc2626; }
+    .compare-diff.flat { color: var(--muted-fg); }
+
+    /* ── 트렌드 차트 강화 ── */
+    .trend-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .trend-toggle {
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--muted);
+      color: var(--text-secondary);
+      transition: all .2s;
+    }
+    .trend-toggle:hover { background: var(--border); }
+    .trend-toggle.active { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+    .trend-insight {
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: var(--muted);
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .trend-insight-icon {
+      color: var(--warning);
+      font-size: 16px;
+    }
+
+    /* ── 팀원별 활동 랭킹 ── */
+    .member-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .member-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 16px;
+    }
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .member-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 16px;
+      background: var(--muted);
+      border-radius: 10px;
+      transition: all .2s;
+    }
+    .member-item:hover { background: var(--border); }
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .member-avatar.rank1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .member-avatar.rank2 { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .member-avatar.rank3 { background: linear-gradient(135deg, #b45309, #92400e); }
+    .member-avatar.rank-default { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+    .member-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .member-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
+    }
+    .member-meta {
+      font-size: 11px;
+      color: var(--muted-fg);
+      margin-top: 2px;
+    }
+    .member-bar-wrap {
+      flex: 2;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .member-bar-bg {
+      flex: 1;
+      height: 10px;
+      background: var(--card-bg);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .member-bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(90deg, #4f46e5, #818cf8);
+      transition: width .6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .member-count {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 40px;
+      text-align: right;
+    }
+    .member-empty {
+      text-align: center;
+      color: var(--muted-fg);
+      padding: 24px 0;
+      font-size: 13px;
+    }
+    @media (max-width: 768px) {
+      .member-bar-wrap { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -866,7 +1283,26 @@
       </button>
       <span id="lastUpdate" style="font-size:11px;color:#9ca3af;white-space:nowrap;"></span>
     </div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="메뉴 열기">&#9776;</button>
   </header>
+
+  <!-- ── 모바일 슬라이드 메뉴 ── -->
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+  <nav class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+      <span>{{ team_name }} CRM</span>
+      <button class="mobile-nav-close" id="mobileNavClose">&times;</button>
+    </div>
+    <div class="mobile-nav-links">
+      <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>지도</a>
+      <a href="/stores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>가맹점 목록</a>
+      <a href="/dashboard" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>대시보드</a>
+      <a href="/calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>캘린더</a>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="/auth/logout"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</a>
+    </div>
+  </nav>
 
   <!-- ═══ 본문 ═══ -->
   <div class="container">
@@ -895,6 +1331,46 @@
       </div>
     </div>
 
+    <!-- 월 목표 설정 & 진행률 -->
+    <div class="goal-section">
+      <div class="goal-header">
+        <div class="goal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          이번 달 영업 목표
+        </div>
+        <span class="goal-remaining" id="goalRemaining">-</span>
+      </div>
+      <div class="goal-grid">
+        <div class="goal-item">
+          <div class="goal-item-header">
+            <span class="goal-item-label">활동 건수 목표</span>
+            <span class="goal-item-value" id="goalActivityText">0 / 0건</span>
+          </div>
+          <div class="goal-progress-bg">
+            <div class="goal-progress-fill activity" id="goalActivityBar" style="width:0%"></div>
+          </div>
+          <div class="goal-input-row">
+            <input type="number" class="goal-input" id="goalActivityInput" min="0" placeholder="목표">
+            <button class="goal-set-btn" onclick="saveGoal()">설정</button>
+          </div>
+        </div>
+        <div class="goal-item">
+          <div class="goal-item-header">
+            <span class="goal-item-label">컨택율 목표</span>
+            <span class="goal-item-value" id="goalContactText">0% / 0%</span>
+          </div>
+          <div class="goal-progress-bg">
+            <div class="goal-progress-fill contact" id="goalContactBar" style="width:0%"></div>
+          </div>
+          <div class="goal-input-row">
+            <input type="number" class="goal-input" id="goalContactInput" min="0" max="100" placeholder="%" >
+            <span style="font-size:12px;color:var(--muted-fg)">%</span>
+            <button class="goal-set-btn" onclick="saveGoal()">설정</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 차트 -->
     <div class="chart-grid">
       <div class="chart-card">
@@ -916,9 +1392,20 @@
       </div>
       <div class="chart-card full">
         <div class="chart-title">최근 30일 활동 추이</div>
+        <div class="trend-controls" id="trendControls" style="display:none">
+          <button class="trend-toggle active" id="trendLineBtn" onclick="setTrendMode('line')">라인 차트</button>
+          <button class="trend-toggle" id="trendStackBtn" onclick="setTrendMode('stacked')">상태별 누적</button>
+          <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted-fg);cursor:pointer;">
+            <input type="checkbox" id="trendAvgToggle" onchange="toggleMovingAvg()" style="accent-color:#4f46e5"> 7일 이동평균
+          </label>
+        </div>
         <div id="skelTrend" class="skeleton-chart"></div>
         <div class="chart-wrap" id="wrapTrend" style="display:none">
           <canvas id="chartTrend"></canvas>
+        </div>
+        <div class="trend-insight" id="trendInsight" style="display:none">
+          <span class="trend-insight-icon">&#128200;</span>
+          <span id="trendInsightText"></span>
         </div>
       </div>
     </div>
@@ -941,6 +1428,10 @@
           </div>
         </div>
         <div class="history-actions">
+          <button class="btn-snap" onclick="openCompare()" style="background:var(--violet-light);color:var(--violet);border-color:var(--violet);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M21 3l-7 7"/><path d="M3 3l7 7"/><path d="M16 21h5v-5"/><path d="M8 21H3v-5"/><path d="M21 21l-7-7"/><path d="M3 21l7-7"/></svg>
+            기간 비교
+          </button>
           <button class="btn-snap-primary" onclick="generateSnapshot('weekly')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             이번 주 저장
@@ -986,6 +1477,30 @@
           <button class="snap-detail-close" onclick="closeSnapDetail()">&times;</button>
         </div>
         <div id="snapDetailBody"></div>
+      </div>
+    </div>
+
+    <!-- 기간 비교 모달 -->
+    <div class="compare-overlay" id="compareOverlay" onclick="if(event.target===this)closeCompare()">
+      <div class="compare-modal">
+        <div class="compare-header">
+          <div class="compare-title">기간 비교</div>
+          <button class="compare-close" onclick="closeCompare()">&times;</button>
+        </div>
+        <div class="compare-select-row">
+          <select id="compareA" onchange="renderCompare()"></select>
+          <span class="compare-vs">VS</span>
+          <select id="compareB" onchange="renderCompare()"></select>
+        </div>
+        <div id="compareBody"></div>
+      </div>
+    </div>
+
+    <!-- 팀원별 활동 현황 -->
+    <div class="member-section">
+      <div class="member-title">팀원별 활동 랭킹</div>
+      <div class="member-list" id="memberList">
+        <div class="member-empty">데이터 로딩 중...</div>
       </div>
     </div>
 
@@ -1350,70 +1865,76 @@
         }
       });
 
-      // ── 최근 30일 방문 추이 ──
+      // ── 최근 30일 방문 추이 (강화) ──
       const today = new Date();
       const days30 = [];
       const dayCounts = {};
+      const dayStatusCounts = {}; // 상태별
       for (let i = 29; i >= 0; i--) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = d.toISOString().slice(0, 10);
         days30.push(key);
         dayCounts[key] = 0;
+        dayStatusCounts[key] = {'미컨택':0,'명함전달':0,'미팅대기':0,'미팅완료':0};
       }
       stores.forEach(s => {
         (s.visits || []).forEach(v => {
           const vDate = (v.date || '').slice(0, 10);
           if (dayCounts.hasOwnProperty(vDate)) {
             dayCounts[vDate]++;
+            const result = v.result || '미컨택';
+            const mapped = STATUS_MAP[result] || (VALID_STATUSES.includes(result) ? result : '미컨택');
+            if (dayStatusCounts[vDate][mapped] !== undefined) {
+              dayStatusCounts[vDate][mapped]++;
+            }
           }
         });
       });
-      const trendData = days30.map(d => dayCounts[d]);
+
+      // 트렌드 데이터 캐시 (전역)
+      window._trendDays30 = days30;
+      window._trendDayCounts = dayCounts;
+      window._trendDayStatusCounts = dayStatusCounts;
+
       const trendLabels = days30.map(d => {
         const parts = d.split('-');
         return parts[1] + '/' + parts[2];
       });
+      window._trendLabels = trendLabels;
+
+      // 7일 이동평균 계산
+      const trendData = days30.map(d => dayCounts[d]);
+      window._trendData = trendData;
+      const movingAvg = trendData.map((_, i) => {
+        const start = Math.max(0, i - 6);
+        const slice = trendData.slice(start, i + 1);
+        return +(slice.reduce((a,b) => a+b, 0) / slice.length).toFixed(1);
+      });
+      window._trendMovingAvg = movingAvg;
+
+      // 요일별 평균 활동 인사이트
+      const dayOfWeekTotals = [0,0,0,0,0,0,0]; // 월~일
+      const dayOfWeekCounts = [0,0,0,0,0,0,0];
+      days30.forEach(d => {
+        const dt = new Date(d);
+        const dow = (dt.getDay() + 6) % 7; // 월=0
+        dayOfWeekTotals[dow] += dayCounts[d];
+        dayOfWeekCounts[dow]++;
+      });
+      const dayOfWeekAvg = dayOfWeekTotals.map((t, i) => dayOfWeekCounts[i] > 0 ? t / dayOfWeekCounts[i] : 0);
+      const maxDowIdx = dayOfWeekAvg.indexOf(Math.max(...dayOfWeekAvg));
+      const dowNames = ['월','화','수','목','금','토','일'];
+      const insightText = `가장 활발한 요일: ${dowNames[maxDowIdx]}요일 (평균 ${dayOfWeekAvg[maxDowIdx].toFixed(1)}건)`;
+      document.getElementById('trendInsightText').textContent = insightText;
 
       // 스켈레톤 → 차트 표시
       document.getElementById('skelTrend').style.display = 'none';
       document.getElementById('wrapTrend').style.display = '';
+      document.getElementById('trendControls').style.display = '';
+      document.getElementById('trendInsight').style.display = '';
 
-      if (chartTrend) chartTrend.destroy();
-      chartTrend = new Chart(document.getElementById('chartTrend'), {
-        type: 'line',
-        data: {
-          labels: trendLabels,
-          datasets: [{
-            label: '활동 건수',
-            data: trendData,
-            borderColor: '#4f46e5',
-            backgroundColor: 'rgba(79,70,229,0.08)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 3,
-            pointBackgroundColor: '#4f46e5',
-            borderWidth: 2,
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              grid: { color: '#f3f4f6' },
-              ticks: { font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 15 }
-            },
-            y: {
-              beginAtZero: true,
-              grid: { color: '#f3f4f6' },
-              ticks: { stepSize: 1, font: { size: 11 } }
-            }
-          },
-          plugins: {
-            legend: { display: false }
-          }
-        }
-      });
+      renderTrendChart();
 
       // ── 이번 주 활동 요약 (월~일 CSS 바차트) ──
       const weekDayLabels = ['월','화','수','목','금','토','일'];
@@ -1453,6 +1974,12 @@
 
       // ── 전체 매장 테이블 렌더링 ──
       renderStoreTable();
+
+      // ── 목표 진행률 업데이트 ──
+      updateGoalProgress(stores);
+
+      // ── 팀원별 활동 로드 ──
+      loadMemberStats();
     }
 
     function getElapsedDays(store) {
@@ -1546,6 +2073,281 @@
       div.textContent = text;
       return div.innerHTML;
     }
+
+    // ═══ 트렌드 차트 모드 ═══
+    let trendMode = 'line';
+    let showMovingAvg = false;
+
+    function setTrendMode(mode) {
+      trendMode = mode;
+      document.getElementById('trendLineBtn').className = 'trend-toggle' + (mode === 'line' ? ' active' : '');
+      document.getElementById('trendStackBtn').className = 'trend-toggle' + (mode === 'stacked' ? ' active' : '');
+      renderTrendChart();
+    }
+
+    function toggleMovingAvg() {
+      showMovingAvg = document.getElementById('trendAvgToggle').checked;
+      renderTrendChart();
+    }
+
+    function renderTrendChart() {
+      if (!window._trendLabels) return;
+      if (chartTrend) chartTrend.destroy();
+
+      const labels = window._trendLabels;
+      const days30 = window._trendDays30;
+      const dayCounts = window._trendDayCounts;
+      const dayStatusCounts = window._trendDayStatusCounts;
+      const movingAvg = window._trendMovingAvg;
+      const trendData = window._trendData;
+
+      let datasets = [];
+
+      if (trendMode === 'stacked') {
+        const statusLabels = ['미컨택','명함전달','미팅대기','미팅완료'];
+        const statusColors = [
+          {border:'#dc2626',bg:'rgba(220,38,38,0.3)'},
+          {border:'#4f46e5',bg:'rgba(79,70,229,0.3)'},
+          {border:'#d97706',bg:'rgba(217,119,6,0.3)'},
+          {border:'#059669',bg:'rgba(5,150,105,0.3)'},
+        ];
+        statusLabels.forEach((sl, si) => {
+          datasets.push({
+            label: sl,
+            data: days30.map(d => dayStatusCounts[d][sl]),
+            borderColor: statusColors[si].border,
+            backgroundColor: statusColors[si].bg,
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 1.5,
+          });
+        });
+      } else {
+        datasets.push({
+          label: '활동 건수',
+          data: trendData,
+          borderColor: '#4f46e5',
+          backgroundColor: 'rgba(79,70,229,0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: '#4f46e5',
+          borderWidth: 2,
+        });
+      }
+
+      if (showMovingAvg) {
+        datasets.push({
+          label: '7일 이동평균',
+          data: movingAvg,
+          borderColor: '#f59e0b',
+          backgroundColor: 'transparent',
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0,
+          borderWidth: 2,
+          borderDash: [6, 3],
+        });
+      }
+
+      chartTrend = new Chart(document.getElementById('chartTrend'), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              grid: { color: '#f3f4f6' },
+              ticks: { font: { size: 11 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 15 },
+              stacked: trendMode === 'stacked',
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f3f4f6' },
+              ticks: { stepSize: 1, font: { size: 11 } },
+              stacked: trendMode === 'stacked',
+            }
+          },
+          plugins: {
+            legend: { display: trendMode === 'stacked' || showMovingAvg, position: 'top', align: 'end', labels: { usePointStyle: true, pointStyleWidth: 10, padding: 12, font: { size: 11 } } }
+          }
+        }
+      });
+    }
+
+    // ═══ 월 목표 설정 & 진행률 ═══
+    function getGoalKey() {
+      const now = new Date();
+      return `point3-goal-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function loadGoal() {
+      const key = getGoalKey();
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) {}
+      }
+      return { activity: 0, contact: 0 };
+    }
+
+    function saveGoal() {
+      const activity = parseInt(document.getElementById('goalActivityInput').value) || 0;
+      const contact = parseInt(document.getElementById('goalContactInput').value) || 0;
+      const key = getGoalKey();
+      localStorage.setItem(key, JSON.stringify({ activity, contact }));
+      if (allStoresCache.length > 0) updateGoalProgress(allStoresCache);
+      showToast('목표 설정 완료', 'success');
+    }
+
+    function updateGoalProgress(stores) {
+      const goal = loadGoal();
+      document.getElementById('goalActivityInput').value = goal.activity || '';
+      document.getElementById('goalContactInput').value = goal.contact || '';
+
+      // 이번 달 활동 건수 계산
+      const now = new Date();
+      const monthStart = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01';
+      let monthActivities = 0;
+      stores.forEach(s => {
+        (s.visits || []).forEach(v => {
+          const vDate = (v.date || '').slice(0, 10);
+          if (vDate >= monthStart) monthActivities++;
+        });
+      });
+
+      // 컨택율 계산
+      const totalStores = stores.length;
+      const noContact = stores.filter(s => getStoreStatus(s) === '미컨택').length;
+      const contacted = totalStores - noContact;
+      const contactRate = totalStores > 0 ? ((contacted / totalStores) * 100) : 0;
+
+      // 활동 진행률
+      const actPct = goal.activity > 0 ? Math.min((monthActivities / goal.activity) * 100, 100) : 0;
+      document.getElementById('goalActivityBar').style.width = actPct.toFixed(1) + '%';
+      document.getElementById('goalActivityText').textContent = monthActivities + ' / ' + (goal.activity || '-') + '건 (' + actPct.toFixed(0) + '%)';
+
+      // 컨택율 진행률
+      const conPct = goal.contact > 0 ? Math.min((contactRate / goal.contact) * 100, 100) : 0;
+      document.getElementById('goalContactBar').style.width = conPct.toFixed(1) + '%';
+      document.getElementById('goalContactText').textContent = contactRate.toFixed(1) + '% / ' + (goal.contact || '-') + '% (' + conPct.toFixed(0) + '%)';
+
+      // 남은 일수
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const remaining = lastDay - now.getDate();
+      document.getElementById('goalRemaining').textContent = '이번 달 남은 일수: ' + remaining + '일';
+    }
+
+    // ═══ 기간 비교 ═══
+    function openCompare() {
+      const selA = document.getElementById('compareA');
+      const selB = document.getElementById('compareB');
+      const opts = allSnapshots.map((s, i) => `<option value="${i}">${escapeHtml(s.period)} (${s.type === 'weekly' ? '주별' : '월별'})</option>`).join('');
+      selA.innerHTML = opts;
+      selB.innerHTML = opts;
+      if (allSnapshots.length > 1) selB.selectedIndex = 1;
+      renderCompare();
+      document.getElementById('compareOverlay').classList.add('show');
+    }
+
+    function closeCompare() {
+      document.getElementById('compareOverlay').classList.remove('show');
+    }
+
+    function renderCompare() {
+      const body = document.getElementById('compareBody');
+      const idxA = parseInt(document.getElementById('compareA').value);
+      const idxB = parseInt(document.getElementById('compareB').value);
+      if (isNaN(idxA) || isNaN(idxB) || !allSnapshots[idxA] || !allSnapshots[idxB]) {
+        body.innerHTML = '<div style="text-align:center;color:var(--muted-fg);padding:24px">비교할 스냅샷 2개를 선택하세요</div>';
+        return;
+      }
+      const a = allSnapshots[idxA];
+      const b = allSnapshots[idxB];
+
+      const metrics = [
+        { label: '가맹점 수', keyA: a.total_stores||0, keyB: b.total_stores||0, suffix: '개' },
+        { label: '컨택율', keyA: a.conversion_rate||0, keyB: b.conversion_rate||0, suffix: '%' },
+        { label: '기간 활동', keyA: a.activities_in_period||0, keyB: b.activities_in_period||0, suffix: '건' },
+        { label: '신규 가맹점', keyA: a.new_stores||0, keyB: b.new_stores||0, suffix: '개' },
+      ];
+
+      const statusA = typeof a.status === 'object' ? a.status : {};
+      const statusB = typeof b.status === 'object' ? b.status : {};
+      ['미컨택','명함전달','미팅대기','미팅완료'].forEach(st => {
+        metrics.push({ label: st, keyA: statusA[st]||0, keyB: statusB[st]||0, suffix: '개' });
+      });
+
+      let leftHtml = `<div class="compare-row"><div class="compare-row-label">기간</div><div class="compare-row-val" style="font-size:14px">${escapeHtml(a.period)}</div></div>`;
+      let centerHtml = `<div class="compare-diff flat" style="font-size:11px">VS</div>`;
+      let rightHtml = `<div class="compare-row"><div class="compare-row-label">기간</div><div class="compare-row-val" style="font-size:14px">${escapeHtml(b.period)}</div></div>`;
+
+      metrics.forEach(m => {
+        const diff = m.keyA - m.keyB;
+        let diffClass = 'flat';
+        let diffText = '-';
+        if (diff > 0) { diffClass = 'up'; diffText = '+' + diff + ' \u2191'; }
+        else if (diff < 0) { diffClass = 'down'; diffText = diff + ' \u2193'; }
+
+        leftHtml += `<div class="compare-row"><div class="compare-row-label">${m.label}</div><div class="compare-row-val">${m.keyA}${m.suffix}</div></div>`;
+        centerHtml += `<div class="compare-diff ${diffClass}">${diffText}</div>`;
+        rightHtml += `<div class="compare-row"><div class="compare-row-label">${m.label}</div><div class="compare-row-val">${m.keyB}${m.suffix}</div></div>`;
+      });
+
+      body.innerHTML = `<div class="compare-grid">
+        <div class="compare-col">${leftHtml}</div>
+        <div class="compare-col-center">${centerHtml}</div>
+        <div class="compare-col">${rightHtml}</div>
+      </div>`;
+    }
+
+    // ═══ 팀원별 활동 현황 ═══
+    async function loadMemberStats() {
+      try {
+        const res = await fetch('/api/stats/by-member');
+        if (!res.ok) return;
+        const members = await res.json();
+        renderMemberList(members);
+      } catch (e) {
+        console.error('팀원 통계 로드 실패:', e);
+      }
+    }
+
+    function renderMemberList(members) {
+      const el = document.getElementById('memberList');
+      if (!members || members.length === 0) {
+        el.innerHTML = '<div class="member-empty">팀원 데이터가 없습니다</div>';
+        return;
+      }
+
+      const maxAct = Math.max(...members.map(m => m.total_activities), 1);
+
+      el.innerHTML = members.map((m, i) => {
+        const initial = (m.name || '?')[0];
+        const rankClass = i === 0 ? 'rank1' : i === 1 ? 'rank2' : i === 2 ? 'rank3' : 'rank-default';
+        const barPct = (m.total_activities / maxAct * 100).toFixed(1);
+        const lastDate = m.last_activity_date ? m.last_activity_date.replace(/-/g, '.') : '-';
+        const elapsed = m.last_activity_date ? daysSince(m.last_activity_date) : null;
+        const agoText = elapsed !== null ? (elapsed === 0 ? '오늘' : elapsed + '일 전') : '';
+
+        return `<div class="member-item">
+          <div class="member-avatar ${rankClass}">${escapeHtml(initial)}</div>
+          <div class="member-info">
+            <div class="member-name">${escapeHtml(m.name)}${i === 0 && m.total_activities > 0 ? ' <span style="color:#f59e0b;font-size:11px">&#127942; MVP</span>' : ''}</div>
+            <div class="member-meta">이번 달 ${m.this_month_activities}건 | 최근: ${lastDate} ${agoText ? '(' + agoText + ')' : ''}</div>
+          </div>
+          <div class="member-bar-wrap">
+            <div class="member-bar-bg">
+              <div class="member-bar-fill" style="width:${barPct}%"></div>
+            </div>
+          </div>
+          <div class="member-count">${m.total_activities}건</div>
+        </div>`;
+      }).join('');
+    }
+
+    // ESC로 비교 모달 닫기
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCompare(); });
 
     // ═══ 영업 히스토리 ═══
     let allSnapshots = [];
@@ -1751,6 +2553,30 @@
 
     // ── 초기 로드 ──
     loadData();
+
+    // ── 모바일 햄버거 메뉴 ──
+    (function() {
+      var btn = document.getElementById('hamburgerBtn');
+      var nav = document.getElementById('mobileNav');
+      var overlay = document.getElementById('mobileNavOverlay');
+      var closeBtn = document.getElementById('mobileNavClose');
+      if (!btn || !nav) return;
+      function openNav() {
+        nav.classList.add('open');
+        overlay.style.display = 'block';
+        requestAnimationFrame(function() { overlay.classList.add('open'); });
+        document.body.style.overflow = 'hidden';
+      }
+      function closeNav() {
+        nav.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(function() { overlay.style.display = 'none'; }, 250);
+      }
+      btn.addEventListener('click', openNav);
+      closeBtn.addEventListener('click', closeNav);
+      overlay.addEventListener('click', closeNav);
+    })();
   </script>
 </body>
 </html>

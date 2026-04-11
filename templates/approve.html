@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon.svg">
   <title>{{ team_name }} CRM — 팀원 관리</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <style>
@@ -25,482 +30,347 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
-      background: var(--bg);
-      color: var(--fg);
+      background: var(--bg); color: var(--fg);
       min-height: 100vh;
       transition: background var(--transition), color var(--transition);
     }
 
-    /* 헤더 */
+    /* Header */
     .header {
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      background: var(--bg-card); border-bottom: 1px solid var(--border);
+      padding: 16px 24px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
       transition: background var(--transition), border-color var(--transition);
     }
-    .header-left {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-    }
-    .logo {
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.5px;
-    }
+    .header-left { display: flex; align-items: baseline; gap: 12px; }
+    .logo { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; text-decoration: none; }
     .logo span { color: #818cf8; font-weight: 600; }
-    .header-sub {
-      font-size: 14px;
-      color: #64748b;
-      font-weight: 500;
-      transition: color var(--transition);
-    }
-    .back-link {
-      font-size: 14px;
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color var(--transition);
-    }
+    .header-sub { font-size: 14px; color: #64748b; font-weight: 500; }
+    .back-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
     .back-link:hover { color: var(--primary-hover); }
 
-    /* 메인 */
-    .main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 32px 20px 60px;
+    /* ── 모바일 햄버거 메뉴 ── */
+    .hamburger-btn {
+      display: none; width: 44px; height: 44px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--bg-card); cursor: pointer;
+      align-items: center; justify-content: center;
+      font-size: 22px; color: var(--fg); flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:hover { background: var(--bg-subtle); }
+    .mobile-nav-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.3); backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity .25s;
+    }
+    .mobile-nav-overlay.open { opacity: 1; }
+    .mobile-nav {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 280px; max-width: 80vw;
+      background: var(--bg-card); z-index: 9999;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,.1); overflow-y: auto;
+    }
+    .mobile-nav.open { transform: translateX(0); }
+    .mobile-nav-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mobile-nav-header span { font-size: 16px; font-weight: 700; color: var(--fg); }
+    .mobile-nav-close {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      cursor: pointer; font-size: 18px; color: var(--fg-muted);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mobile-nav-links { padding: 12px; flex: 1; }
+    .mobile-nav-links a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      font-size: 15px; font-weight: 500;
+      color: var(--fg); text-decoration: none;
+    }
+    .mobile-nav-links a:hover { background: var(--bg-subtle); }
+    .mobile-nav-links a.active { background: #eef2ff; color: var(--primary); font-weight: 600; }
+    .mobile-nav-links a svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .mobile-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .mobile-nav-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #dc2626; text-decoration: none;
+    }
+    .mobile-nav-footer a:hover { background: #fef2f2; }
+    body.dark .mobile-nav-footer a:hover { background: #451a1a; }
+    body.dark .mobile-nav-links a.active { background: #312e81; }
+
+    @media (max-width: 768px) {
+      .header { padding: 14px 12px; }
+      .back-link { display: none; }
+      .hamburger-btn { display: flex; }
+      .team-stats { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .team-stats { grid-template-columns: 1fr; }
     }
 
-    /* 팀 통계 배너 */
-    .team-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 28px;
-    }
+    /* Main */
+    .main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 60px; }
+
+    /* Stats */
+    .team-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
     .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px 22px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 22px;
       transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
     }
-    .stat-card:hover {
-      box-shadow: 0 4px 20px rgba(79,70,229,0.08);
-    }
-    .stat-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--fg-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    .stat-value {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.5px;
-    }
-    .stat-sub {
-      font-size: 12px;
-      color: var(--fg-muted);
-      margin-top: 4px;
-    }
+    .stat-card:hover { box-shadow: 0 4px 20px rgba(79,70,229,0.08); }
+    .stat-label { font-size: 12px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-value { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+    .stat-sub { font-size: 12px; color: var(--fg-muted); margin-top: 4px; }
 
-    /* 섹션 */
-    .section {
-      margin-bottom: 28px;
-    }
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
-      padding: 0 4px;
-    }
-    .section-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--fg-secondary);
-      transition: color var(--transition);
-    }
+    /* Section */
+    .section { margin-bottom: 28px; }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 0 4px; }
+    .section-title { font-size: 17px; font-weight: 700; color: var(--fg-secondary); }
     .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 24px;
-      height: 24px;
-      padding: 0 8px;
-      font-size: 12px;
-      font-weight: 700;
-      border-radius: 12px;
-      transition: background var(--transition), color var(--transition);
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 24px; height: 24px; padding: 0 8px;
+      font-size: 12px; font-weight: 700; border-radius: 12px;
     }
-    .badge-pending {
-      background: #fef3c7;
-      color: #d97706;
-    }
-    .badge-approved {
-      background: #dcfce7;
-      color: #16a34a;
-    }
+    .badge-pending { background: #fef3c7; color: #d97706; }
+    .badge-approved { background: #dcfce7; color: #16a34a; }
+    .badge-inactive { background: #f1f5f9; color: #94a3b8; }
 
-    /* 경고 배너 (대기 팀원) */
+    /* Invite banner */
+    .invite-banner {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      border: 1.5px solid #818cf8; border-radius: 14px;
+      padding: 18px 22px; margin-bottom: 28px;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .invite-banner-icon {
+      width: 44px; height: 44px; background: var(--primary);
+      border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; font-size: 22px; flex-shrink: 0;
+    }
+    .invite-banner-text { font-size: 15px; font-weight: 600; color: #312e81; flex: 1; }
+    .invite-banner-sub { font-size: 13px; color: #4338ca; margin-top: 2px; font-weight: 400; }
+    .btn-invite {
+      padding: 10px 20px; background: var(--primary); color: #fff;
+      border: none; border-radius: 10px; font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: all var(--transition);
+    }
+    .btn-invite:hover { background: var(--primary-hover); box-shadow: 0 4px 12px var(--primary-glow); }
+
+    /* Pending banner */
     .pending-banner {
       background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-      border: 1.5px solid #f59e0b;
-      border-radius: 14px;
-      padding: 18px 22px;
-      margin-bottom: 28px;
-      display: none;
-      align-items: center;
-      gap: 14px;
+      border: 1.5px solid #f59e0b; border-radius: 14px;
+      padding: 18px 22px; margin-bottom: 28px;
+      display: none; align-items: center; gap: 14px;
       animation: bannerPulse 2s ease-in-out infinite alternate;
     }
     .pending-banner.show { display: flex; }
     .pending-banner-icon {
-      width: 44px;
-      height: 44px;
-      background: #f59e0b;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      flex-shrink: 0;
+      width: 44px; height: 44px; background: #f59e0b;
+      border-radius: 12px; display: flex; align-items: center;
+      justify-content: center; font-size: 22px; flex-shrink: 0;
     }
-    .pending-banner-text {
-      font-size: 15px;
-      font-weight: 600;
-      color: #92400e;
-    }
-    .pending-banner-sub {
-      font-size: 13px;
-      color: #b45309;
-      margin-top: 2px;
-      font-weight: 400;
-    }
+    .pending-banner-text { font-size: 15px; font-weight: 600; color: #92400e; }
+    .pending-banner-sub { font-size: 13px; color: #b45309; margin-top: 2px; font-weight: 400; }
     @keyframes bannerPulse {
       from { box-shadow: 0 0 0 0 rgba(245,158,11,0.15); }
       to { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
     }
 
-    /* 카드 그리드 */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
+    /* Card grid */
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 
-    /* 팀원 카드 */
+    /* Member card */
     .member-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 22px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px;
       transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.15s ease;
-      position: relative;
-      overflow: hidden;
+      position: relative; overflow: hidden;
     }
-    .member-card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    }
-    .member-card.pending-card {
-      border-color: #f59e0b;
-      background: linear-gradient(180deg, #fffbeb 0%, var(--bg-card) 40%);
-    }
+    .member-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .member-card.pending-card { border-color: #f59e0b; background: linear-gradient(180deg, #fffbeb 0%, var(--bg-card) 40%); }
     .member-card.pending-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, #f59e0b, #fbbf24);
     }
+    .member-card.inactive-card { opacity: 0.6; border-style: dashed; }
 
-    .card-top {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 16px;
-    }
+    .card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
     .avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      font-weight: 800;
-      color: #fff;
-      flex-shrink: 0;
+      width: 48px; height: 48px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800; color: #fff; flex-shrink: 0;
       background: linear-gradient(135deg, #6366f1, #4f46e5);
       box-shadow: 0 2px 8px rgba(79,70,229,0.25);
     }
-    .pending-card .avatar {
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      box-shadow: 0 2px 8px rgba(245,158,11,0.25);
-    }
-    .card-name {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--fg-secondary);
-      transition: color var(--transition);
-    }
-    .card-username {
-      font-size: 12px;
-      color: var(--fg-muted);
-      margin-top: 2px;
-    }
+    .pending-card .avatar { background: linear-gradient(135deg, #fbbf24, #f59e0b); box-shadow: 0 2px 8px rgba(245,158,11,0.25); }
+    .inactive-card .avatar { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: none; }
+    .card-name { font-size: 16px; font-weight: 700; color: var(--fg-secondary); }
+    .card-username { font-size: 12px; color: var(--fg-muted); margin-top: 2px; }
 
-    .card-meta {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-    .meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-    }
-    .meta-label {
-      color: var(--fg-muted);
-      font-weight: 500;
-    }
-    .meta-value {
-      color: var(--fg-body);
-      font-weight: 600;
-      transition: color var(--transition);
-    }
+    .card-meta { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .meta-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+    .meta-label { color: var(--fg-muted); font-weight: 500; }
+    .meta-value { color: var(--fg-body); font-weight: 600; }
+
     .status-tag {
-      display: inline-block;
-      padding: 3px 10px;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
+      display: inline-block; padding: 3px 10px; font-size: 11px;
+      font-weight: 700; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px;
     }
     .status-approved { background: #dcfce7; color: #16a34a; }
     .status-pending { background: #fef3c7; color: #d97706; }
+    .status-inactive { background: #f1f5f9; color: #94a3b8; }
+
+    /* Role selector */
+    .role-select {
+      padding: 4px 10px; font-size: 12px; font-weight: 600;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      background: var(--bg-subtle); color: var(--fg-body);
+      cursor: pointer; font-family: inherit;
+      transition: border-color var(--transition);
+    }
+    .role-select:focus { border-color: var(--primary); outline: none; }
 
     .team-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 4px 10px;
-      background: #eef2ff;
-      color: #4f46e5;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background var(--transition);
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; background: #eef2ff; color: #4f46e5;
+      border-radius: 6px; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: background var(--transition);
     }
     .team-tag:hover { background: #e0e7ff; }
 
-    /* 버튼 */
-    .card-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 4px;
+    /* Activity mini-stats */
+    .activity-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      margin-bottom: 14px; padding: 10px; background: var(--bg-subtle);
+      border-radius: 10px; border: 1px solid var(--border);
     }
+    .activity-stat { text-align: center; }
+    .activity-stat-val { font-size: 18px; font-weight: 800; color: var(--primary); }
+    .activity-stat-label { font-size: 10px; color: var(--fg-muted); font-weight: 500; margin-top: 2px; }
+
+    /* Buttons */
+    .card-actions { display: flex; gap: 8px; margin-top: 4px; }
     .btn-sm {
-      flex: 1;
-      height: 44px;
-      padding: 9px 14px;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: inherit;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      text-align: center;
+      flex: 1; height: 38px; padding: 9px 14px; font-size: 13px;
+      font-weight: 600; font-family: inherit; border: none;
+      border-radius: 10px; cursor: pointer; text-align: center;
       transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
     }
     .btn-sm:hover { transform: translateY(-1px); }
     .btn-sm:active { transform: scale(0.96); }
-    .btn-approve {
-      background: #16a34a;
-      color: #fff;
-    }
+    .btn-approve { background: #16a34a; color: #fff; }
     .btn-approve:hover { background: #15803d; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); }
-    .btn-reject {
-      background: #fee2e2;
-      color: #dc2626;
-    }
+    .btn-reject { background: #fee2e2; color: #dc2626; }
     .btn-reject:hover { background: #fecaca; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15); }
-    .btn-delete {
-      background: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
+    .btn-deactivate { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+    .btn-deactivate:hover { background: #fde68a; }
+    .btn-reactivate { background: #dcfce7; color: #16a34a; border: 1px solid #86efac; }
+    .btn-reactivate:hover { background: #bbf7d0; }
+    .btn-delete { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .btn-delete:hover { background: #fee2e2; box-shadow: 0 4px 12px rgba(220,38,38,0.12); }
-    .btn-admin {
-      background: var(--bg-subtle);
-      color: var(--fg-muted);
-      cursor: default;
-      font-size: 12px;
-    }
+    .btn-admin { background: var(--bg-subtle); color: var(--fg-muted); cursor: default; font-size: 12px; }
 
     .empty-state {
-      grid-column: 1 / -1;
-      padding: 48px 16px;
-      text-align: center;
-      font-size: 14px;
-      color: var(--fg-muted);
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      transition: background var(--transition), border-color var(--transition), color var(--transition);
+      grid-column: 1 / -1; padding: 48px 16px; text-align: center;
+      font-size: 14px; color: var(--fg-muted);
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
     }
-    .empty-icon {
-      font-size: 36px;
-      margin-bottom: 12px;
-      opacity: 0.5;
-    }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.5; }
 
-    /* 로딩 */
-    .loading {
-      grid-column: 1 / -1;
-      padding: 48px;
-      text-align: center;
-      color: var(--fg-muted);
-      font-size: 14px;
-      transition: color var(--transition);
-    }
+    /* Loading */
+    .loading { grid-column: 1 / -1; padding: 48px; text-align: center; color: var(--fg-muted); font-size: 14px; }
     .loading-spinner {
-      width: 28px; height: 28px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      margin: 0 auto 12px;
+      width: 28px; height: 28px; border: 3px solid var(--border);
+      border-top-color: var(--primary); border-radius: 50%;
+      animation: spin 0.7s linear infinite; margin: 0 auto 12px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* 토스트 */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    /* Toast */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
     .toast {
-      padding: 12px 20px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
+      padding: 12px 20px; border-radius: 10px; font-size: 14px;
+      font-weight: 600; color: #fff;
       box-shadow: 0 4px 16px rgba(0,0,0,0.12);
       animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.5s forwards;
       max-width: 320px;
     }
     .toast-success { background: #16a34a; }
     .toast-error { background: #dc2626; }
+    .toast-info { background: #4f46e5; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
 
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+    /* Copied tooltip */
+    .copied-tooltip {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: #16a34a; color: #fff; padding: 14px 28px;
+      border-radius: 12px; font-size: 15px; font-weight: 700;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 10000;
+      animation: tooltipIn 0.2s ease, fadeOut 0.3s ease 1.5s forwards;
     }
-    @keyframes fadeOut {
-      from { opacity: 1; }
-      to { opacity: 0; }
-    }
+    @keyframes tooltipIn { from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
 
-    /* 반응형 */
+    /* Responsive */
     @media (max-width: 900px) {
       .card-grid { grid-template-columns: repeat(2, 1fr); }
-      .team-stats { grid-template-columns: repeat(3, 1fr); }
+      .team-stats { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 640px) {
       .header { padding: 14px 16px; flex-wrap: wrap; gap: 8px; }
       .main { padding: 20px 12px 40px; }
       .card-grid { grid-template-columns: 1fr; }
-      .team-stats { grid-template-columns: 1fr; gap: 10px; }
+      .team-stats { grid-template-columns: 1fr 1fr; gap: 10px; }
       .stat-card { padding: 16px; }
       .stat-value { font-size: 22px; }
-      .pending-banner { flex-direction: column; text-align: center; }
+      .pending-banner, .invite-banner { flex-direction: column; text-align: center; }
     }
 
     /* Dark mode */
     body.dark {
-      --bg: #0f172a;
-      --bg-card: #1e293b;
-      --bg-subtle: #1e293b;
-      --fg: #f1f5f9;
-      --fg-secondary: #e2e8f0;
-      --fg-muted: #64748b;
-      --fg-body: #cbd5e1;
-      --border: #334155;
-      --border-subtle: #2d3a4f;
+      --bg: #0f172a; --bg-card: #1e293b; --bg-subtle: #1e293b;
+      --fg: #f1f5f9; --fg-secondary: #e2e8f0; --fg-muted: #64748b;
+      --fg-body: #cbd5e1; --border: #334155; --border-subtle: #2d3a4f;
     }
     body.dark .badge-pending { background: #451a03; color: #fbbf24; }
     body.dark .badge-approved { background: #14532d; color: #4ade80; }
+    body.dark .badge-inactive { background: #1e293b; color: #64748b; }
     body.dark .status-approved { background: #14532d; color: #4ade80; }
     body.dark .status-pending { background: #451a03; color: #fbbf24; }
+    body.dark .status-inactive { background: #1e293b; color: #64748b; }
     body.dark .btn-approve { background: #16a34a; }
     body.dark .btn-reject { background: #451a1a; color: #fca5a5; }
     body.dark .btn-reject:hover { background: #7f1d1d; }
     body.dark .btn-delete { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+    body.dark .btn-deactivate { background: #451a03; color: #fbbf24; border-color: #78350f; }
+    body.dark .btn-reactivate { background: #14532d; color: #4ade80; border-color: #166534; }
     body.dark .team-tag { background: #312e81; color: #a5b4fc; }
     body.dark .team-tag:hover { background: #3730a3; }
     body.dark .pending-banner { background: linear-gradient(135deg, #451a03 0%, #78350f 100%); border-color: #b45309; }
     body.dark .pending-banner-text { color: #fbbf24; }
     body.dark .pending-banner-sub { color: #fcd34d; }
+    body.dark .invite-banner { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border-color: #6366f1; }
+    body.dark .invite-banner-text { color: #a5b4fc; }
+    body.dark .invite-banner-sub { color: #818cf8; }
     body.dark .member-card.pending-card { background: linear-gradient(180deg, #451a0322 0%, var(--bg-card) 40%); border-color: #b45309; }
-    body.dark .stat-card { background: var(--bg-card); }
-
-    /* 접근성: 애니메이션 비활성화 */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-
-    /* 다크모드 토글 */
-    .dark-toggle {
-      width: 40px; height: 40px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg-subtle);
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background var(--transition), border-color var(--transition);
-      flex-shrink: 0;
-    }
-    .dark-toggle:hover { background: var(--border); }
+    body.dark .role-select { background: #0f172a; color: #cbd5e1; border-color: #475569; }
 
     @media (prefers-color-scheme: dark) {
       body:not(.light) {
-        --bg: #0f172a;
-        --bg-card: #1e293b;
-        --bg-subtle: #1e293b;
-        --fg: #f1f5f9;
-        --fg-secondary: #e2e8f0;
-        --fg-muted: #64748b;
-        --fg-body: #cbd5e1;
-        --border: #334155;
-        --border-subtle: #2d3a4f;
+        --bg: #0f172a; --bg-card: #1e293b; --bg-subtle: #1e293b;
+        --fg: #f1f5f9; --fg-secondary: #e2e8f0; --fg-muted: #64748b;
+        --fg-body: #cbd5e1; --border: #334155; --border-subtle: #2d3a4f;
       }
       body:not(.light) .badge-pending { background: #451a03; color: #fbbf24; }
       body:not(.light) .badge-approved { background: #14532d; color: #4ade80; }
@@ -508,28 +378,65 @@
       body:not(.light) .status-pending { background: #451a03; color: #fbbf24; }
       body:not(.light) .btn-approve { background: #16a34a; }
       body:not(.light) .btn-reject { background: #451a1a; color: #fca5a5; }
-      body:not(.light) .btn-reject:hover { background: #7f1d1d; }
       body:not(.light) .btn-delete { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
+      body:not(.light) .btn-deactivate { background: #451a03; color: #fbbf24; border-color: #78350f; }
+      body:not(.light) .btn-reactivate { background: #14532d; color: #4ade80; border-color: #166534; }
       body:not(.light) .team-tag { background: #312e81; color: #a5b4fc; }
-      body:not(.light) .team-tag:hover { background: #3730a3; }
       body:not(.light) .pending-banner { background: linear-gradient(135deg, #451a03 0%, #78350f 100%); border-color: #b45309; }
       body:not(.light) .pending-banner-text { color: #fbbf24; }
       body:not(.light) .pending-banner-sub { color: #fcd34d; }
+      body:not(.light) .invite-banner { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border-color: #6366f1; }
+      body:not(.light) .invite-banner-text { color: #a5b4fc; }
+      body:not(.light) .invite-banner-sub { color: #818cf8; }
       body:not(.light) .member-card.pending-card { background: linear-gradient(180deg, #451a0322 0%, var(--bg-card) 40%); border-color: #b45309; }
+      body:not(.light) .role-select { background: #0f172a; color: #cbd5e1; border-color: #475569; }
+    }
+
+    /* Dark toggle */
+    .dark-toggle {
+      width: 40px; height: 40px; border: 1px solid var(--border);
+      border-radius: 10px; background: var(--bg-subtle); cursor: pointer;
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+      transition: background var(--transition), border-color var(--transition); flex-shrink: 0;
+    }
+    .dark-toggle:hover { background: var(--border); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="header-left">
-      <a href="/" class="logo" style="text-decoration:none;color:inherit;">{{ team_name or 'Point3' }} <span>CRM</span></a>
+      <a href="/" class="logo">{{ team_name or 'Point3' }} <span>CRM</span></a>
       <div class="header-sub">팀원 관리</div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;">
-      <a href="/" class="back-link">← 지도로 돌아가기</a>
-      <button class="dark-toggle" id="darkToggle" aria-label="다크모드 전환">🌙</button>
+      <a href="/" class="back-link">&#8592; 지도로 돌아가기</a>
+      <button class="dark-toggle" id="darkToggle" aria-label="다크모드 전환">&#127769;</button>
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="메뉴 열기">&#9776;</button>
     </div>
   </div>
+
+  <!-- ── 모바일 슬라이드 메뉴 ── -->
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+  <nav class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+      <span>{{ team_name or 'Point3' }} CRM</span>
+      <button class="mobile-nav-close" id="mobileNavClose">&times;</button>
+    </div>
+    <div class="mobile-nav-links">
+      <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>지도</a>
+      <a href="/stores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>가맹점 목록</a>
+      <a href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>대시보드</a>
+      <a href="/calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>캘린더</a>
+      <a href="/approve" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>팀 관리</a>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="/auth/logout"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</a>
+    </div>
+  </nav>
 
   <div class="main">
     <!-- 팀 통계 -->
@@ -549,6 +456,21 @@
         <div class="stat-value" id="statVisits">-</div>
         <div class="stat-sub">방문/메모 기록</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-label">7일 활동</div>
+        <div class="stat-value" id="statRecent">-</div>
+        <div class="stat-sub">최근 7일간</div>
+      </div>
+    </div>
+
+    <!-- 초대 링크 배너 -->
+    <div class="invite-banner">
+      <div class="invite-banner-icon">🔗</div>
+      <div style="flex:1;">
+        <div class="invite-banner-text">팀원 초대</div>
+        <div class="invite-banner-sub">초대 링크를 복사하여 팀원에게 공유하세요</div>
+      </div>
+      <button class="btn-invite" onclick="copyInviteLink()">초대 링크 복사</button>
     </div>
 
     <!-- 대기 경고 배너 -->
@@ -581,12 +503,24 @@
         <div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>
       </div>
     </div>
+
+    <!-- 비활성 팀원 -->
+    <div class="section" id="inactiveSection" style="display:none;">
+      <div class="section-header">
+        <div class="section-title">비활성 팀원</div>
+        <div class="badge badge-inactive" id="inactiveCount">0</div>
+      </div>
+      <div class="card-grid" id="inactiveGrid"></div>
+    </div>
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
 
   <script>
-    // 토스트
+    const ROLE_LABELS = { superadmin: '최고관리자', admin: '관리자', user: '팀원', viewer: '뷰어' };
+    let membersStats = {};
+
+    // Toast
     function showToast(message, type) {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
@@ -596,29 +530,30 @@
       setTimeout(() => toast.remove(), 3000);
     }
 
-    // 날짜 포맷
     function formatDate(dateStr) {
       if (!dateStr) return '-';
       const d = new Date(dateStr);
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return y + '.' + m + '.' + day;
+      return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
     }
 
-    // 이니셜 추출
     function getInitials(name) {
       if (!name || name === '-') return '?';
       return name.charAt(0).toUpperCase();
     }
 
-    // 카드 HTML 생성 (대기)
+    function esc(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    // Pending card
     function pendingCardHTML(u) {
-      const name = u.name || u.displayName || '-';
-      const username = u.username || u.id || '-';
+      const name = u.name || '-';
+      const username = u.username || '-';
       const teamName = u.teamName || '-';
-      const date = formatDate(u.createdAt || u.joinedAt);
-      const uid = u.id || u.userId;
+      const date = formatDate(u.createdAt || u.created_at);
+      const uid = u.id;
       return `
         <div class="member-card pending-card">
           <div class="card-top">
@@ -649,7 +584,7 @@
         </div>`;
     }
 
-    // 카드 HTML 생성 (승인)
+    // Approved card with stats and role
     function approvedCardHTML(u) {
       const name = u.name || '-';
       const username = u.username || '-';
@@ -657,6 +592,13 @@
       const teamName = u.teamName || '-';
       const uid = u.id;
       const isSuperadmin = u.role === 'superadmin';
+      const role = u.role || 'user';
+      const stats = membersStats[uid] || { recent_7d: 0, assigned_stores: 0 };
+
+      const roleOptions = ['admin','user','viewer'].map(r =>
+        `<option value="${r}" ${role === r ? 'selected' : ''}>${ROLE_LABELS[r]}</option>`
+      ).join('');
+
       return `
         <div class="member-card">
           <div class="card-top">
@@ -666,10 +608,23 @@
               <div class="card-username">@${esc(username)}</div>
             </div>
           </div>
+          <div class="activity-stats">
+            <div class="activity-stat">
+              <div class="activity-stat-val">${stats.recent_7d}</div>
+              <div class="activity-stat-label">7일 활동</div>
+            </div>
+            <div class="activity-stat">
+              <div class="activity-stat-val">${stats.assigned_stores}</div>
+              <div class="activity-stat-label">담당 가맹점</div>
+            </div>
+          </div>
           <div class="card-meta">
             <div class="meta-row">
-              <span class="meta-label">상태</span>
-              <span class="status-tag status-approved">승인</span>
+              <span class="meta-label">역할</span>
+              ${isSuperadmin
+                ? `<span class="status-tag status-approved">${ROLE_LABELS.superadmin}</span>`
+                : `<select class="role-select" onchange="changeRole('${esc(username)}', this.value)">${roleOptions}</select>`
+              }
             </div>
             <div class="meta-row">
               <span class="meta-label">팀</span>
@@ -683,13 +638,57 @@
           <div class="card-actions">
             ${isSuperadmin
               ? '<button class="btn-sm btn-admin">관리자</button>'
-              : `<button class="btn-sm btn-delete" onclick="deleteUser('${esc(uid)}','${esc(name)}')">삭제</button>`
+              : `<button class="btn-sm btn-deactivate" onclick="deactivateUser('${esc(uid)}','${esc(name)}')">비활성화</button>
+                 <button class="btn-sm btn-delete" onclick="deleteUser('${esc(uid)}','${esc(name)}')">삭제</button>`
             }
           </div>
         </div>`;
     }
 
-    // 대기 목록 로드
+    // Inactive card
+    function inactiveCardHTML(u) {
+      const name = u.name || '-';
+      const username = u.username || '-';
+      const uid = u.id;
+      return `
+        <div class="member-card inactive-card">
+          <div class="card-top">
+            <div class="avatar">${esc(getInitials(name))}</div>
+            <div>
+              <div class="card-name">${esc(name)}</div>
+              <div class="card-username">@${esc(username)}</div>
+            </div>
+          </div>
+          <div class="card-meta">
+            <div class="meta-row">
+              <span class="meta-label">상태</span>
+              <span class="status-tag status-inactive">비활성</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-sm btn-reactivate" onclick="reactivateUser('${esc(uid)}')">재활성화</button>
+            <button class="btn-sm btn-delete" onclick="deleteUser('${esc(uid)}','${esc(name)}')">삭제</button>
+          </div>
+        </div>`;
+    }
+
+    // Load members with stats
+    async function loadMembersStats() {
+      try {
+        const res = await fetch('/api/team/members-stats');
+        if (!res.ok) return;
+        const data = await res.json();
+        membersStats = {};
+        let totalRecent = 0;
+        data.forEach(m => {
+          membersStats[m.id] = m;
+          totalRecent += m.recent_7d;
+        });
+        document.getElementById('statRecent').textContent = totalRecent;
+      } catch (e) {}
+    }
+
+    // Load pending
     async function loadPending() {
       const grid = document.getElementById('pendingGrid');
       const badge = document.getElementById('pendingCount');
@@ -700,21 +699,15 @@
         if (!res.ok) throw new Error();
         const users = await res.json();
         badge.textContent = users.length;
-
         if (users.length === 0) {
           section.style.display = 'none';
           banner.classList.remove('show');
           grid.innerHTML = '';
           return;
         }
-
         section.style.display = '';
         banner.classList.add('show');
-        document.getElementById('pendingBannerText').textContent =
-          `승인 대기 중인 팀원이 ${users.length}명 있습니다`;
-        document.getElementById('pendingBannerSub').textContent =
-          '아래에서 확인하고 승인 처리해주세요';
-
+        document.getElementById('pendingBannerText').textContent = `승인 대기 중인 팀원이 ${users.length}명 있습니다`;
         grid.innerHTML = users.map(u => pendingCardHTML(u)).join('');
       } catch (e) {
         section.style.display = '';
@@ -722,7 +715,7 @@
       }
     }
 
-    // 승인 목록 로드
+    // Load approved
     async function loadApproved() {
       const grid = document.getElementById('approvedGrid');
       const badge = document.getElementById('approvedCount');
@@ -731,19 +724,34 @@
         if (!res.ok) throw new Error();
         const users = await res.json();
         badge.textContent = users.length;
-
         if (users.length === 0) {
           grid.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div>승인된 팀원이 없습니다.</div>';
           return;
         }
-
         grid.innerHTML = users.map(u => approvedCardHTML(u)).join('');
       } catch (e) {
         grid.innerHTML = '<div class="empty-state" style="color:#ef4444">목록을 불러오지 못했습니다.</div>';
       }
     }
 
-    // 팀 통계 로드
+    // Load inactive (deactivated members with teamName but not approved)
+    async function loadInactive() {
+      try {
+        const res = await fetch('/api/team/members-stats');
+        if (!res.ok) return;
+        const all = await res.json();
+        const inactive = all.filter(m => !m.isApproved && m.teamName && m.role !== 'superadmin');
+        const section = document.getElementById('inactiveSection');
+        const grid = document.getElementById('inactiveGrid');
+        const badge = document.getElementById('inactiveCount');
+        if (inactive.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = '';
+        badge.textContent = inactive.length;
+        grid.innerHTML = inactive.map(u => inactiveCardHTML(u)).join('');
+      } catch (e) {}
+    }
+
+    // Team stats
     async function loadTeamStats() {
       try {
         const [pendingRes, approvedRes, storesRes] = await Promise.all([
@@ -754,100 +762,114 @@
         const pending = pendingRes.ok ? await pendingRes.json() : [];
         const approved = approvedRes.ok ? await approvedRes.json() : [];
         const stores = storesRes.ok ? await storesRes.json() : [];
-
         const totalMembers = pending.length + approved.length;
         const totalStores = Array.isArray(stores) ? stores.length : 0;
         let totalVisits = 0;
         if (Array.isArray(stores)) {
-          stores.forEach(s => {
-            if (Array.isArray(s.visits)) {
-              totalVisits += s.visits.length;
-            }
-          });
+          stores.forEach(s => { if (Array.isArray(s.visits)) totalVisits += s.visits.length; });
         }
-
         document.getElementById('statTotal').textContent = totalMembers;
         document.getElementById('statStores').textContent = totalStores.toLocaleString();
         document.getElementById('statVisits').textContent = totalVisits.toLocaleString();
-      } catch (e) {
-        // 통계 실패해도 조용히 처리
-      }
+      } catch (e) {}
     }
 
-    // 승인
+    // Actions
     async function approve(userId) {
       try {
-        const res = await fetch('/api/admin/approve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId })
-        });
+        const res = await fetch('/api/admin/approve', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId}) });
         if (!res.ok) throw new Error();
         showToast('승인 완료', 'success');
-        loadPending();
-        loadApproved();
-        loadTeamStats();
-      } catch (e) {
-        showToast('승인 처리에 실패했습니다.', 'error');
-      }
+        await refreshAll();
+      } catch (e) { showToast('승인 처리에 실패했습니다.', 'error'); }
     }
 
-    // 거절
     async function reject(userId) {
       try {
-        const res = await fetch('/api/admin/reject', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId })
-        });
+        const res = await fetch('/api/admin/reject', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId}) });
         if (!res.ok) throw new Error();
         showToast('거절 완료', 'success');
-        loadPending();
-        loadApproved();
-        loadTeamStats();
-      } catch (e) {
-        showToast('거절 처리에 실패했습니다.', 'error');
-      }
+        await refreshAll();
+      } catch (e) { showToast('거절 처리에 실패했습니다.', 'error'); }
     }
 
-    // 사용자 삭제
     async function deleteUser(userId, name) {
-      if (!confirm(`"${name}" 사용자를 삭제하시겠습니까?`)) return;
+      if (!confirm(`"${name}" 사용자를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
       try {
-        const res = await fetch('/api/admin/delete-user', {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({userId})
-        });
+        const res = await fetch('/api/admin/delete-user', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId}) });
         if (!res.ok) throw new Error();
         showToast(name + ' 삭제 완료', 'success');
-        loadApproved();
-        loadTeamStats();
+        await refreshAll();
       } catch(e) { showToast('삭제 실패', 'error'); }
     }
 
-    // 팀명 수정
+    async function deactivateUser(userId, name) {
+      if (!confirm(`"${name}" 팀원을 비활성화하시겠습니까?\n비활성화된 팀원은 로그인할 수 없지만 데이터는 보존됩니다.`)) return;
+      try {
+        const res = await fetch('/api/admin/deactivate-user', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId}) });
+        if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+        showToast(name + ' 비활성화 완료', 'success');
+        await refreshAll();
+      } catch(e) { showToast(e.message || '비활성화 실패', 'error'); }
+    }
+
+    async function reactivateUser(userId) {
+      try {
+        const res = await fetch('/api/admin/reactivate-user', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId}) });
+        if (!res.ok) throw new Error();
+        showToast('재활성화 완료', 'success');
+        await refreshAll();
+      } catch(e) { showToast('재활성화 실패', 'error'); }
+    }
+
+    async function changeRole(username, newRole) {
+      try {
+        const res = await fetch(`/api/users/${encodeURIComponent(username)}/role`, {
+          method: 'PUT', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({role: newRole})
+        });
+        if (!res.ok) { const d = await res.json(); throw new Error(d.error); }
+        showToast(`역할 변경: ${ROLE_LABELS[newRole]}`, 'success');
+      } catch(e) { showToast(e.message || '역할 변경 실패', 'error'); await refreshAll(); }
+    }
+
     async function editTeam(userId, currentTeam) {
       const newTeam = prompt('새 팀 이름을 입력하세요:', currentTeam);
       if (!newTeam || newTeam.trim() === currentTeam) return;
       try {
-        const res = await fetch('/api/admin/update-team', {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({userId, teamName: newTeam.trim()})
-        });
+        const res = await fetch('/api/admin/update-team', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId, teamName: newTeam.trim()}) });
         if (!res.ok) throw new Error();
         showToast('팀명 변경 완료', 'success');
-        loadApproved();
+        await refreshAll();
       } catch(e) { showToast('팀명 변경 실패', 'error'); }
     }
 
-    // XSS 방지
-    function esc(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
+    // Invite link
+    async function copyInviteLink() {
+      try {
+        const res = await fetch('/api/team/invite-link');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        await navigator.clipboard.writeText(data.link);
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'copied-tooltip';
+        tooltip.textContent = '초대 링크가 복사되었습니다!';
+        document.body.appendChild(tooltip);
+        setTimeout(() => tooltip.remove(), 2000);
+      } catch(e) { showToast('초대 링크 복사 실패', 'error'); }
     }
 
-    // 다크모드 토글
+    // Refresh all
+    async function refreshAll() {
+      await loadMembersStats();
+      loadPending();
+      loadApproved();
+      loadInactive();
+      loadTeamStats();
+    }
+
+    // Dark mode
     (function() {
       const saved = localStorage.getItem('point3-dark');
       if (saved === 'true') document.body.classList.add('dark');
@@ -865,10 +887,36 @@
       updateToggleIcon();
     });
 
-    // 초기 로드
-    loadPending();
-    loadApproved();
-    loadTeamStats();
+    // Initial load
+    (async () => {
+      await loadMembersStats();
+      loadPending();
+      loadApproved();
+      loadInactive();
+      loadTeamStats();
+    })();
+
+    // ── 모바일 햄버거 메뉴 ──
+    (function() {
+      var btn = document.getElementById('hamburgerBtn');
+      var nav = document.getElementById('mobileNav');
+      var overlay = document.getElementById('mobileNavOverlay');
+      var closeBtn = document.getElementById('mobileNavClose');
+      if (!btn || !nav) return;
+      function openNav() {
+        nav.classList.add('open'); overlay.style.display = 'block';
+        requestAnimationFrame(function() { overlay.classList.add('open'); });
+        document.body.style.overflow = 'hidden';
+      }
+      function closeNav() {
+        nav.classList.remove('open'); overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(function() { overlay.style.display = 'none'; }, 250);
+      }
+      btn.addEventListener('click', openNav);
+      closeBtn.addEventListener('click', closeNav);
+      overlay.addEventListener('click', closeNav);
+    })();
   </script>
 </body>
 </html>

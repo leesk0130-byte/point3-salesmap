@@ -1,8 +1,9 @@
-const CACHE_NAME = 'point3-v2';
+const CACHE_NAME = 'point3-v3';
 const APP_SHELL = [
   '/',
   '/static/manifest.json',
-  '/static/icon.svg'
+  '/static/icon.svg',
+  '/static/offline.html'
 ];
 
 // 설치: 앱 셸 캐시
@@ -32,12 +33,36 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // API 호출 → 캐싱 없이 네트워크 직접 요청
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/search')) {
-    return;  // 서비스 워커가 개입하지 않음 → 브라우저 기본 네트워크 요청
+  // API 호출: Network-only, 실패 시 캐시된 응답 반환 (stale-while-revalidate 패턴)
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(event.request).then((response) => {
+        // /api/stores, /api/stats 등은 캐시에 저장
+        if (response.ok && (url.pathname.includes('/stores') || url.pathname.includes('/stats') || url.pathname.includes('/calendar'))) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      }).catch(() => {
+        // 오프라인 시 캐시된 API 응답 반환
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          return new Response(JSON.stringify({ error: 'offline' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        });
+      })
+    );
+    return;
   }
 
-  // 정적 자원 → 네트워크 우선, 실패 시 캐시 폴백
+  // /search 는 서비스 워커 개입 없음
+  if (url.pathname.startsWith('/search')) {
+    return;
+  }
+
+  // 정적 자원 및 페이지 → 네트워크 우선, 실패 시 캐시 폴백
   event.respondWith(
     fetch(event.request).then((response) => {
       if (response.ok) {
@@ -48,9 +73,9 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => {
       return caches.match(event.request).then((cached) => {
         if (cached) return cached;
-        // 오프라인 폴백: HTML 요청이면 메인 페이지 반환
+        // 오프라인 폴백: HTML 요청이면 오프라인 페이지 반환
         if (event.request.headers.get('accept')?.includes('text/html')) {
-          return caches.match('/');
+          return caches.match('/static/offline.html');
         }
       });
     })

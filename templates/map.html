@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
     <style>
@@ -993,9 +994,430 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0,0,0,.08);
         }
+
+        /* ═══════════════════════════════════════
+           HEATMAP TOGGLE
+           ═══════════════════════════════════════ */
+        .map-ctrl-btn.heatmap-active {
+            background: #f97316; border-color: #f97316; color: #fff;
+        }
+        .map-ctrl-btn.heatmap-active:hover { background: #ea580c; }
+
+        /* ═══════════════════════════════════════
+           PIE CHART CLUSTER ICONS
+           ═══════════════════════════════════════ */
+        .pie-cluster {
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px; font-weight: 700; color: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,.25);
+            border: 3px solid rgba(255,255,255,.8);
+        }
+
+        /* ═══════════════════════════════════════
+           MAP FILTER PANEL (LEFT SIDE)
+           ═══════════════════════════════════════ */
+        .map-filter-panel {
+            position: fixed; top: 60px; left: calc(var(--sidebar-w) + 16px);
+            z-index: 1100;
+            width: 220px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+            overflow: hidden;
+        }
+        .map-filter-panel.collapsed-filter { width: 40px; height: 40px; border-radius: var(--radius); cursor: pointer; }
+        .map-filter-panel.collapsed-filter .mfp-body { display: none; }
+        .map-filter-panel.collapsed-filter .mfp-toggle-icon { transform: rotate(180deg); }
+        body.sidebar-collapsed .map-filter-panel { left: 16px; }
+
+        .mfp-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer; user-select: none;
+        }
+        .mfp-header-title { font-size: 12px; font-weight: 700; color: var(--fg); }
+        .map-filter-panel.collapsed-filter .mfp-header { border-bottom: none; padding: 8px; justify-content: center; }
+        .map-filter-panel.collapsed-filter .mfp-header-title { display: none; }
+        .mfp-toggle-icon {
+            width: 16px; height: 16px; color: var(--muted-fg);
+            transition: transform .2s;
+        }
+        .mfp-body { padding: 10px 12px; }
+        .mfp-section { margin-bottom: 10px; }
+        .mfp-section:last-child { margin-bottom: 0; }
+        .mfp-label { font-size: 10px; font-weight: 600; color: var(--muted-fg); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+        .mfp-check {
+            display: flex; align-items: center; gap: 6px;
+            padding: 4px 0; font-size: 12px; color: var(--fg);
+            cursor: pointer; user-select: none;
+        }
+        .mfp-check input[type="checkbox"] {
+            width: 16px; height: 16px; border-radius: 4px;
+            accent-color: var(--primary); cursor: pointer;
+        }
+        .mfp-check-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .mfp-district-select {
+            width: 100%; height: 32px; padding: 0 8px;
+            border: 1px solid var(--border); border-radius: var(--radius);
+            font: 500 12px/1 inherit; color: var(--fg);
+            background: var(--bg); cursor: pointer; outline: none;
+        }
+        .mfp-district-select:focus { border-color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .map-filter-panel {
+                left: 16px !important; top: auto; bottom: 180px;
+                width: 180px;
+            }
+        }
+
+        /* ═══════════════════════════════════════
+           ROUTE OPTIMIZATION
+           ═══════════════════════════════════════ */
+        .route-mode-banner {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+            z-index: 1200;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff; padding: 10px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(79,70,229,.4);
+            font: 600 13px/1.4 inherit;
+            display: none; align-items: center; gap: 12px;
+            animation: slideDown .3s ease;
+        }
+        .route-mode-banner.active { display: flex; }
+        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+        .route-btn-calc {
+            padding: 6px 14px; border-radius: 8px;
+            background: #fff; color: #4f46e5;
+            border: none; font: 700 12px/1 inherit; cursor: pointer;
+        }
+        .route-btn-calc:hover { background: #eef2ff; }
+        .route-btn-cancel {
+            padding: 6px 14px; border-radius: 8px;
+            background: rgba(255,255,255,.2); color: #fff;
+            border: 1px solid rgba(255,255,255,.3);
+            font: 600 12px/1 inherit; cursor: pointer;
+        }
+        .route-btn-cancel:hover { background: rgba(255,255,255,.3); }
+
+        .route-number-marker {
+            display: flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: #fff; border-radius: 50%;
+            font: 800 13px/1 'Inter', sans-serif;
+            border: 2.5px solid #fff;
+            box-shadow: 0 2px 8px rgba(79,70,229,.5);
+        }
+
+        .route-check-marker {
+            position: absolute; top: -4px; left: -4px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #4f46e5; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            border: 2px solid #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,.3);
+            z-index: 10;
+        }
+
+        /* ═══════════════════════════════════════
+           GLOBAL SEARCH (Cmd+K)
+           ═══════════════════════════════════════ */
+        .gs-overlay {
+            display: none; position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
+            align-items: flex-start; justify-content: center;
+            padding-top: min(20vh, 160px);
+        }
+        .gs-overlay.active { display: flex; }
+        .gs-box {
+            width: min(540px, calc(100vw - 32px));
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,.25);
+            overflow: hidden; animation: gsSlideIn .2s ease;
+        }
+        @keyframes gsSlideIn { from { opacity: 0; transform: translateY(-16px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .gs-input-wrap {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 18px; border-bottom: 1px solid var(--border);
+        }
+        .gs-input-wrap svg { width: 18px; height: 18px; color: var(--muted-fg); flex-shrink: 0; }
+        .gs-input {
+            flex: 1; border: none; outline: none; background: transparent;
+            font: 500 16px/1.4 inherit; color: var(--fg);
+        }
+        .gs-input::placeholder { color: var(--muted-fg); }
+        .gs-kbd {
+            font-size: 11px; font-weight: 600; color: var(--muted-fg);
+            background: var(--muted); border: 1px solid var(--border);
+            padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+        }
+        .gs-results { max-height: 360px; overflow-y: auto; padding: 6px; }
+        .gs-results::-webkit-scrollbar { width: 4px; }
+        .gs-results::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+        .gs-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px; border-radius: 10px; cursor: pointer;
+            transition: background .1s;
+        }
+        .gs-item:hover, .gs-item.gs-active { background: var(--muted); }
+        .gs-item-icon {
+            width: 36px; height: 36px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 14px;
+        }
+        .gs-item-body { flex: 1; min-width: 0; }
+        .gs-item-name { font-size: 14px; font-weight: 600; color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gs-item-addr { font-size: 12px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .gs-item-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; white-space: nowrap; flex-shrink: 0; }
+        .gs-section { padding: 6px 14px 4px; font-size: 11px; font-weight: 600; color: var(--muted-fg); text-transform: uppercase; letter-spacing: .5px; }
+        .gs-empty { padding: 32px 20px; text-align: center; color: var(--muted-fg); font-size: 14px; }
+        .gs-footer {
+            display: flex; align-items: center; gap: 16px;
+            padding: 10px 18px; border-top: 1px solid var(--border);
+            font-size: 11px; color: var(--muted-fg);
+        }
+        .gs-footer-key { display: inline-flex; align-items: center; gap: 4px; }
+        .gs-footer-key kbd {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; padding: 0 4px;
+            background: var(--muted); border: 1px solid var(--border);
+            border-radius: 4px; font: 600 10px/1 inherit; color: var(--muted-fg);
+        }
+
+        /* ═══════════════════════════════════════
+           KEYBOARD SHORTCUTS HELP MODAL
+           ═══════════════════════════════════════ */
+        .ks-overlay {
+            display: none; position: fixed; inset: 0; z-index: 9000;
+            background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
+            align-items: center; justify-content: center;
+        }
+        .ks-overlay.active { display: flex; }
+        .ks-box {
+            width: min(420px, calc(100vw - 32px));
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 16px; box-shadow: 0 25px 60px rgba(0,0,0,.25);
+            overflow: hidden; animation: gsSlideIn .2s ease;
+        }
+        .ks-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+        }
+        .ks-title { font-size: 16px; font-weight: 700; color: var(--fg); }
+        .ks-close {
+            width: 32px; height: 32px; border-radius: var(--radius);
+            border: 1px solid var(--border); background: var(--bg);
+            color: var(--muted-fg); cursor: pointer; font-size: 16px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ks-close:hover { background: var(--muted); color: var(--fg); }
+        .ks-body { padding: 16px 20px; }
+        .ks-group { margin-bottom: 16px; }
+        .ks-group:last-child { margin-bottom: 0; }
+        .ks-group-title { font-size: 11px; font-weight: 600; color: var(--muted-fg); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .ks-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 6px 0;
+        }
+        .ks-row-label { font-size: 13px; color: var(--fg); }
+        .ks-row-keys { display: flex; gap: 4px; }
+        .ks-key {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 28px; height: 26px; padding: 0 8px;
+            background: var(--muted); border: 1px solid var(--border);
+            border-radius: 6px; font: 600 11px/1 inherit; color: var(--fg);
+        }
+        /* ═══════════════════════════════════════
+           NOTIFICATION CENTER
+           ═══════════════════════════════════════ */
+        .notif-btn {
+            position: relative;
+            width: 32px; height: 32px;
+            border: 1px solid var(--border); background: var(--bg);
+            border-radius: var(--radius); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--muted-fg); transition: all .15s;
+        }
+        .notif-btn:hover { background: var(--muted); color: var(--fg); }
+        .notif-btn .notif-badge {
+            position: absolute; top: -4px; right: -4px;
+            min-width: 16px; height: 16px; padding: 0 4px;
+            background: var(--danger); color: #fff;
+            font-size: 9px; font-weight: 700;
+            border-radius: 9999px;
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1;
+        }
+        .notif-btn .notif-badge:empty { display: none; }
+
+        .notif-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.3);
+            z-index: 2999; opacity: 0; pointer-events: none;
+            transition: opacity .25s ease;
+        }
+        .notif-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .notif-panel {
+            position: fixed; top: 0; right: 0; bottom: 0;
+            width: 380px; max-width: 100vw;
+            background: var(--bg);
+            border-left: 1px solid var(--border);
+            z-index: 3000;
+            display: flex; flex-direction: column;
+            transform: translateX(100%);
+            transition: transform .3s cubic-bezier(.4,0,.2,1);
+            box-shadow: -4px 0 24px rgba(0,0,0,.12);
+        }
+        .notif-panel.open { transform: translateX(0); }
+
+        .notif-panel-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--bg), var(--muted));
+        }
+        .notif-panel-title {
+            font-size: 15px; font-weight: 700; color: var(--fg);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .notif-panel-close {
+            width: 28px; height: 28px; border: none; background: none;
+            font-size: 18px; cursor: pointer; color: var(--muted-fg);
+            border-radius: 6px; display: flex; align-items: center; justify-content: center;
+        }
+        .notif-panel-close:hover { background: var(--muted); color: var(--fg); }
+
+        .notif-warning {
+            padding: 10px 16px; margin: 12px 16px 0;
+            background: var(--warning-light);
+            border: 1px solid var(--warning);
+            border-radius: var(--radius);
+            font-size: 12px; font-weight: 600; color: var(--warning);
+            display: flex; align-items: flex-start; gap: 8px;
+            cursor: pointer; flex-wrap: wrap;
+        }
+        .notif-warning:hover { opacity: .85; }
+        .notif-warning-icon { font-size: 16px; flex-shrink: 0; }
+        .notif-warning-expand {
+            display: none; width: 100%; margin-top: 6px; font-weight: 400;
+            font-size: 11px; color: var(--fg); line-height: 1.6;
+            max-height: 150px; overflow-y: auto;
+        }
+        .notif-warning.expanded .notif-warning-expand { display: block; }
+
+        .notif-list {
+            flex: 1; overflow-y: auto; padding: 12px 16px;
+        }
+        .notif-item {
+            display: flex; gap: 10px; padding: 10px 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 8px;
+            background: var(--bg);
+            transition: all .15s;
+        }
+        .notif-item:hover { background: var(--muted); border-color: var(--border-strong); }
+        .notif-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0;
+        }
+        .notif-icon-register { background: var(--success-light); color: var(--success); }
+        .notif-icon-edit { background: var(--primary-light); color: var(--primary); }
+        .notif-icon-status { background: var(--violet-light); color: var(--violet); }
+        .notif-icon-delete { background: var(--danger-light); color: var(--danger); }
+        .notif-icon-upload { background: var(--warning-light); color: var(--warning); }
+        .notif-icon-visit-del { background: var(--danger-light); color: var(--danger); }
+        .notif-body { flex: 1; min-width: 0; }
+        .notif-body-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 2px;
+        }
+        .notif-user { font-size: 12px; font-weight: 600; color: var(--fg); }
+        .notif-time { font-size: 10px; color: var(--muted-fg); white-space: nowrap; }
+        .notif-action { font-size: 11px; color: var(--muted-fg); }
+        .notif-action strong { color: var(--fg); font-weight: 600; }
+        .notif-detail { font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+        .notif-empty {
+            text-align: center; padding: 40px 20px;
+            color: var(--muted-fg); font-size: 13px;
+        }
+        .notif-load-more {
+            display: block; width: 100%; padding: 10px;
+            border: 1px solid var(--border); background: var(--muted);
+            border-radius: var(--radius); font: 500 12px/1 inherit;
+            color: var(--muted-fg); cursor: pointer; text-align: center;
+            margin-top: 4px;
+        }
+        .notif-load-more:hover { background: var(--bg); color: var(--fg); }
+
+        @media (max-width: 480px) {
+            .notif-panel { width: 100vw; }
+        }
     </style>
 </head>
 <body>
+    <!-- ═══ GLOBAL SEARCH MODAL (Cmd+K) ═══ -->
+    <div class="gs-overlay" id="gsOverlay">
+        <div class="gs-box">
+            <div class="gs-input-wrap">
+                <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+                <input class="gs-input" id="gsInput" type="text" placeholder="가맹점명, 주소, 지역구 검색... (초성 가능)" autocomplete="off">
+                <span class="gs-kbd">ESC</span>
+            </div>
+            <div class="gs-results" id="gsResults"></div>
+            <div class="gs-footer">
+                <span class="gs-footer-key"><kbd>&uarr;</kbd><kbd>&darr;</kbd> 이동</span>
+                <span class="gs-footer-key"><kbd>Enter</kbd> 선택</span>
+                <span class="gs-footer-key"><kbd>ESC</kbd> 닫기</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ KEYBOARD SHORTCUTS HELP MODAL ═══ -->
+    <div class="ks-overlay" id="ksOverlay">
+        <div class="ks-box">
+            <div class="ks-header">
+                <div class="ks-title">키보드 단축키</div>
+                <button class="ks-close" id="ksClose">&times;</button>
+            </div>
+            <div class="ks-body">
+                <div class="ks-group">
+                    <div class="ks-group-title">검색</div>
+                    <div class="ks-row"><span class="ks-row-label">글로벌 검색</span><div class="ks-row-keys"><span class="ks-key">Ctrl</span><span class="ks-key">K</span></div></div>
+                </div>
+                <div class="ks-group">
+                    <div class="ks-group-title">필터</div>
+                    <div class="ks-row"><span class="ks-row-label">전체 마커 보기</span><div class="ks-row-keys"><span class="ks-key">1</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">미컨택만</span><div class="ks-row-keys"><span class="ks-key">2</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">명함전달만</span><div class="ks-row-keys"><span class="ks-key">3</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">미팅대기만</span><div class="ks-row-keys"><span class="ks-key">4</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">미팅완료만</span><div class="ks-row-keys"><span class="ks-key">5</span></div></div>
+                </div>
+                <div class="ks-group">
+                    <div class="ks-group-title">네비게이션</div>
+                    <div class="ks-row"><span class="ks-row-label">새 가맹점 등록</span><div class="ks-row-keys"><span class="ks-key">N</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">대시보드</span><div class="ks-row-keys"><span class="ks-key">D</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">팝업/패널 닫기</span><div class="ks-row-keys"><span class="ks-key">ESC</span></div></div>
+                    <div class="ks-row"><span class="ks-row-label">이 도움말</span><div class="ks-row-keys"><span class="ks-key">?</span></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- ═══ SIDEBAR ═══ -->
@@ -1023,6 +1445,10 @@
                         <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 100 10A5 5 0 008 1zM1 14c0-2.2 3.1-4 7-4s7 1.8 7 4"/></svg>
                         승인
                     </a>
+                    <button class="notif-btn" id="notifBtn" title="알림 센터">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 16a2 2 0 002-2H6a2 2 0 002 2zm6-5V7a6 6 0 10-12 0v4l-1.5 1.5V14h15v-1.5L14 11z"/></svg>
+                        <span class="notif-badge" id="notifBadge"></span>
+                    </button>
                     <button class="icon-btn" id="refreshBtn" title="새로고침">
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M13.65 2.35A7.96 7.96 0 008 0C3.58 0 .01 3.58.01 8S3.58 16 8 16c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 018 14 6 6 0 018 2c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z" fill="currentColor"/></svg>
                     </button>
@@ -1130,6 +1556,14 @@
 
     <div class="map-controls">
         <button class="dark-toggle" id="darkToggle" title="다크모드 전환">&#9728;</button>
+        <button class="map-ctrl-btn" id="heatmapToggle" title="히트맵 보기">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" opacity=".3"/><circle cx="8" cy="8" r="5" opacity=".5"/><circle cx="8" cy="8" r="3" opacity=".8"/></svg>
+            히트맵
+        </button>
+        <button class="map-ctrl-btn" id="routeModeBtn" title="최적 경로">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13L8 3l5 10"/><line x1="5" y1="9" x2="11" y2="9"/></svg>
+            경로
+        </button>
         <a href="/dashboard" class="map-ctrl-btn" title="대시보드">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="4" rx="1"/><rect x="9" y="7" width="6" height="8" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/></svg>
             대시보드
@@ -1149,6 +1583,36 @@
         <a href="/auth/logout" class="map-ctrl-btn" title="로그아웃" style="color:var(--danger);">
             로그아웃
         </a>
+    </div>
+
+    <!-- ═══ MAP FILTER PANEL (LEFT) ═══ -->
+    <div class="map-filter-panel" id="mapFilterPanel">
+        <div class="mfp-header" onclick="toggleMapFilter()">
+            <span class="mfp-header-title">지도 필터</span>
+            <svg class="mfp-toggle-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 4L6 8l4 4"/></svg>
+        </div>
+        <div class="mfp-body">
+            <div class="mfp-section">
+                <div class="mfp-label">상태</div>
+                <label class="mfp-check"><input type="checkbox" checked data-mfp-status="미컨택"><span class="mfp-check-dot" style="background:#ef4444;"></span>미컨택</label>
+                <label class="mfp-check"><input type="checkbox" checked data-mfp-status="명함전달"><span class="mfp-check-dot" style="background:#4f46e5;"></span>명함전달</label>
+                <label class="mfp-check"><input type="checkbox" checked data-mfp-status="미팅대기"><span class="mfp-check-dot" style="background:#f59e0b;"></span>미팅대기</label>
+                <label class="mfp-check"><input type="checkbox" checked data-mfp-status="미팅완료"><span class="mfp-check-dot" style="background:#10b981;"></span>미팅완료</label>
+            </div>
+            <div class="mfp-section">
+                <div class="mfp-label">지역</div>
+                <select class="mfp-district-select" id="mfpDistrictSelect">
+                    <option value="">전체 지역</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ ROUTE MODE BANNER ═══ -->
+    <div class="route-mode-banner" id="routeBanner">
+        <span id="routeSelectedCount">0개 선택</span>
+        <button class="route-btn-calc" id="routeCalcBtn" onclick="calculateRoute()">최적 경로 계산</button>
+        <button class="route-btn-cancel" onclick="exitRouteMode()">취소</button>
     </div>
 
     <!-- ═══ STORE DETAIL PANEL ═══ -->
@@ -1196,6 +1660,22 @@
                 <textarea class="dp-input" id="dpVisitMemo" placeholder="방문 메모 (선택)" style="margin-bottom:10px;font-size:13px;min-height:80px;resize:vertical;"></textarea>
                 <div id="dpVisitList"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- ═══ NOTIFICATION PANEL ═══ -->
+    <div class="notif-overlay" id="notifOverlay"></div>
+    <div class="notif-panel" id="notifPanel">
+        <div class="notif-panel-header">
+            <div class="notif-panel-title">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 16a2 2 0 002-2H6a2 2 0 002 2zm6-5V7a6 6 0 10-12 0v4l-1.5 1.5V14h15v-1.5L14 11z"/></svg>
+                알림 센터
+            </div>
+            <button class="notif-panel-close" id="notifClose">&times;</button>
+        </div>
+        <div id="notifWarningArea"></div>
+        <div class="notif-list" id="notifList">
+            <div class="notif-empty">로딩 중...</div>
         </div>
     </div>
 
@@ -1289,11 +1769,54 @@
         L.tileLayer('https://mt{s}.google.com/vt/lyrs=r&x={x}&y={y}&z={z}&hl=ko', {
             attribution: '&copy; Google', subdomains: '0123', maxZoom: 20
         }).addTo(map);
+        // Pie chart cluster icon factory
+        function createPieClusterIcon(cluster) {
+            const children = cluster.getAllChildMarkers();
+            const counts = { '미컨택': 0, '명함전달': 0, '미팅대기': 0, '미팅완료': 0 };
+            children.forEach(m => { const st = m._status || '미컨택'; if (counts[st] !== undefined) counts[st]++; });
+            const total = children.length;
+            const size = total < 10 ? 40 : total < 50 ? 50 : 60;
+            const colors = { '미컨택': '#ef4444', '명함전달': '#4f46e5', '미팅대기': '#f59e0b', '미팅완료': '#10b981' };
+
+            // Build SVG pie/donut
+            let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+            const cx = size / 2, cy = size / 2, r = size / 2 - 2, ir = r * 0.55;
+            let startAngle = -Math.PI / 2;
+            const statuses = ['미컨택', '명함전달', '미팅대기', '미팅완료'];
+            statuses.forEach(st => {
+                if (counts[st] === 0) return;
+                const sliceAngle = (counts[st] / total) * 2 * Math.PI;
+                const endAngle = startAngle + sliceAngle;
+                const largeArc = sliceAngle > Math.PI ? 1 : 0;
+                const x1 = cx + r * Math.cos(startAngle), y1 = cy + r * Math.sin(startAngle);
+                const x2 = cx + r * Math.cos(endAngle), y2 = cy + r * Math.sin(endAngle);
+                const ix1 = cx + ir * Math.cos(endAngle), iy1 = cy + ir * Math.sin(endAngle);
+                const ix2 = cx + ir * Math.cos(startAngle), iy2 = cy + ir * Math.sin(startAngle);
+                if (counts[st] === total) {
+                    // Full circle
+                    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${colors[st]}"/>`;
+                    svg += `<circle cx="${cx}" cy="${cy}" r="${ir}" fill="var(--bg, #fff)"/>`;
+                } else {
+                    svg += `<path d="M${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} L${ix1},${iy1} A${ir},${ir} 0 ${largeArc} 0 ${ix2},${iy2} Z" fill="${colors[st]}"/>`;
+                }
+                startAngle = endAngle;
+            });
+            svg += `</svg>`;
+
+            return L.divIcon({
+                html: `<div class="pie-cluster" style="width:${size}px;height:${size}px;position:relative;">${svg}<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 ${size < 50 ? 12 : 14}px/1 'Inter',sans-serif;color:var(--fg);">${total}</span></div>`,
+                className: '',
+                iconSize: [size, size],
+                iconAnchor: [size / 2, size / 2]
+            });
+        }
+
         const markerGroup = L.markerClusterGroup({
             maxClusterRadius: 50,
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
-            chunkedLoading: true
+            chunkedLoading: true,
+            iconCreateFunction: createPieClusterIcon
         }).addTo(map);
 
         const sidebar = document.getElementById('sidebar');
@@ -1327,6 +1850,7 @@
                 sidebar.classList.remove('collapsed', 'open');
                 mapEl.classList.add('expanded');
                 sidebarOverlay.classList.remove('active');
+                document.body.classList.add('sidebar-collapsed');
                 setBsState(bsState);
             } else {
                 sidebar.classList.remove('bs-half', 'bs-full', 'open');
@@ -1334,6 +1858,7 @@
                 sidebar.classList.toggle('collapsed', !sidebarOpen);
                 mapEl.classList.toggle('expanded', !sidebarOpen);
                 sidebarToggle.style.left = sidebarOpen ? `calc(var(--sidebar-w) + 16px)` : '16px';
+                document.body.classList.toggle('sidebar-collapsed', !sidebarOpen);
             }
             setTimeout(() => map.invalidateSize(), 350);
         }
@@ -1977,6 +2502,609 @@
         }).then(u=>{
             if(u && u.role==='superadmin') document.getElementById('approveBtn').style.display='flex';
         }).catch(()=>{});
+
+        // ══════════════════════════════════════
+        //  1. HEATMAP TOGGLE
+        // ══════════════════════════════════════
+        let heatLayer = null;
+        let heatmapOn = false;
+
+        document.getElementById('heatmapToggle').addEventListener('click', function() {
+            heatmapOn = !heatmapOn;
+            this.classList.toggle('heatmap-active', heatmapOn);
+            if (heatmapOn) {
+                // Hide marker cluster, show heatmap
+                map.removeLayer(markerGroup);
+                const pts = getFilteredForMap().map(s => [s.lat, s.lng, 1]);
+                heatLayer = L.heatLayer(pts, { radius: 25, blur: 15, maxZoom: 15, gradient: { 0.2: '#3b82f6', 0.4: '#22d3ee', 0.6: '#facc15', 0.8: '#f97316', 1.0: '#ef4444' } }).addTo(map);
+            } else {
+                // Remove heatmap, show markers
+                if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+                map.addLayer(markerGroup);
+            }
+        });
+
+        // Update heatmap when data changes
+        const _origRender = render;
+        render = function() {
+            _origRender();
+            if (heatmapOn && heatLayer) {
+                map.removeLayer(heatLayer);
+                const pts = getFilteredForMap().map(s => [s.lat, s.lng, 1]);
+                heatLayer = L.heatLayer(pts, { radius: 25, blur: 15, maxZoom: 15, gradient: { 0.2: '#3b82f6', 0.4: '#22d3ee', 0.6: '#facc15', 0.8: '#f97316', 1.0: '#ef4444' } }).addTo(map);
+                map.removeLayer(markerGroup);
+            }
+        };
+
+        // ══════════════════════════════════════
+        //  3. MAP FILTER PANEL
+        // ══════════════════════════════════════
+        let mapFilterStatuses = { '미컨택': true, '명함전달': true, '미팅대기': true, '미팅완료': true };
+        let mapFilterDistrict = '';
+
+        function toggleMapFilter() {
+            document.getElementById('mapFilterPanel').classList.toggle('collapsed-filter');
+        }
+
+        // Status checkbox handlers
+        document.querySelectorAll('[data-mfp-status]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                mapFilterStatuses[this.dataset.mfpStatus] = this.checked;
+                render();
+            });
+        });
+
+        // District dropdown
+        document.getElementById('mfpDistrictSelect').addEventListener('change', function() {
+            mapFilterDistrict = this.value;
+            render();
+        });
+
+        // Update district options when stores load
+        const _origLoadStores = loadStores;
+        loadStores = async function() {
+            await _origLoadStores();
+            // Populate district dropdown
+            const dSel = document.getElementById('mfpDistrictSelect');
+            const districts = [...new Set(allStores.map(s => s.district).filter(Boolean))].sort((a, b) => a === '기타' ? 1 : b === '기타' ? -1 : a.localeCompare(b, 'ko'));
+            dSel.innerHTML = '<option value="">전체 지역</option>' + districts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+        };
+
+        // Initial district populate after first load completes
+        setTimeout(() => {
+            const dSel2 = document.getElementById('mfpDistrictSelect');
+            if (allStores.length && dSel2.options.length <= 1) {
+                const ds = [...new Set(allStores.map(s => s.district).filter(Boolean))].sort((a, b) => a === '기타' ? 1 : b === '기타' ? -1 : a.localeCompare(b, 'ko'));
+                dSel2.innerHTML = '<option value="">전체 지역</option>' + ds.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+            }
+        }, 3000);
+
+        // Patch getFilteredForMap to respect map filter panel
+        const _origGetFilteredForMap = getFilteredForMap;
+        getFilteredForMap = function() {
+            return _origGetFilteredForMap().filter(s => {
+                const status = getStoreStatus(s);
+                if (!mapFilterStatuses[status]) return false;
+                if (mapFilterDistrict && s.district !== mapFilterDistrict) return false;
+                return true;
+            });
+        };
+
+        // ══════════════════════════════════════
+        //  4. ROUTE OPTIMIZATION
+        // ══════════════════════════════════════
+        let routeMode = false;
+        let routeSelected = []; // store IDs
+        let routePolyline = null;
+        let routeNumberMarkers = [];
+
+        document.getElementById('routeModeBtn').addEventListener('click', function() {
+            if (routeMode) { exitRouteMode(); return; }
+            enterRouteMode();
+        });
+
+        function enterRouteMode() {
+            routeMode = true;
+            routeSelected = [];
+            document.getElementById('routeModeBtn').classList.add('active');
+            document.getElementById('routeBanner').classList.add('active');
+            updateRouteCount();
+            showToast('지도에서 방문할 가맹점을 클릭하세요');
+
+            // Add click handlers to markers
+            Object.keys(markers).forEach(id => {
+                markers[id]._routeClick = function() {
+                    if (!routeMode) return;
+                    const idx = routeSelected.indexOf(id);
+                    if (idx >= 0) {
+                        routeSelected.splice(idx, 1);
+                        removeRouteCheck(id);
+                    } else {
+                        routeSelected.push(id);
+                        addRouteCheck(id, routeSelected.length);
+                    }
+                    updateRouteCount();
+                };
+                markers[id].on('click', markers[id]._routeClick);
+            });
+        }
+
+        function exitRouteMode() {
+            routeMode = false;
+            document.getElementById('routeModeBtn').classList.remove('active');
+            document.getElementById('routeBanner').classList.remove('active');
+            clearRouteDisplay();
+            // Remove click handlers
+            Object.keys(markers).forEach(id => {
+                if (markers[id]._routeClick) {
+                    markers[id].off('click', markers[id]._routeClick);
+                    delete markers[id]._routeClick;
+                }
+            });
+            routeSelected = [];
+        }
+
+        function updateRouteCount() {
+            document.getElementById('routeSelectedCount').textContent = routeSelected.length + '개 선택';
+        }
+
+        function addRouteCheck(id, num) {
+            const m = markers[id];
+            if (!m) return;
+            const el = m.getElement();
+            if (!el) return;
+            // Remove existing check if any
+            const old = el.querySelector('.route-check-marker');
+            if (old) old.remove();
+            const chk = document.createElement('div');
+            chk.className = 'route-check-marker';
+            chk.textContent = num;
+            el.style.position = 'relative';
+            el.appendChild(chk);
+        }
+
+        function removeRouteCheck(id) {
+            const m = markers[id];
+            if (!m) return;
+            const el = m.getElement();
+            if (!el) return;
+            const chk = el.querySelector('.route-check-marker');
+            if (chk) chk.remove();
+            // Renumber remaining
+            routeSelected.forEach((sid, i) => {
+                const me = markers[sid] && markers[sid].getElement();
+                if (me) {
+                    const c = me.querySelector('.route-check-marker');
+                    if (c) c.textContent = i + 1;
+                }
+            });
+        }
+
+        function clearRouteDisplay() {
+            if (routePolyline) { map.removeLayer(routePolyline); routePolyline = null; }
+            routeNumberMarkers.forEach(m => map.removeLayer(m));
+            routeNumberMarkers = [];
+            // Remove all check markers
+            Object.keys(markers).forEach(id => {
+                const el = markers[id].getElement();
+                if (el) {
+                    const chk = el.querySelector('.route-check-marker');
+                    if (chk) chk.remove();
+                }
+            });
+        }
+
+        function calculateRoute() {
+            if (routeSelected.length < 2) {
+                showToast('2개 이상 가맹점을 선택하세요', true);
+                return;
+            }
+            clearRouteDisplay();
+
+            // Gather coords
+            const points = routeSelected.map(id => {
+                const s = allStores.find(x => x.id === id);
+                return { id, lat: s.lat, lng: s.lng, name: s.name };
+            });
+
+            // Nearest Neighbor TSP
+            const visited = [0];
+            const remaining = new Set(points.map((_, i) => i));
+            remaining.delete(0);
+
+            while (remaining.size > 0) {
+                const last = visited[visited.length - 1];
+                let nearest = -1, nearestDist = Infinity;
+                remaining.forEach(i => {
+                    const d = Math.sqrt(Math.pow(points[last].lat - points[i].lat, 2) + Math.pow(points[last].lng - points[i].lng, 2));
+                    if (d < nearestDist) { nearestDist = d; nearest = i; }
+                });
+                visited.push(nearest);
+                remaining.delete(nearest);
+            }
+
+            // Draw route
+            const orderedPts = visited.map(i => points[i]);
+            const latlngs = orderedPts.map(p => [p.lat, p.lng]);
+
+            routePolyline = L.polyline(latlngs, {
+                color: '#4f46e5', weight: 4, opacity: 0.8,
+                dashArray: '10, 8',
+                lineCap: 'round'
+            }).addTo(map);
+
+            // Number markers
+            orderedPts.forEach((p, i) => {
+                const icon = L.divIcon({
+                    html: `<div class="route-number-marker">${i + 1}</div>`,
+                    className: '',
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+                const nm = L.marker([p.lat, p.lng], { icon, zIndexOffset: 5000 }).addTo(map);
+                nm.bindTooltip(`${i + 1}. ${p.name}`, { direction: 'top', offset: [0, -16], className: 'premium-tooltip' });
+                routeNumberMarkers.push(nm);
+            });
+
+            map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
+
+            // Build route summary
+            const names = orderedPts.map((p, i) => `${i + 1}. ${p.name}`).join(' → ');
+            showToast(`최적 경로: ${names}`);
+        }
+
+        // ══════════════════════════════════════
+        //  NOTIFICATION CENTER
+        // ══════════════════════════════════════
+        (function initNotifCenter() {
+            const notifBtn = document.getElementById('notifBtn');
+            const notifPanel = document.getElementById('notifPanel');
+            const notifOverlay = document.getElementById('notifOverlay');
+            const notifClose = document.getElementById('notifClose');
+            const notifList = document.getElementById('notifList');
+            const notifBadge = document.getElementById('notifBadge');
+            const notifWarningArea = document.getElementById('notifWarningArea');
+
+            let notifOffset = 0;
+            const NOTIF_LIMIT = 30;
+            let notifTotal = 0;
+            let notifLogs = [];
+
+            function openNotifPanel() {
+                notifPanel.classList.add('open');
+                notifOverlay.classList.add('active');
+                notifOffset = 0;
+                notifLogs = [];
+                fetchLogs();
+                fetchInactive();
+            }
+            function closeNotifPanel() {
+                notifPanel.classList.remove('open');
+                notifOverlay.classList.remove('active');
+            }
+
+            notifBtn.addEventListener('click', openNotifPanel);
+            notifClose.addEventListener('click', closeNotifPanel);
+            notifOverlay.addEventListener('click', closeNotifPanel);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && notifPanel.classList.contains('open')) closeNotifPanel();
+            });
+
+            const ACTION_META = {
+                '가맹점 등록': { icon: '+', cls: 'notif-icon-register', emoji: '' },
+                '가맹점 수정': { icon: '✎', cls: 'notif-icon-edit', emoji: '' },
+                '가맹점 삭제': { icon: '✕', cls: 'notif-icon-delete', emoji: '' },
+                '상태 변경':   { icon: '↻', cls: 'notif-icon-status', emoji: '' },
+                '방문기록 삭제':{ icon: '−', cls: 'notif-icon-visit-del', emoji: '' },
+                '엑셀 업로드': { icon: '↑', cls: 'notif-icon-upload', emoji: '' },
+            };
+
+            function timeAgo(ts) {
+                if (!ts) return '';
+                const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+                if (diff < 60) return '방금';
+                if (diff < 3600) return Math.floor(diff/60) + '분 전';
+                if (diff < 86400) return Math.floor(diff/3600) + '시간 전';
+                if (diff < 604800) return Math.floor(diff/86400) + '일 전';
+                return new Date(ts).toLocaleDateString('ko-KR');
+            }
+
+            function renderLogs() {
+                if (!notifLogs.length) {
+                    notifList.innerHTML = '<div class="notif-empty">활동 기록이 없습니다.</div>';
+                    return;
+                }
+                let html = notifLogs.map(log => {
+                    const meta = ACTION_META[log.action] || { icon: '?', cls: 'notif-icon-edit' };
+                    const storeName = log.store_name ? `<strong>${escapeHtml(log.store_name)}</strong>` : '';
+                    const detailHtml = log.detail ? `<div class="notif-detail">${escapeHtml(log.detail)}</div>` : '';
+                    return `<div class="notif-item">
+                        <div class="notif-icon ${meta.cls}">${meta.icon}</div>
+                        <div class="notif-body">
+                            <div class="notif-body-top">
+                                <span class="notif-user">${escapeHtml(log.username || '')}</span>
+                                <span class="notif-time">${timeAgo(log.timestamp)}</span>
+                            </div>
+                            <div class="notif-action">${escapeHtml(log.action)} ${storeName}</div>
+                            ${detailHtml}
+                        </div>
+                    </div>`;
+                }).join('');
+
+                if (notifOffset + NOTIF_LIMIT < notifTotal) {
+                    html += `<button class="notif-load-more" id="notifLoadMore">더 보기</button>`;
+                }
+                notifList.innerHTML = html;
+
+                const loadMoreBtn = document.getElementById('notifLoadMore');
+                if (loadMoreBtn) {
+                    loadMoreBtn.addEventListener('click', () => {
+                        notifOffset += NOTIF_LIMIT;
+                        fetchLogs(true);
+                    });
+                }
+            }
+
+            async function fetchLogs(append) {
+                try {
+                    const res = await fetch(`/api/activity-logs?limit=${NOTIF_LIMIT}&offset=${append ? notifOffset : 0}`);
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    notifTotal = data.total || 0;
+                    if (append) {
+                        notifLogs = notifLogs.concat(data.logs || []);
+                    } else {
+                        notifLogs = data.logs || [];
+                    }
+                    renderLogs();
+                } catch(e) {
+                    console.error('[Notif] fetch error', e);
+                    notifList.innerHTML = '<div class="notif-empty">로그를 불러올 수 없습니다.</div>';
+                }
+            }
+
+            async function fetchInactive() {
+                try {
+                    const res = await fetch('/api/inactive-stores');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const count = data.count || 0;
+                    const stores = data.stores || [];
+
+                    // Update badge
+                    notifBadge.textContent = count > 0 ? (count > 99 ? '99+' : count) : '';
+
+                    if (count === 0) {
+                        notifWarningArea.innerHTML = '';
+                        return;
+                    }
+
+                    const storeLines = stores.slice(0, 20).map(s => {
+                        const days = s.days_ago ? `${s.days_ago}일` : '정보없음';
+                        return `${escapeHtml(s.name)} (${days})`;
+                    }).join('<br>');
+                    const moreText = count > 20 ? `<br>... 외 ${count - 20}개` : '';
+
+                    notifWarningArea.innerHTML = `
+                        <div class="notif-warning" id="notifWarning">
+                            <span class="notif-warning-icon">⚠</span>
+                            <span>14일 이상 미활동: <strong>${count}개</strong> — 클릭하여 상세보기</span>
+                            <div class="notif-warning-expand">${storeLines}${moreText}</div>
+                        </div>`;
+
+                    document.getElementById('notifWarning').addEventListener('click', function() {
+                        this.classList.toggle('expanded');
+                    });
+                } catch(e) {
+                    console.error('[Notif] inactive fetch error', e);
+                }
+            }
+
+            // 페이지 로드 시 배지 업데이트
+            setTimeout(fetchInactive, 2000);
+            // 5분마다 배지 새로고침
+            setInterval(fetchInactive, 300000);
+        })();
+    </script>
+
+    <!-- ═══ GLOBAL SEARCH + KEYBOARD SHORTCUTS ═══ -->
+    <script>
+    (function() {
+        // ── 한글 초성 검색 유틸 ──
+        var CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+        var CHO_BASE = 0xAC00;
+        var CHO_PERIOD = 588;
+
+        function getChosung(ch) {
+            var code = ch.charCodeAt(0);
+            if (code >= 0xAC00 && code <= 0xD7A3) {
+                return CHO[Math.floor((code - CHO_BASE) / CHO_PERIOD)];
+            }
+            return ch;
+        }
+        function extractChosung(str) {
+            return Array.from(str).map(getChosung).join('');
+        }
+        function isChosung(ch) { return CHO.indexOf(ch) >= 0; }
+        function isAllChosung(q) { return Array.from(q).every(isChosung); }
+        function matchChosung(text, query) {
+            if (!query) return false;
+            return extractChosung(text).indexOf(query) >= 0;
+        }
+        function fuzzyMatch(text, query) {
+            if (!text || !query) return false;
+            if (text.toLowerCase().indexOf(query.toLowerCase()) >= 0) return true;
+            if (isAllChosung(query) && matchChosung(text, query)) return true;
+            return false;
+        }
+
+        // ── 최근 검색어 (localStorage) ──
+        var RECENT_KEY = 'p3crm_recent_search';
+        function getRecent() {
+            try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch(e) { return []; }
+        }
+        function addRecent(term) {
+            if (!term) return;
+            var list = getRecent().filter(function(t) { return t !== term; });
+            list.unshift(term);
+            if (list.length > 5) list = list.slice(0, 5);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+        }
+
+        // ── 글로벌 검색 UI ──
+        var gsOverlay = document.getElementById('gsOverlay');
+        var gsInput = document.getElementById('gsInput');
+        var gsResults = document.getElementById('gsResults');
+        var gsActiveIdx = -1;
+        var gsItemEls = [];
+
+        var GS_STATUS_COLORS = {
+            '미컨택': { bg: '#fef2f2', color: '#991b1b', border: '#fecaca' },
+            '명함전달': { bg: '#eef2ff', color: '#3730a3', border: '#c7d2fe' },
+            '미팅대기': { bg: '#fffbeb', color: '#92400e', border: '#fde68a' },
+            '미팅완료': { bg: '#ecfdf5', color: '#065f46', border: '#a7f3d0' },
+        };
+
+        function openGlobalSearch() {
+            gsOverlay.classList.add('active');
+            gsInput.value = '';
+            gsActiveIdx = -1;
+            gsInput.focus();
+            renderGsRecent();
+        }
+        function closeGlobalSearch() {
+            gsOverlay.classList.remove('active');
+            gsInput.value = '';
+            gsResults.innerHTML = '';
+        }
+
+        function renderGsRecent() {
+            var recent = getRecent();
+            if (!recent.length) {
+                gsResults.innerHTML = '<div class="gs-empty">검색어를 입력하세요</div>';
+                gsItemEls = [];
+                return;
+            }
+            var html = '<div class="gs-section">최근 검색</div>';
+            recent.forEach(function(term, i) {
+                html += '<div class="gs-item" data-recent="' + i + '">' +
+                    '<div class="gs-item-icon" style="background:var(--muted);color:var(--muted-fg);">' +
+                    '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 3.5a.5.5 0 0 0-1 0V8a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 7.71V3.5z"/><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/></svg>' +
+                    '</div><div class="gs-item-body"><div class="gs-item-name">' + escapeHtml(term) + '</div></div></div>';
+            });
+            gsResults.innerHTML = html;
+            gsItemEls = Array.from(gsResults.querySelectorAll('.gs-item'));
+            gsItemEls.forEach(function(el) {
+                el.addEventListener('click', function() {
+                    var idx = parseInt(el.dataset.recent);
+                    gsInput.value = recent[idx];
+                    doGlobalSearch(recent[idx]);
+                });
+            });
+        }
+
+        function doGlobalSearch(query) {
+            if (!query.trim()) { renderGsRecent(); return; }
+            var q = query.trim();
+            var results = allStores.filter(function(s) {
+                return fuzzyMatch(s.name || '', q) || fuzzyMatch(s.address || '', q) || fuzzyMatch(s.district || '', q);
+            }).slice(0, 15);
+            gsActiveIdx = -1;
+            if (!results.length) {
+                gsResults.innerHTML = '<div class="gs-empty">검색 결과가 없습니다</div>';
+                gsItemEls = [];
+                return;
+            }
+            var html = '<div class="gs-section">검색 결과 (' + results.length + '건)</div>';
+            results.forEach(function(s, i) {
+                var status = getStoreStatus(s);
+                var sc = GS_STATUS_COLORS[status] || GS_STATUS_COLORS['미컨택'];
+                html += '<div class="gs-item" data-store-id="' + s.id + '" data-idx="' + i + '">' +
+                    '<div class="gs-item-icon" style="background:' + sc.bg + ';color:' + sc.color + ';border:1px solid ' + sc.border + ';">' +
+                    '<svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>' +
+                    '</div><div class="gs-item-body"><div class="gs-item-name">' + escapeHtml(s.name) + '</div>' +
+                    '<div class="gs-item-addr">' + escapeHtml(s.address || '') + ' &middot; ' + escapeHtml(s.district || '') + '</div></div>' +
+                    '<span class="gs-item-badge" style="background:' + sc.bg + ';color:' + sc.color + ';border:1px solid ' + sc.border + ';">' + status + '</span></div>';
+            });
+            gsResults.innerHTML = html;
+            gsItemEls = Array.from(gsResults.querySelectorAll('.gs-item[data-store-id]'));
+            gsItemEls.forEach(function(el) {
+                el.addEventListener('click', function() { selectGsItem(el); });
+            });
+        }
+
+        function selectGsItem(el) {
+            var storeId = el.dataset.storeId;
+            var store = allStores.find(function(s) { return s.id === storeId; });
+            if (!store) return;
+            addRecent(gsInput.value.trim());
+            closeGlobalSearch();
+            activeCardId = storeId;
+            map.flyTo([store.lat, store.lng], 16, { duration: 0.8 });
+            hlMarker(storeId);
+            var m = markers[storeId];
+            if (m) setTimeout(function() { m.openPopup(); }, 600);
+            render();
+        }
+
+        function updateGsActive() {
+            gsItemEls.forEach(function(el, i) { el.classList.toggle('gs-active', i === gsActiveIdx); });
+            if (gsActiveIdx >= 0 && gsItemEls[gsActiveIdx]) gsItemEls[gsActiveIdx].scrollIntoView({ block: 'nearest' });
+        }
+
+        var gsTimer;
+        gsInput.addEventListener('input', function() {
+            clearTimeout(gsTimer);
+            gsTimer = setTimeout(function() { doGlobalSearch(gsInput.value); }, 150);
+        });
+        gsInput.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown') { e.preventDefault(); gsActiveIdx = Math.min(gsActiveIdx + 1, gsItemEls.length - 1); updateGsActive(); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); gsActiveIdx = Math.max(gsActiveIdx - 1, 0); updateGsActive(); }
+            else if (e.key === 'Enter' && gsActiveIdx >= 0 && gsItemEls[gsActiveIdx]) { e.preventDefault(); selectGsItem(gsItemEls[gsActiveIdx]); }
+            else if (e.key === 'Escape') { e.preventDefault(); closeGlobalSearch(); }
+        });
+        gsOverlay.addEventListener('click', function(e) { if (e.target === gsOverlay) closeGlobalSearch(); });
+
+        // ── 단축키 도움말 모달 ──
+        var ksOverlay = document.getElementById('ksOverlay');
+        function openShortcutsHelp() { ksOverlay.classList.add('active'); }
+        function closeShortcutsHelp() { ksOverlay.classList.remove('active'); }
+        document.getElementById('ksClose').addEventListener('click', closeShortcutsHelp);
+        ksOverlay.addEventListener('click', function(e) { if (e.target === ksOverlay) closeShortcutsHelp(); });
+
+        // ── 글로벌 키보드 단축키 ──
+        document.addEventListener('keydown', function(e) {
+            if (gsOverlay.classList.contains('active')) return;
+            if (ksOverlay.classList.contains('active')) {
+                if (e.key === 'Escape') { closeShortcutsHelp(); e.preventDefault(); }
+                return;
+            }
+            var tag = document.activeElement ? document.activeElement.tagName : '';
+            var isInputFocused = (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); openGlobalSearch(); return; }
+            if (isInputFocused) return;
+            if (e.key === 'Escape') {
+                if (document.getElementById('detailPanel').classList.contains('open')) { closeDetail(); e.preventDefault(); return; }
+                if (document.getElementById('flPanel').classList.contains('open')) { closeFullList(); e.preventDefault(); return; }
+                map.closePopup(); return;
+            }
+            if (e.key === '?') { openShortcutsHelp(); return; }
+            var filterMap = { '1': '__all__', '2': '미컨택', '3': '명함전달', '4': '미팅대기', '5': '미팅완료' };
+            if (filterMap[e.key]) {
+                e.preventDefault();
+                if (e.key === '1') { activeStatus = null; filterStarred = false; }
+                else { var t = filterMap[e.key]; activeStatus = (activeStatus === t) ? null : t; filterStarred = false; }
+                renderStatusChips(); render();
+                showToast(e.key === '1' ? '전체 보기' : filterMap[e.key] + ' 필터 ' + (activeStatus === filterMap[e.key] ? 'ON' : 'OFF'));
+                return;
+            }
+            if (e.key === 'n' || e.key === 'N') { e.preventDefault(); window.location.href = '/stores'; return; }
+            if (e.key === 'd' || e.key === 'D') { e.preventDefault(); window.location.href = '/dashboard'; return; }
+        });
+
+        window.openGlobalSearch = openGlobalSearch;
+        window.closeGlobalSearch = closeGlobalSearch;
+    })();
     </script>
 
     <button id="gpsBtn" style="position:fixed;bottom:90px;right:20px;z-index:99999;width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(79,70,229,.45),0 1px 3px rgba(0,0,0,.12);" title="내 위치 찾기">
@@ -2084,6 +3212,41 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/sw.js').catch(err => console.log('SW 등록 실패:', err));
         }
+    </script>
+    <script>
+        // ── 디테일 패널 스와이프 다운 닫기 (모바일) ──
+        (function() {
+            var panel = document.getElementById('detailPanel');
+            if (!panel) return;
+            var startY = 0, startX = 0, isDragging = false;
+
+            panel.addEventListener('touchstart', function(e) {
+                // dp-header 영역에서만 스와이프 시작
+                var header = panel.querySelector('.dp-header');
+                if (!header || !header.contains(e.target)) return;
+                startY = e.touches[0].clientY;
+                startX = e.touches[0].clientX;
+                isDragging = true;
+            }, { passive: true });
+
+            panel.addEventListener('touchend', function(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                var dy = e.changedTouches[0].clientY - startY;
+                var dx = Math.abs(e.changedTouches[0].clientX - startX);
+                // 수직 스와이프 50px 이상 & 수평 이동보다 큰 경우 닫기
+                if (dy > 50 && dy > dx) {
+                    closeDetail();
+                }
+            }, { passive: true });
+        })();
+
+        // ── 팝업 터치 영역 확대 ──
+        (function() {
+            var style = document.createElement('style');
+            style.textContent = '@media (max-width: 768px) { .leaflet-popup-content { min-width: 200px; } .leaflet-popup-content a, .leaflet-popup-content button { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 12px; } }';
+            document.head.appendChild(style);
+        })();
     </script>
 </body>
 </html>

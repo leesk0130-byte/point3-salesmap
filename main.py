@@ -164,6 +164,29 @@ def _invalidate_cache():
     _stores_cache["data"] = None
     _stores_cache["ts"] = 0
 
+
+# ══════════════════════════════════════════
+#  활동 로그 시스템
+# ══════════════════════════════════════════
+
+def log_activity(team_name, username, action, store_name="", store_id="", detail=""):
+    """활동 로그를 Firestore activity_logs 컬렉션에 기록"""
+    try:
+        log_entry = {
+            "id": str(uuid.uuid4()),
+            "teamName": team_name,
+            "username": username,
+            "action": action,
+            "store_name": store_name,
+            "store_id": store_id,
+            "detail": detail,
+            "timestamp": datetime.now().isoformat(),
+        }
+        fs_set_doc("activity_logs", log_entry["id"], log_entry)
+    except Exception as e:
+        print(f"[활동 로그 기록 오류] {e}")
+
+
 def save_store(store):
     """매장 저장. 성공 시 True, 실패 시 False 반환"""
     result = fs_set_doc("stores", store["id"], store)
@@ -554,6 +577,189 @@ def admin_delete_user():
     return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
 
 
+@app.route("/api/admin/deactivate-user", methods=["POST"])
+@superadmin_required
+def admin_deactivate_user():
+    """사용자 비활성화 (삭제가 아닌 isApproved=False 처리)"""
+    data = request.get_json()
+    uid = data.get("userId")
+    if not uid:
+        return jsonify({"error": "userId가 필요합니다."}), 400
+    users = load_users()
+    for u in users:
+        if u["id"] == uid:
+            if u.get("role") == "superadmin":
+                return jsonify({"error": "관리자는 비활성화할 수 없습니다."}), 400
+            u["isApproved"] = False
+            save_user(u)
+            return jsonify({"message": f"{u['name']} 비활성화 완료"})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/admin/reactivate-user", methods=["POST"])
+@superadmin_required
+def admin_reactivate_user():
+    """비활성화된 사용자 재활성화"""
+    data = request.get_json()
+    uid = data.get("userId")
+    if not uid:
+        return jsonify({"error": "userId가 필요합니다."}), 400
+    users = load_users()
+    for u in users:
+        if u["id"] == uid:
+            u["isApproved"] = True
+            save_user(u)
+            return jsonify({"message": f"{u['name']} 재활성화 완료"})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/users/<username>/role", methods=["PUT"])
+@superadmin_required
+def update_user_role(username):
+    """팀원 역할 변경 (관리자/팀원/뷰어)"""
+    data = request.get_json()
+    new_role = data.get("role", "").strip()
+    valid_roles = ["admin", "user", "viewer"]
+    if new_role not in valid_roles:
+        return jsonify({"error": "유효하지 않은 역할입니다."}), 400
+    users = load_users()
+    for u in users:
+        if u["username"] == username:
+            if u.get("role") == "superadmin":
+                return jsonify({"error": "최고 관리자의 역할은 변경할 수 없습니다."}), 400
+            u["role"] = new_role
+            save_user(u)
+            return jsonify({"message": f"역할 변경 완료: {new_role}", "role": new_role})
+    return jsonify({"error": "유저를 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/team/invite-link")
+@superadmin_required
+def team_invite_link():
+    """팀 초대 링크 생성"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    token = hashlib.sha256(f"{team}:{app.secret_key}:invite".encode()).hexdigest()[:16]
+    base_url = request.host_url.rstrip("/")
+    link = f"{base_url}/login?invite={token}&team={quote(team)}"
+    return jsonify({"link": link, "team": team})
+
+
+@app.route("/api/team/members-stats")
+@superadmin_required
+def team_members_stats():
+    """팀원별 활동 통계 (최근 7일 활동, 담당 가맹점 수)"""
+    from datetime import timedelta
+    user = get_current_user()
+    team = user.get("teamName", "")
+    users_list = load_users()
+    team_members = [u for u in users_list if u.get("teamName") == team]
+    stores = load_stores()
+    my_stores = [s for s in stores if s.get("teamName") == team]
+    today = datetime.now().date()
+    seven_days_ago = (today - timedelta(days=7)).strftime("%Y-%m-%d")
+    result = []
+    for member in team_members:
+        mname = member.get("name", "")
+        recent_7d = 0
+        total_visits = 0
+        assigned_stores = 0
+        for s in my_stores:
+            visits = s.get("visits") or []
+            member_visited = False
+            for v in visits:
+                v_author = v.get("author", "") or v.get("created_by", "")
+                is_mine = (v_author == mname) or (len(team_members) == 1)
+                if is_mine:
+                    total_visits += 1
+                    member_visited = True
+                    vdate = v.get("date", "")
+                    if vdate >= seven_days_ago:
+                        recent_7d += 1
+            if member_visited:
+                assigned_stores += 1
+        result.append({
+            "id": member["id"], "username": member.get("username", ""),
+            "name": mname, "email": member.get("email", ""),
+            "role": member.get("role", "user"),
+            "isApproved": member.get("isApproved", False),
+            "teamName": member.get("teamName", ""),
+            "created_at": member.get("created_at", ""),
+            "recent_7d": recent_7d, "total_visits": total_visits,
+            "assigned_stores": assigned_stores,
+        })
+    return jsonify(result)
+
+
+@app.route("/api/stores/check-duplicate")
+@login_required
+def check_duplicate_store():
+    """가맹점명 중복 체크"""
+    name = request.args.get("name", "").strip()
+    if not name:
+        return jsonify({"exists": False})
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    for s in stores:
+        if s.get("teamName") == team and s.get("name", "").strip() == name:
+            return jsonify({"exists": True, "store": {"name": s["name"], "address": s.get("address", "")}})
+    return jsonify({"exists": False})
+
+
+@app.route("/api/upload-excel-preview", methods=["POST"])
+@login_required
+def upload_excel_preview():
+    """엑셀 파일 미리보기 - 실제 등록하지 않고 파싱 결과만 반환"""
+    if "file" not in request.files:
+        return jsonify({"error": "파일이 없습니다."}), 400
+    file = request.files["file"]
+    if not file.filename.endswith(".xlsx"):
+        return jsonify({"error": ".xlsx 파일만 업로드 가능합니다."}), 400
+    try:
+        wb = openpyxl.load_workbook(file)
+        ws = wb.active
+    except Exception as e:
+        return jsonify({"error": f"엑셀 파일 읽기 실패: {str(e)}"}), 400
+    headers = [cell.value for cell in ws[1]]
+    required = ["가맹점명", "주소"]
+    for col in required:
+        if col not in headers:
+            return jsonify({"error": f"필수 컬럼 '{col}'이(가) 없습니다."}), 400
+    col_map = {}
+    for idx, h in enumerate(headers):
+        col_map[h] = idx
+    user = get_current_user()
+    team = user.get("teamName", "")
+    existing_stores = load_stores()
+    existing_names = {s.get("name", "").strip() for s in existing_stores if s.get("teamName") == team}
+    rows = []
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        name_val = row[col_map["가맹점명"]] if col_map.get("가맹점명") is not None else None
+        addr_val = row[col_map["주소"]] if col_map.get("주소") is not None else None
+        if not name_val or not addr_val:
+            continue
+        memo = ""
+        if "메모" in col_map and col_map["메모"] < len(row):
+            memo = row[col_map["메모"]] or ""
+        is_dup = str(name_val).strip() in existing_names
+        rows.append({"row": row_idx, "name": str(name_val), "address": str(addr_val),
+                     "memo": str(memo), "duplicate": is_dup})
+    return jsonify({"rows": rows, "total": len(rows)})
+
+
+@app.route("/api/stores/recent")
+@login_required
+def recent_stores():
+    """최근 등록한 가맹점 5개"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my_stores = [s for s in stores if s.get("teamName") == team]
+    my_stores.sort(key=lambda s: s.get("created_at", ""), reverse=True)
+    return jsonify(my_stores[:5])
+
+
 @app.route("/api/admin/update-team", methods=["POST"])
 @superadmin_required
 def admin_update_team():
@@ -615,6 +821,47 @@ def stores_page():
 #  API 라우트 - 매장 CRUD
 # ══════════════════════════════════════════
 
+@app.route("/api/search", methods=["GET"])
+@login_required
+def search_stores():
+    """가맹점 통합 검색 (이름+주소+지역구). 초성 검색 지원"""
+    user = get_current_user()
+    q = request.args.get("q", "").strip()
+    if not q:
+        return jsonify([])
+
+    stores = load_stores()
+    team = user.get("teamName", "")
+    my_stores = [s for s in stores if s.get("teamName") == team]
+
+    q_lower = q.lower()
+    results = []
+    for s in my_stores:
+        name = (s.get("name") or "").lower()
+        address = (s.get("address") or "").lower()
+        district = (s.get("district") or "").lower()
+        if q_lower in name or q_lower in address or q_lower in district:
+            visits = s.get("visits", [])
+            status = "미컨택"
+            if visits:
+                latest = max(visits, key=lambda v: v.get("date", ""))
+                raw = latest.get("result", "미컨택")
+                status_map = {'미방문':'미컨택','부재중':'미컨택','계약성사':'미팅완료','실패':'미컨택','기타':'미컨택'}
+                valid = ['미컨택','명함전달','미팅대기','미팅완료']
+                status = status_map.get(raw, raw if raw in valid else '미컨택')
+            results.append({
+                "id": s.get("id"),
+                "name": s.get("name"),
+                "address": s.get("address"),
+                "district": s.get("district"),
+                "status": status,
+                "lat": s.get("lat"),
+                "lng": s.get("lng"),
+            })
+
+    return jsonify(results[:20])
+
+
 @app.route("/api/stores", methods=["GET"])
 @login_required
 def get_stores():
@@ -667,6 +914,8 @@ def add_store():
 
     if not save_store(store):
         return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
+    log_activity(user.get("teamName", ""), user.get("name", ""), "가맹점 등록",
+                 store.get("name", ""), store["id"], f"주소: {store.get('address', '')}")
     return jsonify(store), 201
 
 
@@ -696,6 +945,10 @@ def update_store(store_id):
                 stores[i]["district"] = extract_district(data["address"])
             if not save_store(stores[i]):
                 return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
+            changed_keys = [k for k in data if k in ["name","address","memo","notes","contact_email","contact_linkedin","contact_remember","contact_intro","showOnMap","website"]]
+            detail = ", ".join(changed_keys) + " 변경" if changed_keys else "정보 수정"
+            log_activity(user_team, user.get("name", ""), "가맹점 수정",
+                         stores[i].get("name", ""), store_id, detail)
             return jsonify(stores[i])
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -717,6 +970,8 @@ def delete_store(store_id):
         return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
 
     if delete_store_doc(store_id):
+        log_activity(user_team, user.get("name", ""), "가맹점 삭제",
+                     store.get("name", ""), store_id, "")
         return jsonify({"message": "삭제 완료"}), 200
     return jsonify({"error": "삭제 중 오류가 발생했습니다."}), 500
 
@@ -799,6 +1054,9 @@ def upload_excel():
         save_store(store)
         added.append(store)
 
+    if added:
+        log_activity(team, user.get("name", ""), "엑셀 업로드",
+                     "", "", f"{len(added)}개 매장 일괄 등록")
     return jsonify({
         "message": f"{len(added)}개 매장 추가 완료",
         "added": added,
@@ -851,7 +1109,41 @@ def add_visit(store_id):
             stores[i]["visits"].append(visit)
             if not save_store(stores[i]):
                 return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
+            log_activity(user_team, user.get("name", ""), "상태 변경",
+                         store.get("name", ""), store_id,
+                         f"{visit.get('result', '')} ({visit.get('date', '')})")
             return jsonify(visit), 201
+
+    return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/stores/<store_id>/visits/<visit_id>/date", methods=["PATCH"])
+@login_required
+def update_visit_date(store_id, visit_id):
+    """방문 기록의 날짜 변경 (캘린더 드래그 이동용)"""
+    user = get_current_user()
+    user_team = user.get("teamName", "")
+    data = request.get_json()
+    new_date = data.get("date")
+    if not new_date:
+        return jsonify({"error": "date 필드가 필요합니다."}), 400
+
+    _invalidate_cache()
+    stores = load_stores()
+
+    for i, store in enumerate(stores):
+        if store["id"] == store_id:
+            if store.get("teamName") != user_team:
+                return jsonify({"error": "권한이 없습니다."}), 403
+            visits = store.get("visits", [])
+            for v in visits:
+                if v.get("id") == visit_id:
+                    v["date"] = new_date
+                    stores[i]["visits"] = visits
+                    if not save_store(stores[i]):
+                        return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
+                    return jsonify({"message": "날짜 변경 완료", "visit": v}), 200
+            return jsonify({"error": "방문 기록을 찾을 수 없습니다."}), 404
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
 
@@ -881,6 +1173,8 @@ def delete_visit(store_id, visit_id):
 
             if not save_store(updated_store):
                 return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
+            log_activity(user_team, user.get("name", ""), "방문기록 삭제",
+                         store.get("name", ""), store_id, "")
             return jsonify({"message": "방문 기록 삭제 완료"}), 200
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
@@ -1061,11 +1355,17 @@ def bulk_delete_stores():
 @app.route("/api/export/csv")
 @login_required
 def export_csv():
-    """가맹점 목록을 BOM 포함 UTF-8 CSV로 내보내기"""
+    """가맹점 목록을 BOM 포함 UTF-8 CSV로 내보내기. 필터 파라미터 지원"""
     stores = load_stores()
     user = get_current_user()
     team = user.get("teamName", "")
     stores = [s for s in stores if s.get("teamName") == team]
+
+    # 필터: ids 파라미터로 특정 매장만 내보내기
+    f_ids = request.args.get("ids", "")
+    if f_ids:
+        id_set = set(f_ids.split(","))
+        stores = [s for s in stores if s.get("id") in id_set]
 
     output = io.StringIO()
     output.write('\ufeff')
@@ -1121,11 +1421,38 @@ def export_csv():
 @app.route("/api/export/excel")
 @login_required
 def export_excel():
-    """가맹점 목록을 .xlsx로 내보내기 (시트1: 목록, 시트2: 방문기록)"""
+    """가맹점 목록을 .xlsx로 내보내기 (시트1: 목록, 시트2: 방문기록). 필터 파라미터 지원"""
     stores = load_stores()
     user = get_current_user()
     team = user.get("teamName", "")
     stores = [s for s in stores if s.get("teamName") == team]
+
+    # 필터 파라미터 적용
+    f_status = request.args.get("status", "")
+    f_district = request.args.get("district", "")
+    f_search = request.args.get("search", "").lower()
+    f_ids = request.args.get("ids", "")
+
+    if f_ids:
+        id_set = set(f_ids.split(","))
+        stores = [s for s in stores if s.get("id") in id_set]
+    else:
+        if f_status:
+            def _get_export_status(s):
+                visits = s.get("visits", [])
+                if not visits:
+                    return "미컨택"
+                latest = max(visits, key=lambda v: v.get("date", ""))
+                r = latest.get("result", "미컨택")
+                m = {"미방문": "미컨택", "부재중": "미컨택", "계약성사": "미팅완료", "실패": "미컨택", "기타": "미컨택"}
+                valid = ["미컨택", "명함전달", "미팅대기", "미팅완료"]
+                return m.get(r, r if r in valid else "미컨택")
+            stores = [s for s in stores if _get_export_status(s) == f_status]
+        if f_district:
+            stores = [s for s in stores if (s.get("district") or "기타") == f_district]
+        if f_search:
+            stores = [s for s in stores if f_search in f"{s.get('name','')} {s.get('address','')} {s.get('memo','')}".lower()]
+
     wb = openpyxl.Workbook()
 
     header_font = Font(bold=True, color="FFFFFF", size=11)
@@ -1709,6 +2036,143 @@ def export_snapshots():
     filename = f"영업히스토리_{team}_{datetime.now().strftime('%Y%m%d')}.xlsx"
     return send_file(buf, mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                      as_attachment=True, download_name=filename)
+
+
+# ══════════════════════════════════════════
+#  API 라우트 - 팀원별 활동 현황
+# ══════════════════════════════════════════
+
+@app.route("/api/stats/by-member", methods=["GET"])
+@login_required
+def stats_by_member():
+    """팀원별 활동 건수, 최근 활동일 집계"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my = [s for s in stores if s.get("teamName") == team]
+
+    # 팀원 목록
+    users = load_users()
+    team_members = [u for u in users if u.get("teamName") == team and u.get("isApproved")]
+
+    member_stats = {}
+    for u in team_members:
+        member_stats[u["id"]] = {
+            "id": u["id"],
+            "name": u.get("name", "알 수 없음"),
+            "total_activities": 0,
+            "last_activity_date": "",
+            "this_month_activities": 0,
+            "status_counts": {"미컨택": 0, "명함전달": 0, "미팅대기": 0, "미팅완료": 0},
+        }
+
+    today = datetime.now().date()
+    this_month_start = today.replace(day=1).strftime("%Y-%m-%d")
+
+    for s in my:
+        for v in (s.get("visits") or []):
+            v_author = v.get("author", "") or v.get("created_by", "")
+            v_date = v.get("date", "")
+
+            matched_id = None
+            if v_author:
+                for uid, ms in member_stats.items():
+                    if ms["name"] == v_author:
+                        matched_id = uid
+                        break
+
+            if not matched_id and len(team_members) == 1:
+                matched_id = team_members[0]["id"]
+
+            if not matched_id:
+                if "__unassigned__" not in member_stats:
+                    member_stats["__unassigned__"] = {
+                        "id": "__unassigned__",
+                        "name": "미지정",
+                        "total_activities": 0,
+                        "last_activity_date": "",
+                        "this_month_activities": 0,
+                        "status_counts": {"미컨택": 0, "명함전달": 0, "미팅대기": 0, "미팅완료": 0},
+                    }
+                matched_id = "__unassigned__"
+
+            ms = member_stats[matched_id]
+            ms["total_activities"] += 1
+
+            if v_date and v_date > ms["last_activity_date"]:
+                ms["last_activity_date"] = v_date
+
+            if v_date and v_date >= this_month_start:
+                ms["this_month_activities"] += 1
+
+            result = v.get("result", "미컨택") or "미컨택"
+            mapped = STATUS_MAP.get(result, result)
+            if mapped in ms["status_counts"]:
+                ms["status_counts"][mapped] += 1
+
+    result_list = sorted(member_stats.values(), key=lambda x: x["total_activities"], reverse=True)
+    return jsonify(result_list)
+
+
+# ══════════════════════════════════════════
+#  API 라우트 - 활동 로그 조회
+# ══════════════════════════════════════════
+
+@app.route("/api/activity-logs", methods=["GET"])
+@login_required
+def get_activity_logs():
+    """팀 활동 로그 조회 (최신순). ?limit=50&offset=0"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    limit = int(request.args.get("limit", 50))
+    offset = int(request.args.get("offset", 0))
+
+    all_logs = fs_get_collection("activity_logs")
+    team_logs = [l for l in all_logs if l.get("teamName") == team]
+    team_logs.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    paginated = team_logs[offset:offset + limit]
+    return jsonify({"logs": paginated, "total": len(team_logs)})
+
+
+@app.route("/api/inactive-stores", methods=["GET"])
+@login_required
+def get_inactive_stores():
+    """14일 이상 활동 없는 가맹점 목록"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    my_stores = [s for s in stores if s.get("teamName") == team]
+
+    from datetime import timedelta
+    cutoff = datetime.now() - timedelta(days=14)
+    inactive = []
+    for s in my_stores:
+        visits = s.get("visits") or []
+        if visits:
+            latest = max(visits, key=lambda v: v.get("date", ""))
+            last_date_str = latest.get("date", "")
+        else:
+            last_date_str = s.get("created_at", "")
+
+        if not last_date_str:
+            inactive.append({"id": s["id"], "name": s.get("name", ""), "last_activity": ""})
+            continue
+
+        try:
+            last_dt = datetime.fromisoformat(last_date_str.replace("Z", "+00:00").split("+")[0].split("T")[0])
+        except Exception:
+            try:
+                last_dt = datetime.strptime(last_date_str[:10], "%Y-%m-%d")
+            except Exception:
+                inactive.append({"id": s["id"], "name": s.get("name", ""), "last_activity": last_date_str})
+                continue
+
+        if last_dt < cutoff:
+            days_ago = (datetime.now() - last_dt).days
+            inactive.append({"id": s["id"], "name": s.get("name", ""), "last_activity": last_date_str, "days_ago": days_ago})
+
+    inactive.sort(key=lambda x: x.get("days_ago", 9999), reverse=True)
+    return jsonify({"stores": inactive, "count": len(inactive)})
 
 
 # ══════════════════════════════════════════

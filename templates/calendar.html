@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="/static/manifest.json">
   <link rel="apple-touch-icon" href="/static/icon.svg">
   <title>{{ team_name }} CRM - 캘린더</title>
@@ -34,6 +36,11 @@
       --border: #e5e7eb;
       --text-secondary: #374151;
       --transition: cubic-bezier(0.4, 0, 0.2, 1);
+      /* heatmap colors */
+      --heat-0: transparent;
+      --heat-1: #dcfce7;
+      --heat-2: #86efac;
+      --heat-3: #22c55e;
     }
     body.dark {
       --bg: #0f172a;
@@ -54,6 +61,9 @@
       --danger-light: #7f1d1d;
       --violet: #a78bfa;
       --violet-light: #4c1d95;
+      --heat-1: #064e3b;
+      --heat-2: #065f46;
+      --heat-3: #047857;
     }
 
     body {
@@ -114,6 +124,91 @@
     }
     .btn-nav:hover { background: var(--border); color: var(--fg); }
 
+    /* ── 모바일 햄버거 메뉴 ── */
+    .hamburger-btn {
+      display: none; width: 44px; height: 44px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--card-bg); cursor: pointer;
+      align-items: center; justify-content: center;
+      font-size: 22px; color: var(--fg); flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:hover { background: var(--muted); }
+    .mobile-nav-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.3); backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity .25s;
+    }
+    .mobile-nav-overlay.open { opacity: 1; }
+    .mobile-nav {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 280px; max-width: 80vw;
+      background: var(--card-bg); z-index: 9999;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,.1); overflow-y: auto;
+    }
+    .mobile-nav.open { transform: translateX(0); }
+    .mobile-nav-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mobile-nav-header span { font-size: 16px; font-weight: 700; color: var(--fg); }
+    .mobile-nav-close {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card-bg);
+      cursor: pointer; font-size: 18px; color: var(--muted-fg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mobile-nav-links { padding: 12px; flex: 1; }
+    .mobile-nav-links a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      font-size: 15px; font-weight: 500;
+      color: var(--fg); text-decoration: none;
+    }
+    .mobile-nav-links a:hover { background: var(--muted); }
+    .mobile-nav-links a.active { background: var(--primary-light); color: var(--primary); font-weight: 600; }
+    .mobile-nav-links a svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .mobile-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .mobile-nav-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #dc2626; text-decoration: none;
+    }
+    .mobile-nav-footer a:hover { background: #fef2f2; }
+    body.dark .mobile-nav-footer a:hover { background: #451a1a; }
+
+    @media (max-width: 768px) {
+      .header-right { display: none; }
+      .hamburger-btn { display: flex; }
+      .header { padding: 0 12px; }
+      /* 사이드 패널 → 바텀 시트 */
+      .side-panel {
+        position: fixed !important; left: 0; right: 0; bottom: 0;
+        width: 100% !important; max-height: 65vh;
+        z-index: 500; order: 2;
+        border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,.12);
+        transform: translateY(calc(100% - 48px));
+        transition: transform .3s cubic-bezier(.32,.72,0,1);
+        overflow: hidden;
+      }
+      .side-panel.bs-open { transform: translateY(0); overflow-y: auto; }
+      .bs-handle-cal {
+        display: flex !important; align-items: center; justify-content: center;
+        min-height: 44px; cursor: grab; flex-shrink: 0;
+      }
+      .bs-handle-cal-bar {
+        width: 40px; height: 5px;
+        background: var(--border); border-radius: 3px;
+      }
+    }
+    @media (min-width: 769px) {
+      .bs-handle-cal { display: none; }
+    }
+
     /* ── 레이아웃 ── */
     .main-layout {
       max-width: 1280px;
@@ -146,6 +241,85 @@
       color: var(--fg);
     }
     .card-body { padding: 20px 24px 24px; }
+
+    /* ── 예정 미팅 배너 ── */
+    .meeting-banner {
+      margin-bottom: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--warning);
+      background: var(--warning-light);
+      padding: 14px 18px;
+    }
+    .meeting-banner-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--warning);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .meeting-banner-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .meeting-banner-item {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(217,119,6,.12);
+      color: var(--fg);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .meeting-banner-item.overdue {
+      background: var(--danger-light);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      font-weight: 600;
+    }
+    body.dark .meeting-banner-item { background: rgba(251,191,36,.1); }
+    body.dark .meeting-banner-item.overdue { background: rgba(248,113,113,.15); }
+
+    /* ── 월간 통계 카드 ── */
+    .stats-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      text-align: center;
+      transition: all .2s var(--transition);
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,.08);
+    }
+    .stat-card .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+    .stat-card .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-fg);
+      margin-top: 4px;
+      letter-spacing: 0.3px;
+    }
+    .stat-card.stat-total .stat-value { color: var(--primary); }
+    .stat-card.stat-ratio .stat-value { font-size: 13px; font-weight: 700; }
+    .stat-card.stat-active .stat-value { color: var(--success); }
+    .stat-card.stat-avg .stat-value { color: var(--violet); }
 
     /* ── 월 네비게이션 ── */
     .month-nav {
@@ -197,7 +371,38 @@
       color: #fff !important;
     }
 
-    /* ── 캘린더 그리드 ── */
+    /* ── 뷰 전환 버튼 ── */
+    .view-toggle {
+      display: flex;
+      gap: 4px;
+      background: var(--muted);
+      border-radius: 8px;
+      padding: 3px;
+      border: 1px solid var(--border);
+    }
+    .view-toggle-btn {
+      padding: 5px 14px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--muted-fg);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s var(--transition);
+    }
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 1px 4px rgba(79,70,229,.3);
+    }
+    .view-toggle-btn:hover:not(.active) {
+      background: var(--border);
+      color: var(--fg);
+    }
+
+    /* ── 캘린더 그리드 (월간) ── */
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
@@ -290,6 +495,34 @@
       background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
     }
 
+    /* heatmap backgrounds */
+    .cal-cell.heat-1 { background: var(--heat-1); }
+    .cal-cell.heat-2 { background: var(--heat-2); }
+    .cal-cell.heat-3 { background: var(--heat-3); }
+    .cal-cell.heat-3 .cal-date { color: #fff; }
+    .cal-cell.heat-3:nth-child(7n+1) .cal-date { color: #fca5a5; }
+    .cal-cell.heat-3:nth-child(7n) .cal-date { color: #93c5fd; }
+    /* don't override today/selected look with heatmap */
+    .cal-cell.today.heat-1, .cal-cell.today.heat-2, .cal-cell.today.heat-3 {
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+    }
+    body.dark .cal-cell.today.heat-1, body.dark .cal-cell.today.heat-2, body.dark .cal-cell.today.heat-3 {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+    }
+    .cal-cell.selected.heat-1, .cal-cell.selected.heat-2, .cal-cell.selected.heat-3 {
+      background: linear-gradient(135deg, #eef2ff 0%, #ede9fe 100%);
+    }
+    body.dark .cal-cell.selected.heat-1, body.dark .cal-cell.selected.heat-2, body.dark .cal-cell.selected.heat-3 {
+      background: linear-gradient(135deg, #1e1b4b 0%, #2e1065 100%);
+    }
+
+    /* drag states */
+    .cal-cell.drag-over {
+      outline: 2px dashed var(--primary);
+      outline-offset: -2px;
+      background: var(--primary-light) !important;
+    }
+
     .cal-date {
       font-size: 13px;
       font-weight: 500;
@@ -348,6 +581,32 @@
       box-shadow: 0 2px 6px rgba(129,140,248,.35);
     }
 
+    /* draggable visit pill in cells */
+    .cal-visit-pill {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 2px;
+      cursor: grab;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      display: block;
+      transition: opacity .15s;
+    }
+    .cal-visit-pill:active { cursor: grabbing; }
+    .cal-visit-pill.dragging { opacity: 0.4; }
+    .cal-visit-pill.pill-indigo { background: #eef2ff; color: #4338ca; }
+    .cal-visit-pill.pill-amber { background: #fffbeb; color: #b45309; }
+    .cal-visit-pill.pill-emerald { background: #ecfdf5; color: #047857; }
+    .cal-visit-pill.pill-gray { background: #f3f4f6; color: #6b7280; }
+    body.dark .cal-visit-pill.pill-indigo { background: var(--primary-light); color: #a5b4fc; }
+    body.dark .cal-visit-pill.pill-amber { background: var(--warning-light); color: #fcd34d; }
+    body.dark .cal-visit-pill.pill-emerald { background: var(--success-light); color: #6ee7b7; }
+    body.dark .cal-visit-pill.pill-gray { background: var(--muted); color: var(--muted-fg); }
+
     .dot-indigo { background: #6366f1; }
     .dot-emerald { background: #10b981; }
     .dot-amber { background: #f59e0b; }
@@ -388,6 +647,121 @@
       color: var(--primary);
       background: var(--primary-light);
       border-color: var(--primary);
+    }
+
+    /* ── 주간 뷰 ── */
+    .weekly-view { display: none; }
+    .weekly-view.active { display: block; }
+    .monthly-view.active { display: block; }
+    .monthly-view { display: none; }
+
+    .weekly-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      min-height: 400px;
+    }
+    .weekly-day {
+      background: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      min-height: 350px;
+      transition: all .2s var(--transition);
+    }
+    .weekly-day:hover {
+      border-color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .weekly-day.today-col {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .weekly-day-header {
+      text-align: center;
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .weekly-day-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted-fg);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .weekly-day-num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--fg);
+      margin-top: 2px;
+    }
+    .weekly-day.today-col .weekly-day-num {
+      color: var(--primary);
+    }
+    .weekly-day-sun .weekly-day-name, .weekly-day-sun .weekly-day-num { color: #ef4444; }
+    .weekly-day-sat .weekly-day-name, .weekly-day-sat .weekly-day-num { color: #3b82f6; }
+    .weekly-day.today-col .weekly-day-num { color: var(--primary); }
+
+    .weekly-visit-item {
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      border-left: 3px solid var(--primary);
+      background: var(--card-bg);
+      cursor: grab;
+      transition: all .15s var(--transition);
+    }
+    .weekly-visit-item:hover {
+      transform: translateX(2px);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .weekly-visit-item:active { cursor: grabbing; }
+    .weekly-visit-item.dragging { opacity: 0.4; }
+    .weekly-visit-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .weekly-visit-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+    .weekly-visit-memo {
+      font-size: 10px;
+      color: var(--muted-fg);
+      margin-top: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .weekly-note-item {
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-radius: 6px;
+      background: var(--card-bg);
+      border-left: 3px solid #9ca3af;
+      font-size: 11px;
+      color: var(--muted-fg);
+    }
+    .weekly-day.drag-over {
+      outline: 2px dashed var(--primary);
+      outline-offset: -2px;
+      background: var(--primary-light) !important;
+    }
+    .weekly-empty {
+      text-align: center;
+      color: var(--muted-fg);
+      font-size: 11px;
+      padding: 20px 4px;
+      opacity: 0.5;
     }
 
     /* ── 사이드 패널 ── */
@@ -607,16 +981,18 @@
       .month-nav .month-label { font-size: 15px; min-width: 130px; }
       .summary-bar { gap: 8px; }
       .summary-item { font-size: 12px; padding: 4px 10px; }
+      .stats-cards { grid-template-columns: repeat(2, 1fr); }
+      .weekly-grid { grid-template-columns: repeat(1, 1fr); gap: 6px; }
+      .weekly-day { min-height: 80px; }
     }
 
     @media (max-width: 768px) {
-      /* 캘린더 셀 최소 높이 축소 */
       .cal-cell { min-height: 40px; }
-      /* 입력 폼 터치 친화적 */
       .cal-submit-btn { min-height: 44px; font-size: 14px; }
       .cal-tab { min-height: 44px; font-size: 13px; }
       .cal-input { min-height: 44px; font-size: 14px; padding: 10px 12px; }
       .cal-result-btn { min-height: 44px; padding: 8px 14px; }
+      .cal-visit-pill { display: none; }
     }
 
     @media (max-width: 480px) {
@@ -624,6 +1000,9 @@
       .btn-nav { padding: 6px 12px; font-size: 12px; }
       .card-header { padding: 14px 16px 12px; }
       .card-body { padding: 14px 16px 18px; }
+      .stats-cards { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .stat-card { padding: 10px 12px; }
+      .stat-card .stat-value { font-size: 20px; }
     }
     .cal-result-btn { padding:6px 12px; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--fg); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .2s var(--transition); }
     .cal-result-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
@@ -656,31 +1035,72 @@
       <a href="/dashboard" class="btn-nav">대시보드</a>
       <button class="btn-dark-toggle" id="darkToggle" onclick="toggleDark()" title="다크모드">&#127769;</button>
     </div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="메뉴 열기">&#9776;</button>
   </header>
+
+  <!-- ── 모바일 슬라이드 메뉴 ── -->
+  <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+  <nav class="mobile-nav" id="mobileNav">
+    <div class="mobile-nav-header">
+      <span>{{ team_name }} CRM</span>
+      <button class="mobile-nav-close" id="mobileNavClose">&times;</button>
+    </div>
+    <div class="mobile-nav-links">
+      <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>지도</a>
+      <a href="/stores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>가맹점 목록</a>
+      <a href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>대시보드</a>
+      <a href="/calendar" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>캘린더</a>
+    </div>
+    <div class="mobile-nav-footer">
+      <a href="/auth/logout"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</a>
+    </div>
+  </nav>
 
   <!-- ── 메인 ── -->
   <div class="main-layout">
 
     <!-- 캘린더 영역 -->
     <div class="calendar-section">
+
+      <!-- 예정된 미팅 배너 -->
+      <div id="meetingBanner" class="meeting-banner" style="display:none;"></div>
+
+      <!-- 월간 통계 카드 -->
+      <div class="stats-cards" id="statsCards"></div>
+
       <div class="card">
         <div class="card-header">
           <div class="month-nav">
-            <button id="prevMonth" title="이전 달">&#8249;</button>
+            <button id="prevMonth" title="이전 달/주">&#8249;</button>
             <div class="month-label" id="monthLabel"></div>
-            <button id="nextMonth" title="다음 달">&#8250;</button>
+            <button id="nextMonth" title="다음 달/주">&#8250;</button>
             <button class="btn-today" id="todayBtn">오늘</button>
+          </div>
+          <div class="view-toggle">
+            <button class="view-toggle-btn active" data-view="month" onclick="switchView('month')">월간</button>
+            <button class="view-toggle-btn" data-view="week" onclick="switchView('week')">주간</button>
           </div>
         </div>
         <div class="card-body">
-          <div class="calendar-grid" id="calendarGrid"></div>
-          <div class="summary-bar" id="summaryBar"></div>
+          <!-- 월간 뷰 -->
+          <div class="monthly-view active" id="monthlyView">
+            <div class="calendar-grid" id="calendarGrid"></div>
+            <div class="summary-bar" id="summaryBar"></div>
+          </div>
+          <!-- 주간 뷰 -->
+          <div class="weekly-view" id="weeklyView">
+            <div class="weekly-grid" id="weeklyGrid"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 사이드 패널 -->
-    <div class="side-panel">
+    <div class="side-panel" id="sidePanel">
+      <!-- 바텀시트 핸들 (모바일) -->
+      <div class="bs-handle-cal" id="bsHandleCal" style="display:none;">
+        <div class="bs-handle-cal-bar"></div>
+      </div>
       <div class="card">
         <div class="card-header">
           <div class="panel-date" id="panelDate">날짜를 선택하세요</div>
@@ -732,24 +1152,26 @@
     // ══════════════════════════════════════
     // 데이터 & 상태
     // ══════════════════════════════════════
-    let allVisits = [];       // { date, result, memo, storeName, storeId }
+    let allVisits = [];       // { date, result, memo, storeName, storeId, visitId }
     let allStoresCache = [];  // 전체 가맹점 목록
     let allNotes = [];        // { id, date, memo, author }
     let visitsByDate = {};    // "YYYY-MM-DD" -> [...]
     let notesByDate = {};     // "YYYY-MM-DD" -> [...]
     let currentYear, currentMonth;
+    let currentWeekStart = null; // Date object for weekly view
     let selectedDate = null;
+    let currentView = 'month'; // 'month' or 'week'
 
     const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
     const STATUS_MAP = {
-      '명함전달': { dot: 'dot-indigo',   badge: 'badge-indigo' },
-      '미팅대기': { dot: 'dot-amber',    badge: 'badge-amber' },
-      '미팅완료': { dot: 'dot-emerald',  badge: 'badge-emerald' },
+      '명함전달': { dot: 'dot-indigo',   badge: 'badge-indigo', pill: 'pill-indigo' },
+      '미팅대기': { dot: 'dot-amber',    badge: 'badge-amber',  pill: 'pill-amber' },
+      '미팅완료': { dot: 'dot-emerald',  badge: 'badge-emerald', pill: 'pill-emerald' },
     };
 
     function getStatusStyle(result) {
-      return STATUS_MAP[result] || { dot: 'dot-indigo', badge: 'badge-gray' };
+      return STATUS_MAP[result] || { dot: 'dot-indigo', badge: 'badge-gray', pill: 'pill-gray' };
     }
 
     // ══════════════════════════════════════
@@ -811,14 +1233,14 @@
               result: v.result,
               memo: v.memo || '',
               storeName: store.name || '이름 없음',
-              storeId: store.id
+              storeId: store.id,
+              visitId: v.id
             });
           });
         });
         allNotes = await notesRes.json();
         groupByDate();
-        renderCalendar();
-        renderSummary();
+        renderAll();
       } catch (e) {
         console.error('데이터 로드 실패:', e);
         showToast('데이터 로드 실패', 'error');
@@ -840,13 +1262,167 @@
       });
     }
 
+    function renderAll() {
+      renderCalendar();
+      renderSummary();
+      renderStatsCards();
+      renderMeetingBanner();
+      if (currentView === 'week') renderWeeklyView();
+    }
+
     // ══════════════════════════════════════
-    // 캘린더 렌더링
+    // 뷰 전환
+    // ══════════════════════════════════════
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      document.getElementById('monthlyView').classList.toggle('active', view === 'month');
+      document.getElementById('weeklyView').classList.toggle('active', view === 'week');
+      if (view === 'week') {
+        if (!currentWeekStart) {
+          const now = new Date();
+          currentWeekStart = getWeekStart(now);
+        }
+        renderWeeklyView();
+        updateWeekLabel();
+      } else {
+        document.getElementById('monthLabel').textContent = currentYear + '년 ' + (currentMonth + 1) + '월';
+      }
+    }
+
+    function getWeekStart(date) {
+      const d = new Date(date);
+      const day = d.getDay(); // 0=일
+      d.setDate(d.getDate() - day); // 일요일 시작
+      d.setHours(0,0,0,0);
+      return d;
+    }
+
+    function updateWeekLabel() {
+      const label = document.getElementById('monthLabel');
+      const end = new Date(currentWeekStart);
+      end.setDate(end.getDate() + 6);
+      const m1 = currentWeekStart.getMonth() + 1;
+      const d1 = currentWeekStart.getDate();
+      const m2 = end.getMonth() + 1;
+      const d2 = end.getDate();
+      label.textContent = currentWeekStart.getFullYear() + '년 ' + m1 + '/' + d1 + ' ~ ' + m2 + '/' + d2;
+    }
+
+    // ══════════════════════════════════════
+    // 예정된 미팅 배너
+    // ══════════════════════════════════════
+    function renderMeetingBanner() {
+      const banner = document.getElementById('meetingBanner');
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      // 미팅대기 상태인 가맹점들의 최신 visit 찾기
+      const pendingMeetings = [];
+      allStoresCache.forEach(store => {
+        const visits = store.visits || [];
+        if (!visits.length) return;
+        const latest = visits.reduce((a, b) => (a.date || '') > (b.date || '') ? a : b);
+        if (latest.result === '미팅대기') {
+          const visitDate = new Date(latest.date + 'T00:00:00');
+          const daysDiff = Math.floor((today - visitDate) / (1000 * 60 * 60 * 24));
+          pendingMeetings.push({
+            storeName: store.name || '이름 없음',
+            date: latest.date,
+            daysDiff: daysDiff,
+            overdue: daysDiff >= 7
+          });
+        }
+      });
+
+      if (!pendingMeetings.length) {
+        banner.style.display = 'none';
+        return;
+      }
+
+      // 오래된 순으로 정렬
+      pendingMeetings.sort((a, b) => b.daysDiff - a.daysDiff);
+
+      let html = '<div class="meeting-banner-title">&#9200; 예정된 미팅 (' + pendingMeetings.length + '건)</div>';
+      html += '<div class="meeting-banner-list">';
+      pendingMeetings.forEach(m => {
+        const cls = m.overdue ? 'meeting-banner-item overdue' : 'meeting-banner-item';
+        const label = m.overdue ? '&#9888; ' + m.daysDiff + '일 경과' : m.daysDiff + '일 전';
+        html += '<div class="' + cls + '">'
+              + escapeHtml(m.storeName)
+              + ' <span style="font-size:10px;opacity:.7;">(' + label + ')</span>'
+              + '</div>';
+      });
+      html += '</div>';
+      banner.innerHTML = html;
+      banner.style.display = 'block';
+    }
+
+    // ══════════════════════════════════════
+    // 월간 통계 카드
+    // ══════════════════════════════════════
+    function renderStatsCards() {
+      const container = document.getElementById('statsCards');
+      const monthPrefix = currentYear + '-' + String(currentMonth + 1).padStart(2, '0');
+      const monthVisits = allVisits.filter(v => v.date && v.date.startsWith(monthPrefix));
+      const total = monthVisits.length;
+
+      // 상태별 카운트
+      const counts = {};
+      monthVisits.forEach(v => {
+        const r = v.result || '기타';
+        counts[r] = (counts[r] || 0) + 1;
+      });
+
+      // 상태별 비율 문자열
+      let ratioHtml = '';
+      Object.keys(STATUS_MAP).forEach(key => {
+        if (counts[key]) {
+          const pct = total > 0 ? Math.round(counts[key] / total * 100) : 0;
+          ratioHtml += '<div style="display:flex;align-items:center;gap:4px;"><div class="summary-dot ' + STATUS_MAP[key].dot + '"></div>' + key + ' ' + pct + '%</div>';
+        }
+      });
+      if (!ratioHtml) ratioHtml = '<div style="color:var(--muted-fg);">-</div>';
+
+      // 가장 활발한 날
+      let busiestDay = '-';
+      let busiestCount = 0;
+      const dayMap = {};
+      monthVisits.forEach(v => {
+        dayMap[v.date] = (dayMap[v.date] || 0) + 1;
+      });
+      Object.keys(dayMap).forEach(d => {
+        if (dayMap[d] > busiestCount) {
+          busiestCount = dayMap[d];
+          busiestDay = d;
+        }
+      });
+      if (busiestDay !== '-') {
+        const bd = new Date(busiestDay + 'T00:00:00');
+        busiestDay = (bd.getMonth()+1) + '/' + bd.getDate() + ' (' + busiestCount + '건)';
+      }
+
+      // 평균 일 활동 수
+      const activeDays = Object.keys(dayMap).length;
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const avgPerDay = activeDays > 0 ? (total / daysInMonth).toFixed(1) : '0';
+
+      container.innerHTML =
+        '<div class="stat-card stat-total"><div class="stat-value">' + total + '</div><div class="stat-label">총 활동 건수</div></div>'
+      + '<div class="stat-card stat-ratio"><div class="stat-value">' + ratioHtml + '</div><div class="stat-label">상태별 비율</div></div>'
+      + '<div class="stat-card stat-active"><div class="stat-value">' + busiestDay + '</div><div class="stat-label">가장 활발한 날</div></div>'
+      + '<div class="stat-card stat-avg"><div class="stat-value">' + avgPerDay + '</div><div class="stat-label">일 평균 활동</div></div>';
+    }
+
+    // ══════════════════════════════════════
+    // 캘린더 렌더링 (월간)
     // ══════════════════════════════════════
     function renderCalendar() {
       const grid = document.getElementById('calendarGrid');
       const label = document.getElementById('monthLabel');
-      label.textContent = currentYear + '년 ' + (currentMonth + 1) + '월';
+      if (currentView === 'month') {
+        label.textContent = currentYear + '년 ' + (currentMonth + 1) + '월';
+      }
 
       let html = '';
 
@@ -874,17 +1450,25 @@
         const isToday = dateStr === todayStr;
         const isSelected = dateStr === selectedDate;
 
-        let cls = 'cal-cell';
-        if (isToday) cls += ' today';
-        if (isSelected) cls += ' selected';
-
-        let dots = '';
-        let countBadge = '';
         const dayVisits = visitsByDate[dateStr];
         const dayNotes = notesByDate[dateStr];
         const visitCount = dayVisits ? dayVisits.length : 0;
         const noteCount = dayNotes ? dayNotes.length : 0;
         const totalCount = visitCount + noteCount;
+
+        // heatmap class
+        let heatClass = '';
+        if (visitCount === 1) heatClass = ' heat-1';
+        else if (visitCount === 2) heatClass = ' heat-2';
+        else if (visitCount >= 3) heatClass = ' heat-3';
+
+        let cls = 'cal-cell' + heatClass;
+        if (isToday) cls += ' today';
+        if (isSelected) cls += ' selected';
+
+        let dots = '';
+        let countBadge = '';
+        let pills = '';
         const hasDots = totalCount > 0;
         if (hasDots) {
           dots = '<div class="cal-dots">';
@@ -900,11 +1484,24 @@
           }
           dots += '</div>';
           countBadge = '<div class="cal-count-badge">' + totalCount + '</div>';
+
+          // draggable pills (max 2 shown)
+          if (dayVisits) {
+            const showVisits = dayVisits.slice(0, 2);
+            showVisits.forEach(v => {
+              const style = getStatusStyle(v.result);
+              pills += '<div class="cal-visit-pill ' + style.pill + '" draggable="true" data-store-id="' + v.storeId + '" data-visit-id="' + v.visitId + '" title="' + escapeHtml(v.storeName) + '">' + escapeHtml(v.storeName) + '</div>';
+            });
+            if (dayVisits.length > 2) {
+              pills += '<div style="font-size:9px;color:var(--muted-fg);padding-left:2px;">+' + (dayVisits.length - 2) + '</div>';
+            }
+          }
         }
 
         html += '<div class="' + cls + '" data-date="' + dateStr + '">'
               + '<div class="cal-date">' + d + '</div>'
               + dots
+              + pills
               + countBadge
               + '</div>';
       }
@@ -920,18 +1517,203 @@
 
       // 셀 클릭 이벤트
       grid.querySelectorAll('.cal-cell:not(.other-month)').forEach(cell => {
-        cell.addEventListener('click', () => {
+        cell.addEventListener('click', (e) => {
+          // pill 드래그 중 클릭 무시
+          if (e.target.closest('.cal-visit-pill')) return;
           cell.classList.add('pop-anim');
           cell.addEventListener('animationend', () => cell.classList.remove('pop-anim'), {once:true});
           const date = cell.dataset.date;
           selectDate(date);
         });
       });
+
+      // Drag & Drop 설정 (월간)
+      setupMonthlyDragDrop();
+    }
+
+    // ══════════════════════════════════════
+    // 주간 뷰 렌더링
+    // ══════════════════════════════════════
+    function renderWeeklyView() {
+      const grid = document.getElementById('weeklyGrid');
+      const today = new Date();
+      const todayStr = formatDate(today);
+
+      let html = '';
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        const dateStr = formatDate(d);
+        const isToday = dateStr === todayStr;
+        const dayOfWeek = d.getDay();
+
+        let cls = 'weekly-day';
+        if (isToday) cls += ' today-col';
+        if (dayOfWeek === 0) cls += ' weekly-day-sun';
+        if (dayOfWeek === 6) cls += ' weekly-day-sat';
+
+        html += '<div class="' + cls + '" data-date="' + dateStr + '">';
+        html += '<div class="weekly-day-header">';
+        html += '<div class="weekly-day-name">' + WEEKDAYS[dayOfWeek] + '</div>';
+        html += '<div class="weekly-day-num">' + d.getDate() + '</div>';
+        html += '</div>';
+
+        const dayVisits = visitsByDate[dateStr] || [];
+        const dayNotes = notesByDate[dateStr] || [];
+
+        if (!dayVisits.length && !dayNotes.length) {
+          html += '<div class="weekly-empty">기록 없음</div>';
+        }
+
+        dayVisits.forEach(v => {
+          const style = getStatusStyle(v.result);
+          const STATUS_COLORS = { '명함전달': '#6366f1', '미팅대기': '#f59e0b', '미팅완료': '#10b981' };
+          const borderColor = STATUS_COLORS[v.result] || '#6366f1';
+          html += '<div class="weekly-visit-item" draggable="true" data-store-id="' + v.storeId + '" data-visit-id="' + v.visitId + '" style="border-left-color:' + borderColor + ';">';
+          html += '<div class="weekly-visit-name">' + escapeHtml(v.storeName) + '</div>';
+          html += '<span class="weekly-visit-badge ' + style.badge + '">' + escapeHtml(v.result || '기타') + '</span>';
+          if (v.memo) html += '<div class="weekly-visit-memo">' + escapeHtml(v.memo) + '</div>';
+          html += '</div>';
+        });
+
+        dayNotes.forEach(n => {
+          html += '<div class="weekly-note-item">' + escapeHtml(n.memo) + '</div>';
+        });
+
+        html += '</div>';
+      }
+
+      grid.innerHTML = html;
+
+      // 주간 뷰 셀 클릭
+      grid.querySelectorAll('.weekly-day').forEach(day => {
+        day.addEventListener('click', (e) => {
+          if (e.target.closest('.weekly-visit-item') || e.target.closest('.weekly-note-item')) return;
+          selectDate(day.dataset.date);
+        });
+      });
+
+      // 주간 뷰 드래그&드롭
+      setupWeeklyDragDrop();
+    }
+
+    // ══════════════════════════════════════
+    // Drag & Drop (월간)
+    // ══════════════════════════════════════
+    let dragData = null;
+
+    function setupMonthlyDragDrop() {
+      const grid = document.getElementById('calendarGrid');
+
+      // pill 드래그 시작
+      grid.querySelectorAll('.cal-visit-pill').forEach(pill => {
+        pill.addEventListener('dragstart', (e) => {
+          dragData = {
+            storeId: pill.dataset.storeId,
+            visitId: pill.dataset.visitId
+          };
+          pill.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+        });
+        pill.addEventListener('dragend', () => {
+          pill.classList.remove('dragging');
+          grid.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('drag-over'));
+          dragData = null;
+        });
+      });
+
+      // 셀에 드롭
+      grid.querySelectorAll('.cal-cell:not(.other-month)').forEach(cell => {
+        cell.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          cell.classList.add('drag-over');
+        });
+        cell.addEventListener('dragleave', () => {
+          cell.classList.remove('drag-over');
+        });
+        cell.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          cell.classList.remove('drag-over');
+          if (!dragData) return;
+          const newDate = cell.dataset.date;
+          await moveVisitDate(dragData.storeId, dragData.visitId, newDate);
+          dragData = null;
+        });
+      });
+    }
+
+    // ══════════════════════════════════════
+    // Drag & Drop (주간)
+    // ══════════════════════════════════════
+    function setupWeeklyDragDrop() {
+      const grid = document.getElementById('weeklyGrid');
+
+      grid.querySelectorAll('.weekly-visit-item').forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+          dragData = {
+            storeId: item.dataset.storeId,
+            visitId: item.dataset.visitId
+          };
+          item.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', '');
+        });
+        item.addEventListener('dragend', () => {
+          item.classList.remove('dragging');
+          grid.querySelectorAll('.weekly-day').forEach(d => d.classList.remove('drag-over'));
+          dragData = null;
+        });
+      });
+
+      grid.querySelectorAll('.weekly-day').forEach(day => {
+        day.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          day.classList.add('drag-over');
+        });
+        day.addEventListener('dragleave', () => {
+          day.classList.remove('drag-over');
+        });
+        day.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          day.classList.remove('drag-over');
+          if (!dragData) return;
+          const newDate = day.dataset.date;
+          await moveVisitDate(dragData.storeId, dragData.visitId, newDate);
+          dragData = null;
+        });
+      });
+    }
+
+    // ══════════════════════════════════════
+    // Visit 날짜 변경 API
+    // ══════════════════════════════════════
+    async function moveVisitDate(storeId, visitId, newDate) {
+      try {
+        const res = await fetch('/api/stores/' + storeId + '/visits/' + visitId + '/date', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ date: newDate })
+        });
+        if (!res.ok) {
+          const d = await res.json();
+          showToast(d.error || '날짜 변경 실패', 'error');
+          return;
+        }
+        showToast('활동이 이동되었습니다');
+        await loadData();
+        if (selectedDate) renderVisitPanel(selectedDate);
+      } catch (e) {
+        showToast('날짜 변경 실패', 'error');
+      }
     }
 
     function selectDate(dateStr) {
       selectedDate = dateStr;
       renderCalendar();
+      if (currentView === 'week') renderWeeklyView();
       renderVisitPanel(dateStr);
       // 입력 영역 표시 + 가맹점 목록 채우기
       document.getElementById('calInputArea').style.display = 'block';
@@ -946,7 +1728,7 @@
         if (aLatest > bLatest) return -1;
         return 0;
       });
-      sel.innerHTML = '<option value="">가맹점 선택</option>' + sortedStores.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+      sel.innerHTML = '<option value="">가맹점 선택</option>' + sortedStores.map(s => '<option value="' + s.id + '">' + escapeHtml(s.name) + '</option>').join('');
       // 결과 버튼 초기화
       document.getElementById('calResult').value = '명함전달';
       document.querySelectorAll('.cal-result-btn').forEach(b => b.classList.toggle('active', b.dataset.val === '명함전달'));
@@ -1128,7 +1910,7 @@
       if (!storeId) { showToast('가맹점을 선택하세요', 'error'); return; }
 
       try {
-        const res = await fetch(`/api/stores/${storeId}/visits`, {
+        const res = await fetch('/api/stores/' + storeId + '/visits', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ date: selectedDate, result, memo })
@@ -1159,10 +1941,10 @@
     })();
 
     // ══════════════════════════════════════
-    // 월 전환 애니메이션
+    // 월/주 전환 애니메이션
     // ══════════════════════════════════════
     function animateMonthChange(direction, callback) {
-      const grid = document.getElementById('calendarGrid');
+      const grid = currentView === 'month' ? document.getElementById('calendarGrid') : document.getElementById('weeklyGrid');
       grid.style.transition = 'opacity .15s ease, transform .15s ease';
       grid.style.opacity = '0';
       grid.style.transform = direction === 'prev' ? 'translateX(20px)' : 'translateX(-20px)';
@@ -1181,21 +1963,40 @@
     // ══════════════════════════════════════
     document.getElementById('prevMonth').addEventListener('click', () => {
       animateMonthChange('prev', () => {
-        currentMonth--;
-        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-        selectedDate = null;
-        renderCalendar();
-        renderSummary();
+        if (currentView === 'month') {
+          currentMonth--;
+          if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+          selectedDate = null;
+          renderCalendar();
+          renderSummary();
+          renderStatsCards();
+        } else {
+          currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+          // 월/년도 업데이트
+          currentYear = currentWeekStart.getFullYear();
+          currentMonth = currentWeekStart.getMonth();
+          updateWeekLabel();
+          renderWeeklyView();
+        }
       });
     });
 
     document.getElementById('nextMonth').addEventListener('click', () => {
       animateMonthChange('next', () => {
-        currentMonth++;
-        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-        selectedDate = null;
-        renderCalendar();
-        renderSummary();
+        if (currentView === 'month') {
+          currentMonth++;
+          if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+          selectedDate = null;
+          renderCalendar();
+          renderSummary();
+          renderStatsCards();
+        } else {
+          currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+          currentYear = currentWeekStart.getFullYear();
+          currentMonth = currentWeekStart.getMonth();
+          updateWeekLabel();
+          renderWeeklyView();
+        }
       });
     });
 
@@ -1204,8 +2005,14 @@
       currentYear = now.getFullYear();
       currentMonth = now.getMonth();
       selectedDate = formatDate(now);
+      if (currentView === 'week') {
+        currentWeekStart = getWeekStart(now);
+        updateWeekLabel();
+        renderWeeklyView();
+      }
       renderCalendar();
       renderSummary();
+      renderStatsCards();
       renderVisitPanel(selectedDate);
     });
 
@@ -1216,7 +2023,62 @@
       const now = new Date();
       currentYear = now.getFullYear();
       currentMonth = now.getMonth();
+      currentWeekStart = getWeekStart(now);
       loadData();
+    })();
+
+    // ── 모바일 햄버거 메뉴 ──
+    (function() {
+      var btn = document.getElementById('hamburgerBtn');
+      var nav = document.getElementById('mobileNav');
+      var overlay = document.getElementById('mobileNavOverlay');
+      var closeBtn = document.getElementById('mobileNavClose');
+      if (!btn || !nav) return;
+      function openNav() {
+        nav.classList.add('open');
+        overlay.style.display = 'block';
+        requestAnimationFrame(function() { overlay.classList.add('open'); });
+        document.body.style.overflow = 'hidden';
+      }
+      function closeNav() {
+        nav.classList.remove('open');
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        setTimeout(function() { overlay.style.display = 'none'; }, 250);
+      }
+      btn.addEventListener('click', openNav);
+      closeBtn.addEventListener('click', closeNav);
+      overlay.addEventListener('click', closeNav);
+    })();
+
+    // ── 캘린더 사이드 패널 바텀시트 (모바일) ──
+    (function() {
+      var panel = document.getElementById('sidePanel');
+      var handle = document.getElementById('bsHandleCal');
+      if (!panel || !handle) return;
+      function isMobile() { return window.innerWidth <= 768; }
+      // 모바일 리사이즈 시 핸들 표시
+      function checkMobile() {
+        handle.style.display = isMobile() ? 'flex' : 'none';
+        if (!isMobile()) panel.classList.remove('bs-open');
+      }
+      window.addEventListener('resize', checkMobile);
+      checkMobile();
+
+      handle.addEventListener('click', function() {
+        panel.classList.toggle('bs-open');
+      });
+
+      // 스와이프 다운으로 닫기
+      var startY = 0;
+      handle.addEventListener('touchstart', function(e) {
+        startY = e.touches[0].clientY;
+      }, { passive: true });
+      handle.addEventListener('touchend', function(e) {
+        var dy = e.changedTouches[0].clientY - startY;
+        if (dy > 40) panel.classList.remove('bs-open');
+        else if (dy < -40) panel.classList.add('bs-open');
+      }, { passive: true });
     })();
   </script>
 </body>

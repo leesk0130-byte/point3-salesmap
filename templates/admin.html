@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon.svg">
   <title>{{ team_name }} CRM - 가맹점 등록</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <style>
@@ -26,188 +30,196 @@
       --input-bg: #ffffff;
       --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
-      font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif;
+      font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif;
       background: var(--bg);
       color: var(--fg);
       min-height: 100vh;
       transition: background var(--transition), color var(--transition);
     }
 
-    /* ── 헤더 ── */
+    /* Header */
     .header {
       background: var(--bg-card);
-      color: var(--fg);
-      padding: 0 24px;
-      height: 56px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      padding: 0 24px; height: 56px;
+      display: flex; justify-content: space-between; align-items: center;
       border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      position: sticky; top: 0; z-index: 100;
       transition: background var(--transition), border-color var(--transition);
     }
-    .header-brand {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-    }
-    .header-brand h1 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--primary-light);
-    }
-    .header-brand h1 .brand-accent {
-      color: var(--primary-light);
-    }
+    .header-brand { display: flex; align-items: baseline; gap: 10px; text-decoration: none; color: inherit; }
+    .header-brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: var(--primary-light); }
     .header-brand .subtitle {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--primary-light);
-      padding: 3px 10px;
-      background: #eef2ff;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
+      font-size: 12px; font-weight: 500; color: var(--primary-light);
+      padding: 3px 10px; background: #eef2ff; border-radius: 20px;
       transition: background var(--transition), color var(--transition);
     }
     .header-right { display: flex; gap: 10px; align-items: center; }
     .btn-nav {
-      background: var(--bg-hover);
-      color: var(--fg-secondary);
-      border: 1px solid var(--border);
-      padding: 8px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all var(--transition);
+      background: var(--bg-hover); color: var(--fg-secondary); border: 1px solid var(--border);
+      padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      cursor: pointer; text-decoration: none; transition: all var(--transition);
     }
-    .btn-nav:hover { background: var(--border); color: var(--fg); border-color: var(--border-input); }
+    .btn-nav:hover { background: var(--border); color: var(--fg); }
 
-    /* ── 레이아웃 ── */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 28px 20px 60px;
+    /* ── 모바일 햄버거 메뉴 ── */
+    .hamburger-btn {
+      display: none; width: 44px; height: 44px;
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--bg-card); cursor: pointer;
+      align-items: center; justify-content: center;
+      font-size: 22px; color: var(--fg); flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hamburger-btn:hover { background: var(--bg-hover); }
+    .mobile-nav-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9998;
+      background: rgba(0,0,0,.3); backdrop-filter: blur(2px);
+      opacity: 0; transition: opacity .25s;
+    }
+    .mobile-nav-overlay.open { opacity: 1; }
+    .mobile-nav {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: 280px; max-width: 80vw;
+      background: var(--bg-card); z-index: 9999;
+      transform: translateX(100%);
+      transition: transform .3s cubic-bezier(.32,.72,0,1);
+      display: flex; flex-direction: column;
+      box-shadow: -4px 0 20px rgba(0,0,0,.1); overflow-y: auto;
+    }
+    .mobile-nav.open { transform: translateX(0); }
+    .mobile-nav-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .mobile-nav-header span { font-size: 16px; font-weight: 700; color: var(--fg); }
+    .mobile-nav-close {
+      width: 36px; height: 36px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-card);
+      cursor: pointer; font-size: 18px; color: var(--fg-muted);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mobile-nav-links { padding: 12px; flex: 1; }
+    .mobile-nav-links a {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 16px; border-radius: 10px;
+      font-size: 15px; font-weight: 500;
+      color: var(--fg); text-decoration: none;
+    }
+    .mobile-nav-links a:hover { background: var(--bg-hover); }
+    .mobile-nav-links a.active { background: #eef2ff; color: var(--primary); font-weight: 600; }
+    .mobile-nav-links a svg { width: 20px; height: 20px; flex-shrink: 0; }
+    .mobile-nav-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+    .mobile-nav-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; color: #dc2626; text-decoration: none;
+    }
+    .mobile-nav-footer a:hover { background: #fef2f2; }
+    body.dark .mobile-nav-footer a:hover { background: #451a1a; }
+    body.dark .mobile-nav-links a.active { background: #1e1b4b; }
+
+    @media (max-width: 768px) {
+      .header-right { display: none; }
+      .hamburger-btn { display: flex; }
+      .header { padding: 0 12px; }
+      .form-grid { grid-template-columns: 1fr; }
     }
 
-    /* ── 카드 공통 ── */
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    /* Card */
     .card {
-      background: var(--bg-card);
-      border-radius: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.06);
-      padding: 28px;
-      margin-bottom: 24px;
-      border: 1px solid var(--border);
+      background: var(--bg-card); border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06); padding: 28px;
+      margin-bottom: 24px; border: 1px solid var(--border);
       transition: box-shadow var(--transition), background var(--transition), border-color var(--transition);
     }
-    .card:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,.06);
-    }
     .card-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--fg);
-      margin-bottom: 20px;
-      padding-bottom: 14px;
+      font-size: 16px; font-weight: 700; color: var(--fg);
+      margin-bottom: 20px; padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      display: flex; align-items: center; gap: 8px;
       transition: color var(--transition), border-color var(--transition);
     }
     .card-title::before {
-      content: '';
-      display: inline-block;
-      width: 4px;
-      height: 18px;
-      background: var(--primary-light);
-      border-radius: 2px;
+      content: ''; display: inline-block; width: 4px; height: 18px;
+      background: var(--primary-light); border-radius: 2px;
     }
 
-    /* ── 폼 ── */
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group.full { grid-column: 1 / -1; }
-    .form-group label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--fg-secondary);
-      transition: color var(--transition);
-    }
+    .form-group label { font-size: 13px; font-weight: 600; color: var(--fg-secondary); transition: color var(--transition); }
     .form-group label .required { color: #f43f5e; margin-left: 2px; }
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-      padding: 10px 14px;
-      border: 1.5px solid var(--border-input);
-      border-radius: 10px;
-      font-size: 14px;
-      font-family: inherit;
+    .form-group input, .form-group select, .form-group textarea {
+      padding: 10px 14px; border: 1.5px solid var(--border-input); border-radius: 10px;
+      font-size: 14px; font-family: inherit;
       transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
-      outline: none;
-      background: var(--input-bg);
-      color: var(--fg);
+      outline: none; background: var(--input-bg); color: var(--fg);
     }
-    .form-group input:focus,
-    .form-group select:focus,
-    .form-group textarea:focus {
-      border-color: var(--primary-light);
-      box-shadow: 0 0 0 3px var(--primary-glow);
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--primary-light); box-shadow: 0 0 0 3px var(--primary-glow);
     }
     .form-group textarea { resize: vertical; min-height: 70px; }
 
+    /* Address row with autocomplete */
     .addr-row { display: flex; gap: 8px; position: relative; }
-    .addr-row input { flex: 1; cursor: pointer; background: var(--bg-subtle); }
-    .addr-row input:read-only:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px var(--primary-glow); }
+    .addr-row input { flex: 1; }
     .btn-addr-search {
-      background: var(--primary-light);
-      color: #fff;
-      font-weight: 600;
-      white-space: nowrap;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all var(--transition);
+      background: var(--primary-light); color: #fff; font-weight: 600;
+      white-space: nowrap; border: none; padding: 10px 18px;
+      border-radius: 10px; font-size: 14px; cursor: pointer; transition: all var(--transition);
     }
     .btn-addr-search:hover { background: var(--primary); box-shadow: 0 4px 12px var(--primary-glow); }
 
-    .form-actions {
-      grid-column: 1 / -1;
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
+    /* Address autocomplete dropdown */
+    .addr-suggestions {
+      position: absolute; top: 100%; left: 0; right: 60px;
+      background: var(--bg-card); border: 1.5px solid var(--primary-light);
+      border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 50; max-height: 220px; overflow-y: auto; display: none;
+      margin-top: 4px;
     }
+    .addr-suggestions.show { display: block; }
+    .addr-suggestion-item {
+      padding: 10px 14px; font-size: 13px; cursor: pointer;
+      border-bottom: 1px solid var(--border); color: var(--fg);
+      transition: background var(--transition);
+    }
+    .addr-suggestion-item:last-child { border-bottom: none; }
+    .addr-suggestion-item:hover { background: #eef2ff; }
 
-    /* ── 버튼 ── */
+    /* Duplicate warning */
+    .duplicate-warning {
+      display: none; padding: 10px 16px; margin-top: 8px;
+      background: #fef3c7; border: 1px solid #f59e0b; border-radius: 10px;
+      font-size: 13px; color: #92400e; align-items: center; gap: 8px;
+    }
+    .duplicate-warning.show { display: flex; }
+
+    /* Minimap */
+    .minimap-container {
+      width: 100%; height: 200px; border-radius: 12px;
+      border: 1px solid var(--border); overflow: hidden;
+      background: var(--bg-subtle); display: flex;
+      align-items: center; justify-content: center;
+      color: var(--fg-muted); font-size: 13px;
+      margin-top: 8px; position: relative;
+    }
+    .minimap-container img { width: 100%; height: 100%; object-fit: cover; }
+
+    .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 8px; }
+
+    /* Buttons */
     .btn {
-      height: 36px;
-      padding: 0 22px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: all var(--transition);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      height: 36px; padding: 0 22px; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+      transition: all var(--transition); display: inline-flex;
+      align-items: center; justify-content: center; gap: 6px;
     }
     .btn:active { transform: scale(.97); }
     .btn-primary { background: var(--primary-light); color: #fff; }
@@ -219,304 +231,138 @@
     .btn-success { background: #10b981; color: #fff; }
     .btn-success:hover { background: #059669; box-shadow: 0 4px 12px rgba(16,185,129,.25); }
     .btn-sm { height: 28px; padding: 0 14px; font-size: 13px; border-radius: 8px; }
-    .btn-geocode { background: var(--primary-light); color: #fff; white-space: nowrap; }
-    .btn-geocode:hover { background: var(--primary); }
-    .btn-visit { background: #8b5cf6; color: #fff; }
-    .btn-visit:hover { background: #7c3aed; box-shadow: 0 4px 12px rgba(139,92,246,.25); }
 
-    .store-count {
-      font-size: 13px;
-      color: var(--fg-muted);
-      font-weight: 500;
-      background: var(--bg-hover);
-      padding: 6px 14px;
-      border-radius: 20px;
-      transition: background var(--transition), color var(--transition);
-    }
-
-    /* ── 방문결과 배지 ── */
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      white-space: nowrap;
-      letter-spacing: -0.2px;
-    }
-    .badge-명함전달 { background: #eef2ff; color: #6366f1; }
-    .badge-미팅완료 { background: #ecfdf5; color: #10b981; }
-    .badge-부재중 { background: #fffbeb; color: #f59e0b; }
-    .badge-실패 { background: #f1f5f9; color: #94a3b8; }
-    .badge-계약성사 { background: #f5f3ff; color: #8b5cf6; }
-    .badge-기타 { background: #f1f5f9; color: #94a3b8; }
-    .badge-미방문 { background: #f3f4f6; color: #d1d5db; }
-
-    .recent-visit { font-size: 13px; display: flex; align-items: center; gap: 6px; }
-    .recent-visit .date { color: #6b7280; font-size: 12px; }
-
-    /* ── 방문기록 모달 ── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.25);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 60px 20px;
-      overflow-y: auto;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal {
-      background: var(--bg-card);
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.12), 0 1px 3px rgba(0,0,0,.06);
-      width: 100%;
-      max-width: 560px;
-      animation: modalIn .25s ease;
-      overflow: hidden;
-    }
-    @keyframes modalIn { from { opacity: 0; transform: translateY(-20px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 18px 24px;
-      background: var(--bg-card);
-      border-bottom: 1px solid var(--border);
-      transition: background var(--transition), border-color var(--transition);
-    }
-    .modal-header h2 { font-size: 16px; font-weight: 700; color: var(--fg); transition: color var(--transition); }
-    .modal-close {
-      width: 32px; height: 32px;
-      border: none;
-      background: var(--bg-hover);
-      border-radius: 8px;
-      font-size: 18px;
-      cursor: pointer;
-      color: var(--fg-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all var(--transition);
-    }
-    .modal-close:hover { background: var(--border); color: var(--fg); }
-
-    .modal-body { padding: 24px; }
-
-    .visit-form {
-      display: grid;
-      grid-template-columns: 130px 130px 1fr;
-      gap: 10px;
-      align-items: end;
-      margin-bottom: 16px;
-    }
-    .visit-form .vf-group { display: flex; flex-direction: column; gap: 5px; }
-    .visit-form .vf-group label { font-size: 12px; font-weight: 600; color: #374151; }
-    .visit-form .vf-group input,
-    .visit-form .vf-group select {
-      padding: 9px 10px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      background: #fff;
-      color: #111827;
-    }
-    .visit-form .vf-group input:focus,
-    .visit-form .vf-group select:focus {
-      border-color: #6366f1;
-      box-shadow: 0 0 0 3px rgba(99,102,241,.12);
-    }
-    .visit-memo-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .visit-memo-row input {
-      flex: 1;
-      padding: 9px 12px;
-      border: 1.5px solid #d1d5db;
-      border-radius: 8px;
-      font-size: 13px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      background: #fff;
-      color: #111827;
-    }
-    .visit-memo-row input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
-
-    .visit-list { max-height: 340px; overflow-y: auto; }
-    .visit-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      margin-bottom: 8px;
-      background: var(--bg-subtle);
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      transition: background var(--transition);
-    }
-    .visit-item:hover { background: var(--bg-hover); }
-    .visit-item:last-child { margin-bottom: 0; }
-    .visit-item .vi-date { font-size: 13px; color: var(--fg-secondary); min-width: 90px; font-weight: 500; }
-    .visit-item .vi-memo { flex: 1; font-size: 13px; color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .visit-item .vi-delete {
-      border: none;
-      background: none;
-      color: #f43f5e;
-      cursor: pointer;
-      font-size: 16px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: background .2s;
-      flex-shrink: 0;
-    }
-    .visit-item .vi-delete:hover { background: #fff1f2; }
-    .visit-empty {
-      text-align: center;
-      padding: 36px 0;
-      color: var(--fg-dimmed);
-      font-size: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-    .visit-empty svg {
-      width: 40px;
-      height: 40px;
-      stroke: var(--fg-dimmed);
-      fill: none;
-      stroke-width: 1.5;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    /* ── 엑셀 업로드 ── */
+    /* Upload area */
     .upload-area {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: 20px;
-      background: var(--bg-subtle);
-      border-radius: 12px;
-      border: 2px dashed var(--border-input);
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 20px; background: var(--bg-subtle);
+      border-radius: 12px; border: 2px dashed var(--border-input);
       transition: border-color var(--transition), background var(--transition);
     }
-    .upload-area:hover {
-      border-color: var(--primary-light);
-      background: #eef2ff;
+    .upload-area:hover { border-color: var(--primary-light); background: #eef2ff; }
+    .upload-area input[type="file"] { font-size: 13px; font-family: inherit; color: var(--fg-secondary); }
+
+    /* Preview table */
+    .preview-table-wrap {
+      max-height: 320px; overflow-y: auto; margin-top: 16px;
+      border: 1px solid var(--border); border-radius: 10px; display: none;
     }
-    .upload-area input[type="file"] {
-      font-size: 13px;
-      font-family: inherit;
+    .preview-table-wrap.show { display: block; }
+    .preview-table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    .preview-table th {
+      background: var(--primary-light); color: #fff;
+      padding: 10px 14px; text-align: left; font-weight: 600;
+      position: sticky; top: 0;
+    }
+    .preview-table td {
+      padding: 9px 14px; border-bottom: 1px solid var(--border);
       color: var(--fg-secondary);
     }
+    .preview-table tr:last-child td { border-bottom: none; }
+    .preview-table tr:hover td { background: var(--bg-hover); }
+    .preview-table .dup-row td { background: #fef3c7; }
+    .preview-table .dup-tag {
+      display: inline-block; padding: 2px 8px; background: #f59e0b;
+      color: #fff; border-radius: 4px; font-size: 11px; font-weight: 600;
+    }
+    .preview-actions {
+      display: none; margin-top: 12px; gap: 10px; align-items: center;
+    }
+    .preview-actions.show { display: flex; }
+    .preview-summary {
+      font-size: 13px; color: var(--fg-muted); flex: 1;
+    }
+
     .upload-result {
-      margin-top: 14px;
-      padding: 14px 18px;
-      border-radius: 10px;
-      font-size: 13px;
-      line-height: 1.7;
-      display: none;
+      margin-top: 14px; padding: 14px 18px; border-radius: 10px;
+      font-size: 13px; line-height: 1.7; display: none;
       transition: background var(--transition), color var(--transition), border-color var(--transition);
     }
     .upload-result.success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
     .upload-result.error { background: #fff1f2; border: 1px solid #fecdd3; color: #9f1239; }
     .template-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      margin-top: 14px;
-      font-size: 13px;
-      color: var(--primary-light);
-      cursor: pointer;
-      text-decoration: none;
-      font-weight: 500;
-      transition: color var(--transition);
+      display: inline-flex; align-items: center; gap: 4px; margin-top: 14px;
+      font-size: 13px; color: var(--primary-light); cursor: pointer;
+      text-decoration: none; font-weight: 500; transition: color var(--transition);
     }
     .template-link:hover { color: var(--primary); text-decoration: underline; }
 
     .upload-progress {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      margin-top: 12px;
-      font-size: 13px;
-      color: #374151;
+      display: none; align-items: center; gap: 10px; margin-top: 12px;
+      font-size: 13px; color: var(--fg-secondary);
     }
     .spinner {
-      width: 18px; height: 18px;
-      border: 2.5px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
+      width: 18px; height: 18px; border: 2.5px solid var(--border);
+      border-top-color: var(--primary); border-radius: 50%;
       animation: spin .7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── 토스트 ── */
+    /* Recent stores */
+    .recent-list { display: flex; flex-direction: column; gap: 8px; }
+    .recent-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px; background: var(--bg-subtle);
+      border-radius: 10px; border: 1px solid var(--border);
+      transition: background var(--transition), border-color var(--transition);
+    }
+    .recent-item:hover { background: var(--bg-hover); }
+    .recent-num {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: var(--primary-light); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .recent-info { flex: 1; min-width: 0; }
+    .recent-name { font-size: 14px; font-weight: 600; color: var(--fg); }
+    .recent-addr { font-size: 12px; color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .recent-date { font-size: 12px; color: var(--fg-dimmed); white-space: nowrap; }
+
+    /* Checkbox row */
+    .checkbox-row { display: flex; flex-wrap: wrap; gap: 16px; }
+    .checkbox-item {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 13px; color: var(--fg-secondary); cursor: pointer;
+    }
+    .checkbox-item input { width: 16px; height: 16px; accent-color: var(--primary); }
+
+    /* Toast */
     .toast-container {
-      position: fixed;
-      top: 80px;
-      right: 24px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      position: fixed; top: 80px; right: 24px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
     }
     .toast {
-      padding: 14px 22px 14px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 500;
-      font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif;
+      padding: 14px 22px 14px 18px; border-radius: 10px;
+      font-size: 14px; font-weight: 500; font-family: inherit;
       box-shadow: 0 4px 24px rgba(0,0,0,.08);
       animation: toastIn .3s ease, toastOut .3s ease 2.2s forwards;
-      max-width: 400px;
-      background: #fff;
-      color: #111827;
+      max-width: 400px; background: var(--bg-card); color: var(--fg);
     }
     .toast.success { border-left: 4px solid #059669; color: #059669; }
     .toast.error { border-left: 4px solid #dc2626; color: #dc2626; }
     @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(40px); } }
 
-    /* ── 반응형 ── */
+    /* Responsive */
     @media (max-width: 768px) {
-      .header { padding: 0 16px; height: 56px; }
-      .header-brand h1 { font-size: 17px; }
-      .header-brand .subtitle { font-size: 11px; padding: 2px 8px; }
+      .header { padding: 0 16px; }
       .container { padding: 16px 12px 40px; }
       .card { padding: 20px 16px; border-radius: 12px; }
       .form-grid { grid-template-columns: 1fr; }
       .form-group.full { grid-column: 1; }
       .form-actions { grid-column: 1; }
-      .visit-form { grid-template-columns: 1fr 1fr; }
-      .modal { max-width: 100%; }
+      .header-right { gap: 6px; }
+      .btn-nav { padding: 6px 12px; font-size: 12px; }
     }
 
-    /* ── 다크 모드 ── */
+    /* Dark mode */
     body.dark {
-      --bg: #0f172a;
-      --bg-card: #1e293b;
-      --bg-subtle: #1e293b;
-      --bg-hover: #334155;
-      --fg: #f1f5f9;
-      --fg-secondary: #cbd5e1;
-      --fg-muted: #94a3b8;
-      --fg-dimmed: #64748b;
-      --border: #334155;
-      --border-input: #475569;
-      --input-bg: #0f172a;
+      --bg: #0f172a; --bg-card: #1e293b; --bg-subtle: #1e293b;
+      --bg-hover: #334155; --fg: #f1f5f9; --fg-secondary: #cbd5e1;
+      --fg-muted: #94a3b8; --fg-dimmed: #64748b; --border: #334155;
+      --border-input: #475569; --input-bg: #0f172a;
       --primary-glow: rgba(99, 102, 241, 0.3);
     }
     body.dark .header-brand .subtitle { background: #312e81; color: #a5b4fc; }
@@ -524,27 +370,20 @@
     body.dark .upload-result.success { background: #14532d; color: #86efac; border-color: #166534; }
     body.dark .upload-result.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
     body.dark .btn-danger { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
-    body.dark .btn-danger:hover { background: #7f1d1d; }
     body.dark .btn-secondary { background: #334155; color: #cbd5e1; border-color: #475569; }
-    body.dark .btn-secondary:hover { background: #475569; }
-    body.dark .visit-item { background: #0f172a; border-color: #334155; }
-    body.dark .visit-item:hover { background: #1e293b; }
-    body.dark .modal-overlay { background: rgba(0,0,0,.5); }
     body.dark .toast { background: #1e293b; color: #f1f5f9; }
+    body.dark .duplicate-warning { background: #451a03; border-color: #b45309; color: #fbbf24; }
+    body.dark .preview-table .dup-row td { background: #451a03; }
+    body.dark .addr-suggestions { background: var(--bg-card); border-color: var(--primary-light); }
+    body.dark .addr-suggestion-item { color: var(--fg); border-color: var(--border); }
+    body.dark .addr-suggestion-item:hover { background: #312e81; }
 
     @media (prefers-color-scheme: dark) {
       body:not(.light) {
-        --bg: #0f172a;
-        --bg-card: #1e293b;
-        --bg-subtle: #1e293b;
-        --bg-hover: #334155;
-        --fg: #f1f5f9;
-        --fg-secondary: #cbd5e1;
-        --fg-muted: #94a3b8;
-        --fg-dimmed: #64748b;
-        --border: #334155;
-        --border-input: #475569;
-        --input-bg: #0f172a;
+        --bg: #0f172a; --bg-card: #1e293b; --bg-subtle: #1e293b;
+        --bg-hover: #334155; --fg: #f1f5f9; --fg-secondary: #cbd5e1;
+        --fg-muted: #94a3b8; --fg-dimmed: #64748b; --border: #334155;
+        --border-input: #475569; --input-bg: #0f172a;
         --primary-glow: rgba(99, 102, 241, 0.3);
       }
       body:not(.light) .header-brand .subtitle { background: #312e81; color: #a5b4fc; }
@@ -552,22 +391,19 @@
       body:not(.light) .upload-result.success { background: #14532d; color: #86efac; border-color: #166534; }
       body:not(.light) .upload-result.error { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
       body:not(.light) .btn-danger { background: #451a1a; color: #fca5a5; border-color: #7f1d1d; }
-      body:not(.light) .btn-danger:hover { background: #7f1d1d; }
       body:not(.light) .btn-secondary { background: #334155; color: #cbd5e1; border-color: #475569; }
-      body:not(.light) .btn-secondary:hover { background: #475569; }
-      body:not(.light) .visit-item { background: #0f172a; border-color: #334155; }
-      body:not(.light) .visit-item:hover { background: #1e293b; }
-      body:not(.light) .modal-overlay { background: rgba(0,0,0,.5); }
       body:not(.light) .toast { background: #1e293b; color: #f1f5f9; }
+      body:not(.light) .duplicate-warning { background: #451a03; border-color: #b45309; color: #fbbf24; }
+      body:not(.light) .addr-suggestions { background: var(--bg-card); }
+      body:not(.light) .addr-suggestion-item:hover { background: #312e81; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── 헤더 ── -->
 <div class="header">
-  <a href="/" class="header-brand" style="text-decoration:none;color:inherit;">
-    <h1><span class="brand-accent">{{ team_name }}</span> CRM</h1>
+  <a href="/" class="header-brand">
+    <h1>{{ team_name or 'Point3' }} CRM</h1>
     <span class="subtitle">가맹점 등록</span>
   </a>
   <div class="header-right">
@@ -576,110 +412,270 @@
     <a href="/calendar" class="btn-nav">캘린더</a>
     <a href="/" class="btn-nav">지도</a>
   </div>
+  <button class="hamburger-btn" id="hamburgerBtn" aria-label="메뉴 열기">&#9776;</button>
 </div>
 
-<!-- ── 토스트 컨테이너 ── -->
-<div class="toast-container" id="toastContainer"></div>
-
-<!-- ── 방문기록 모달 ── -->
-<div class="modal-overlay" id="visitModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2 id="visitModalTitle">방문기록</h2>
-      <button class="modal-close" onclick="closeVisitModal()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="visit-form">
-        <div class="vf-group">
-          <label>날짜</label>
-          <input type="date" id="visitDate">
-        </div>
-        <div class="vf-group">
-          <label>결과</label>
-          <select id="visitResult">
-            <option value="명함전달">명함전달</option>
-            <option value="미팅완료">미팅완료</option>
-            <option value="부재중">부재중</option>
-            <option value="실패">실패</option>
-            <option value="계약성사">계약성사</option>
-            <option value="기타">기타</option>
-          </select>
-        </div>
-      </div>
-      <div class="visit-memo-row">
-        <input type="text" id="visitMemo" placeholder="메모 (선택)">
-        <button class="btn btn-primary btn-sm" onclick="addVisit()">추가</button>
-      </div>
-      <div class="visit-list" id="visitList">
-        <div class="visit-empty">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span>방문기록이 없습니다.</span>
-        </div>
-      </div>
-    </div>
+<!-- ── 모바일 슬라이드 메뉴 ── -->
+<div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+<nav class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-header">
+    <span>{{ team_name or 'Point3' }} CRM</span>
+    <button class="mobile-nav-close" id="mobileNavClose">&times;</button>
   </div>
-</div>
+  <div class="mobile-nav-links">
+    <a href="/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/></svg>지도</a>
+    <a href="/stores"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>가맹점 목록</a>
+    <a href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>대시보드</a>
+    <a href="/calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>캘린더</a>
+    <a href="/admin" class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg>가맹점 등록</a>
+  </div>
+  <div class="mobile-nav-footer">
+    <a href="/auth/logout"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>로그아웃</a>
+  </div>
+</nav>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <div class="container">
 
-  <!-- ══ 가맹점 관리 안내 ══ -->
+  <!-- 개별 등록 폼 -->
+  <div class="card" id="storeFormCard">
+    <div class="card-title">가맹점 등록</div>
+    <form id="storeForm" onsubmit="handleSubmit(event)">
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>가맹점명 <span class="required">*</span></label>
+          <input type="text" id="storeName" placeholder="예: 스타벅스 강남점" autocomplete="off">
+          <div class="duplicate-warning" id="dupWarning">
+            <span>같은 이름의 가맹점이 이미 등록되어 있습니다.</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>지도 표시</label>
+          <div class="checkbox-row" style="margin-top: 6px;">
+            <label class="checkbox-item"><input type="checkbox" id="storeShowOnMap" checked> 지도에 표시</label>
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>주소 <span class="required">*</span></label>
+          <div class="addr-row">
+            <input type="text" id="storeAddress" placeholder="주소를 검색하거나 직접 입력하세요" autocomplete="off">
+            <button type="button" class="btn-addr-search" onclick="openDaumPostcode()">주소 검색</button>
+            <div class="addr-suggestions" id="addrSuggestions"></div>
+          </div>
+        </div>
+
+        <!-- 미니맵 -->
+        <div class="form-group full">
+          <label>위치 확인</label>
+          <div class="minimap-container" id="minimapContainer">
+            주소 입력 후 위치가 표시됩니다
+          </div>
+          <input type="hidden" id="storeLat">
+          <input type="hidden" id="storeLng">
+        </div>
+
+        <div class="form-group full">
+          <label>메모</label>
+          <textarea id="storeMemo" placeholder="메모 (선택)" rows="2"></textarea>
+        </div>
+        <div class="form-group full">
+          <label>비고사항</label>
+          <textarea id="storeNotes" placeholder="비고사항 (선택)" rows="2"></textarea>
+        </div>
+
+        <div class="form-group full">
+          <label>컨택 방법</label>
+          <div class="checkbox-row">
+            <label class="checkbox-item"><input type="checkbox" id="contactEmail"> 이메일</label>
+            <label class="checkbox-item"><input type="checkbox" id="contactLinkedin"> 링크드인</label>
+            <label class="checkbox-item"><input type="checkbox" id="contactRemember"> 리멤버</label>
+            <label class="checkbox-item"><input type="checkbox" id="contactIntro"> 소개</label>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn">저장</button>
+          <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none" onclick="resetForm()">취소</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- 엑셀 일괄 업로드 -->
   <div class="card">
-    <div class="card-title">가맹점 관리</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-      <p style="font-size:14px;color:var(--muted-fg);">가맹점 등록/수정은 가맹점 목록에서 가능합니다.</p>
-      <a href="/stores" class="btn btn-primary" style="text-decoration:none;">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
-        가맹점 목록 보기
-      </a>
+    <div class="card-title">엑셀 일괄 등록</div>
+    <div class="upload-area">
+      <input type="file" id="excelFile" accept=".xlsx">
+      <button class="btn btn-primary" onclick="previewExcel()">미리보기</button>
+      <button class="btn btn-secondary" onclick="downloadTemplate()">템플릿 다운로드</button>
+    </div>
+
+    <!-- 미리보기 테이블 -->
+    <div class="preview-table-wrap" id="previewWrap">
+      <table class="preview-table">
+        <thead>
+          <tr><th>#</th><th>가맹점명</th><th>주소</th><th>메모</th><th>상태</th></tr>
+        </thead>
+        <tbody id="previewBody"></tbody>
+      </table>
+    </div>
+    <div class="preview-actions" id="previewActions">
+      <div class="preview-summary" id="previewSummary"></div>
+      <button class="btn btn-success" onclick="confirmUpload()">등록 확인</button>
+      <button class="btn btn-secondary" onclick="cancelPreview()">취소</button>
+    </div>
+
+    <div class="upload-progress" id="uploadProgress">
+      <div class="spinner"></div>
+      <span>업로드 중...</span>
+    </div>
+    <div class="upload-result" id="uploadResult"></div>
+    <a class="template-link" onclick="downloadTemplate()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      엑셀 템플릿 다운로드 (.xlsx 형식)
+    </a>
+  </div>
+
+  <!-- 최근 등록 내역 -->
+  <div class="card">
+    <div class="card-title">최근 등록 가맹점</div>
+    <div class="recent-list" id="recentList">
+      <div style="text-align:center;padding:20px;color:var(--fg-muted);font-size:13px;">불러오는 중...</div>
     </div>
   </div>
 
 </div>
 
 <script>
-/* ══════════════════════════════════════
-   전역 상태
-   ══════════════════════════════════════ */
+/* ============= State ============= */
 let stores = [];
-let currentVisitStoreId = null;
-let currentVisits = [];
+let addrSearchTimer = null;
+let dupCheckTimer = null;
+let previewFileData = null;
 
-/* ══════════════════════════════════════
-   초기 로드
-   ══════════════════════════════════════ */
+/* ============= Init ============= */
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('visitDate').valueAsDate = new Date();
   loadStores();
-  document.getElementById('visitModal').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeVisitModal();
+  loadRecentStores();
+
+  // Dark mode
+  const saved = localStorage.getItem('point3-dark');
+  if (saved === 'true') document.body.classList.add('dark');
+  else if (saved === 'false') document.body.classList.add('light');
+
+  // Address autocomplete on typing
+  const addrInput = document.getElementById('storeAddress');
+  addrInput.addEventListener('input', function() {
+    clearTimeout(addrSearchTimer);
+    const q = this.value.trim();
+    if (q.length < 2) { hideSuggestions(); return; }
+    addrSearchTimer = setTimeout(() => searchAddress(q), 300);
+  });
+  addrInput.addEventListener('blur', () => setTimeout(hideSuggestions, 200));
+
+  // Duplicate check on name input
+  const nameInput = document.getElementById('storeName');
+  nameInput.addEventListener('input', function() {
+    clearTimeout(dupCheckTimer);
+    const name = this.value.trim();
+    if (name.length < 2) { document.getElementById('dupWarning').classList.remove('show'); return; }
+    dupCheckTimer = setTimeout(() => checkDuplicate(name), 400);
   });
 });
 
-/* ══════════════════════════════════════
-   API 호출
-   ══════════════════════════════════════ */
+/* ============= API Calls ============= */
 async function loadStores() {
   try {
     const res = await fetch('/api/stores', {cache: 'no-store'});
     stores = await res.json();
-    document.getElementById('storeCount').textContent = `총 ${stores.length}개`;
+  } catch (e) { showToast('매장 목록을 불러오지 못했습니다.', 'error'); }
+}
+
+async function loadRecentStores() {
+  const container = document.getElementById('recentList');
+  try {
+    const res = await fetch('/api/stores/recent');
+    const recent = await res.json();
+    if (!recent.length) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--fg-muted);font-size:13px;">등록된 가맹점이 없습니다.</div>';
+      return;
+    }
+    container.innerHTML = recent.map((s, i) => {
+      const date = s.created_at ? s.created_at.substring(0, 10) : '-';
+      return `<div class="recent-item">
+        <div class="recent-num">${i + 1}</div>
+        <div class="recent-info">
+          <div class="recent-name">${esc(s.name)}</div>
+          <div class="recent-addr">${esc(s.address || '')}</div>
+        </div>
+        <div class="recent-date">${date}</div>
+      </div>`;
+    }).join('');
   } catch (e) {
-    showToast('매장 목록을 불러오지 못했습니다.', 'error');
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--fg-muted);font-size:13px;">불러오기 실패</div>';
   }
 }
 
-/* ══════════════════════════════════════
-   주소 검색 (카카오 우편번호 서비스)
-   ══════════════════════════════════════ */
+/* ============= Address Autocomplete ============= */
+async function searchAddress(query) {
+  try {
+    const res = await fetch(`/api/address-search?q=${encodeURIComponent(query)}`);
+    const results = await res.json();
+    if (!results.length) { hideSuggestions(); return; }
+    const container = document.getElementById('addrSuggestions');
+    container.innerHTML = results.map(r =>
+      `<div class="addr-suggestion-item" onmousedown="selectAddress('${esc(r.display_name)}', ${r.lat}, ${r.lng})">${esc(r.display_name)}</div>`
+    ).join('');
+    container.classList.add('show');
+  } catch (e) { hideSuggestions(); }
+}
+
+function selectAddress(addr, lat, lng) {
+  document.getElementById('storeAddress').value = addr;
+  document.getElementById('storeLat').value = lat;
+  document.getElementById('storeLng').value = lng;
+  hideSuggestions();
+  updateMinimap(lat, lng);
+  showToast('주소 선택 완료', 'success');
+}
+
+function hideSuggestions() {
+  document.getElementById('addrSuggestions').classList.remove('show');
+}
+
+/* ============= Duplicate Check ============= */
+async function checkDuplicate(name) {
+  try {
+    const res = await fetch(`/api/stores/check-duplicate?name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    const warning = document.getElementById('dupWarning');
+    if (data.exists) {
+      warning.innerHTML = `<span>같은 이름의 가맹점이 이미 등록되어 있습니다: ${esc(data.store.address)}</span>`;
+      warning.classList.add('show');
+    } else {
+      warning.classList.remove('show');
+    }
+  } catch (e) {}
+}
+
+/* ============= Minimap ============= */
+function updateMinimap(lat, lng) {
+  const container = document.getElementById('minimapContainer');
+  // Kakao Static Map API
+  const url = `https://dapi.kakao.com/v2/maps/staticmap?appkey=12a6d5580904db14be2b073e8e114a4f&center=${lng},${lat}&level=3&w=600&h=200&markers=type:d|size:mid|pos:${lng} ${lat}&CX=${lng}&CY=${lat}`;
+  container.innerHTML = `<img src="${url}" alt="지도" onerror="this.parentElement.innerHTML='지도를 불러올 수 없습니다'">`;
+}
+
+/* ============= Address Search (Daum Postcode) ============= */
 function openDaumPostcode() {
   new daum.Postcode({
     oncomplete: function(data) {
-      // 도로명주소 우선, 없으면 지번주소
       const address = data.roadAddress || data.jibunAddress;
       document.getElementById('storeAddress').value = address;
       showToast('주소 선택 완료', 'success');
-
-      // 선택된 주소로 자동 좌표 변환
       autoGeocode(address);
     }
   }).open();
@@ -692,20 +688,18 @@ async function autoGeocode(address) {
     if (res.ok) {
       document.getElementById('storeLat').value = data.lat;
       document.getElementById('storeLng').value = data.lng;
+      updateMinimap(data.lat, data.lng);
       showToast('좌표 자동 입력 완료', 'success');
     } else {
       document.getElementById('storeLat').value = '';
       document.getElementById('storeLng').value = '';
-      showToast('좌표 변환 실패 — 저장 후 수동 확인 필요', 'warning');
     }
-  } catch (e) {
-    showToast('좌표 변환 요청 실패', 'error');
-  }
+  } catch (e) { showToast('좌표 변환 요청 실패', 'error'); }
 }
 
+/* ============= Form Submit ============= */
 async function handleSubmit(e) {
   e.preventDefault();
-
   const editId = document.getElementById('editId').value;
   const payload = {
     name: document.getElementById('storeName').value.trim(),
@@ -720,86 +714,30 @@ async function handleSubmit(e) {
     lat: document.getElementById('storeLat').value ? parseFloat(document.getElementById('storeLat').value) : null,
     lng: document.getElementById('storeLng').value ? parseFloat(document.getElementById('storeLng').value) : null,
   };
-
   if (!payload.name || !payload.address) {
-    showToast('가맹점명과 주소는 필수입니다.', 'error');
-    return;
+    showToast('가맹점명과 주소는 필수입니다.', 'error'); return;
   }
-
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.textContent = '저장 중...';
   submitBtn.disabled = true;
-
   try {
     let res;
     if (editId) {
-      res = await fetch(`/api/stores/${editId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      res = await fetch(`/api/stores/${editId}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     } else {
-      res = await fetch('/api/stores', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      res = await fetch('/api/stores', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
     }
-
     if (res.ok) {
       showToast(editId ? '수정 완료' : '등록 완료', 'success');
       resetForm();
       await loadStores();
+      await loadRecentStores();
     } else {
       const data = await res.json();
       showToast(data.error || '저장 실패', 'error');
     }
-  } catch (e) {
-    showToast('서버 요청 실패', 'error');
-  } finally {
-    submitBtn.textContent = '저장';
-    submitBtn.disabled = false;
-  }
-}
-
-async function deleteStore(id, name) {
-  if (!confirm(`"${name}" 가맹점을 삭제하시겠습니까?`)) return;
-
-  try {
-    const res = await fetch(`/api/stores/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      showToast('삭제 완료', 'success');
-      await loadStores();
-    } else {
-      showToast('삭제 실패', 'error');
-    }
-  } catch (e) {
-    showToast('서버 요청 실패', 'error');
-  }
-}
-
-function editStore(id) {
-  const store = stores.find(s => s.id === id);
-  if (!store) return;
-
-  document.getElementById('editId').value = store.id;
-  document.getElementById('storeName').value = store.name || '';
-  document.getElementById('storeAddress').value = store.address || '';
-  document.getElementById('storeMemo').value = store.memo || '';
-  document.getElementById('storeNotes').value = store.notes || '';
-  document.getElementById('contactEmail').checked = !!store.contact_email;
-  document.getElementById('contactLinkedin').checked = !!store.contact_linkedin;
-  document.getElementById('contactRemember').checked = !!store.contact_remember;
-  document.getElementById('contactIntro').checked = !!store.contact_intro;
-  document.getElementById('storeShowOnMap').checked = store.showOnMap !== false;
-  document.getElementById('storeLat').value = store.lat || '';
-  document.getElementById('storeLng').value = store.lng || '';
-
-  document.getElementById('formTitle').textContent = '가맹점 수정';
-  document.getElementById('submitBtn').textContent = '수정';
-  document.getElementById('cancelBtn').style.display = '';
-
-  document.getElementById('storeForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (e) { showToast('서버 요청 실패', 'error');
+  } finally { submitBtn.textContent = '저장'; submitBtn.disabled = false; }
 }
 
 function resetForm() {
@@ -808,133 +746,61 @@ function resetForm() {
   document.getElementById('storeLat').value = '';
   document.getElementById('storeLng').value = '';
   document.getElementById('storeShowOnMap').checked = true;
-  document.getElementById('formTitle').textContent = '가맹점 등록';
   document.getElementById('submitBtn').textContent = '저장';
   document.getElementById('cancelBtn').style.display = 'none';
+  document.getElementById('dupWarning').classList.remove('show');
+  document.getElementById('minimapContainer').innerHTML = '주소 입력 후 위치가 표시됩니다';
 }
 
-/* ══════════════════════════════════════
-   방문기록 모달
-   ══════════════════════════════════════ */
-async function openVisitModal(storeId) {
-  const store = stores.find(s => s.id === storeId);
-  if (!store) return;
-
-  currentVisitStoreId = storeId;
-  document.getElementById('visitModalTitle').textContent = `${store.name} - 방문기록`;
-  document.getElementById('visitDate').valueAsDate = new Date();
-  document.getElementById('visitResult').value = '명함전달';
-  document.getElementById('visitMemo').value = '';
-  document.getElementById('visitModal').classList.add('active');
-
-  await loadVisits();
-}
-
-function closeVisitModal() {
-  document.getElementById('visitModal').classList.remove('active');
-  currentVisitStoreId = null;
-  currentVisits = [];
-  // 테이블 새로고침 (최근방문 업데이트용)
-  loadStores();
-}
-
-async function loadVisits() {
-  if (!currentVisitStoreId) return;
-
-  try {
-    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits`);
-    if (res.ok) {
-      currentVisits = await res.json();
-    } else {
-      currentVisits = [];
-    }
-  } catch (e) {
-    currentVisits = [];
-  }
-  renderVisitList();
-}
-
-function renderVisitList() {
-  const container = document.getElementById('visitList');
-
-  if (!currentVisits.length) {
-    container.innerHTML = '<div class="visit-empty"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>방문기록이 없습니다.</span></div>';
-    return;
-  }
-
-  // 날짜 내림차순 정렬
-  const sorted = [...currentVisits].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-  container.innerHTML = sorted.map(v => `
-    <div class="visit-item">
-      <span class="vi-date">${escapeHtml(v.date)}</span>
-      <span class="badge badge-${escapeHtml(v.result)}">${escapeHtml(v.result)}</span>
-      <span class="vi-memo" title="${escapeAttr(v.memo)}">${escapeHtml(v.memo || '')}</span>
-      <button class="vi-delete" onclick="deleteVisit('${escapeAttr(v.id)}')" title="삭제">&times;</button>
-    </div>
-  `).join('');
-}
-
-async function addVisit() {
-  if (!currentVisitStoreId) return;
-
-  const date = document.getElementById('visitDate').value;
-  const result = document.getElementById('visitResult').value;
-  const memo = document.getElementById('visitMemo').value.trim();
-
-  if (!date) {
-    showToast('날짜를 선택해주세요.', 'error');
-    return;
-  }
-
-  try {
-    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ date, result, memo }),
-    });
-    if (res.ok) {
-      showToast('방문기록 추가 완료', 'success');
-      document.getElementById('visitMemo').value = '';
-      await loadVisits();
-    } else {
-      const data = await res.json();
-      showToast(data.error || '추가 실패', 'error');
-    }
-  } catch (e) {
-    showToast('서버 요청 실패', 'error');
-  }
-}
-
-async function deleteVisit(visitId) {
-  if (!currentVisitStoreId) return;
-  if (!confirm('이 방문기록을 삭제하시겠습니까?')) return;
-
-  try {
-    const res = await fetch(`/api/stores/${currentVisitStoreId}/visits/${visitId}`, { method: 'DELETE' });
-    if (res.ok) {
-      showToast('방문기록 삭제 완료', 'success');
-      await loadVisits();
-    } else {
-      showToast('삭제 실패', 'error');
-    }
-  } catch (e) {
-    showToast('서버 요청 실패', 'error');
-  }
-}
-
-/* ══════════════════════════════════════
-   엑셀 업로드
-   ══════════════════════════════════════ */
-async function uploadExcel() {
+/* ============= Excel Preview ============= */
+async function previewExcel() {
   const fileInput = document.getElementById('excelFile');
-  if (!fileInput.files.length) {
-    showToast('엑셀 파일을 선택해주세요.', 'error');
-    return;
-  }
+  if (!fileInput.files.length) { showToast('엑셀 파일을 선택해주세요.', 'error'); return; }
 
   const formData = new FormData();
   formData.append('file', fileInput.files[0]);
+  previewFileData = fileInput.files[0];
+
+  const progress = document.getElementById('uploadProgress');
+  progress.style.display = 'flex';
+
+  try {
+    const res = await fetch('/api/upload-excel-preview', { method: 'POST', body: formData });
+    const data = await res.json();
+    progress.style.display = 'none';
+
+    if (!res.ok) { showToast(data.error || '미리보기 실패', 'error'); return; }
+    if (!data.rows.length) { showToast('등록할 데이터가 없습니다.', 'error'); return; }
+
+    const tbody = document.getElementById('previewBody');
+    const dupCount = data.rows.filter(r => r.duplicate).length;
+
+    tbody.innerHTML = data.rows.map(r => `
+      <tr class="${r.duplicate ? 'dup-row' : ''}">
+        <td>${r.row}</td>
+        <td>${esc(r.name)}</td>
+        <td>${esc(r.address)}</td>
+        <td>${esc(r.memo)}</td>
+        <td>${r.duplicate ? '<span class="dup-tag">중복</span>' : '<span style="color:#10b981;font-weight:600;">신규</span>'}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('previewWrap').classList.add('show');
+    document.getElementById('previewActions').classList.add('show');
+    document.getElementById('previewSummary').textContent =
+      `총 ${data.total}개 항목` + (dupCount > 0 ? ` (중복 ${dupCount}개 포함)` : '');
+
+  } catch (e) {
+    progress.style.display = 'none';
+    showToast('서버 요청 실패', 'error');
+  }
+}
+
+async function confirmUpload() {
+  if (!previewFileData) { showToast('파일을 다시 선택해주세요.', 'error'); return; }
+
+  const formData = new FormData();
+  formData.append('file', previewFileData);
 
   const progress = document.getElementById('uploadProgress');
   const result = document.getElementById('uploadResult');
@@ -944,7 +810,6 @@ async function uploadExcel() {
   try {
     const res = await fetch('/api/upload-excel', { method: 'POST', body: formData });
     const data = await res.json();
-
     if (res.ok) {
       let html = `<strong>${data.message}</strong>`;
       if (data.errors && data.errors.length) {
@@ -954,8 +819,10 @@ async function uploadExcel() {
       result.innerHTML = html;
       result.style.display = 'block';
       showToast(data.message, 'success');
-      fileInput.value = '';
+      cancelPreview();
+      document.getElementById('excelFile').value = '';
       await loadStores();
+      await loadRecentStores();
     } else {
       result.className = 'upload-result error';
       result.innerHTML = `<strong>오류:</strong> ${data.error}`;
@@ -967,9 +834,13 @@ async function uploadExcel() {
     result.innerHTML = '<strong>서버 요청 실패</strong>';
     result.style.display = 'block';
     showToast('서버 요청 실패', 'error');
-  } finally {
-    progress.style.display = 'none';
-  }
+  } finally { progress.style.display = 'none'; }
+}
+
+function cancelPreview() {
+  document.getElementById('previewWrap').classList.remove('show');
+  document.getElementById('previewActions').classList.remove('show');
+  previewFileData = null;
 }
 
 function downloadTemplate() {
@@ -984,21 +855,15 @@ function downloadTemplate() {
   a.download = '가맹점_템플릿.csv';
   a.click();
   URL.revokeObjectURL(url);
-  showToast('템플릿 다운로드 완료 (CSV 형식, 엑셀에서 열 수 있습니다)', 'success');
+  showToast('템플릿 다운로드 완료', 'success');
 }
 
-/* ══════════════════════════════════════
-   유틸리티 (등록 페이지용)
-   ══════════════════════════════════════ */
-
-function escapeHtml(str) {
+/* ============= Utils ============= */
+function esc(str) {
   if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escapeAttr(str) {
-  if (!str) return '';
-  return str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 function showToast(msg, type) {
@@ -1007,8 +872,30 @@ function showToast(msg, type) {
   toast.className = `toast ${type}`;
   toast.textContent = msg;
   container.appendChild(toast);
-  setTimeout(() => { toast.remove(); }, 2500);
+  setTimeout(() => toast.remove(), 2500);
 }
+
+// ── 모바일 햄버거 메뉴 ──
+(function() {
+  var btn = document.getElementById('hamburgerBtn');
+  var nav = document.getElementById('mobileNav');
+  var overlay = document.getElementById('mobileNavOverlay');
+  var closeBtn = document.getElementById('mobileNavClose');
+  if (!btn || !nav) return;
+  function openNav() {
+    nav.classList.add('open'); overlay.style.display = 'block';
+    requestAnimationFrame(function() { overlay.classList.add('open'); });
+    document.body.style.overflow = 'hidden';
+  }
+  function closeNav() {
+    nav.classList.remove('open'); overlay.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(function() { overlay.style.display = 'none'; }, 250);
+  }
+  btn.addEventListener('click', openNav);
+  closeBtn.addEventListener('click', closeNav);
+  overlay.addEventListener('click', closeNav);
+})();
 </script>
 </body>
 </html>
