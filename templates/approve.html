@@ -836,7 +836,7 @@
 
     async function editTeam(userId, currentTeam) {
       const newTeam = prompt('새 팀 이름을 입력하세요:', currentTeam);
-      if (!newTeam || newTeam.trim() === currentTeam) return;
+      if (newTeam === null || newTeam.trim() === '' || newTeam.trim() === currentTeam) return;
       try {
         const res = await fetch('/api/admin/update-team', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({userId, teamName: newTeam.trim()}) });
         if (!res.ok) throw new Error();
@@ -884,7 +884,7 @@
     document.getElementById('darkToggle').addEventListener('click', function() {
       const isDark = document.body.classList.toggle('dark');
       document.body.classList.toggle('light', !isDark);
-      localStorage.setItem('point3-dark', isDark);
+      localStorage.setItem('point3-dark', isDark ? 'true' : 'false');
       updateToggleIcon();
     });
 

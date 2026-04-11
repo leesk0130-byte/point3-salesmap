@@ -1253,7 +1253,7 @@
           <button class="trend-toggle active" id="trendLineBtn" onclick="setTrendMode('line')">라인 차트</button>
           <button class="trend-toggle" id="trendStackBtn" onclick="setTrendMode('stacked')">상태별 누적</button>
           <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted-fg);cursor:pointer;">
-            <input type="checkbox" id="trendAvgToggle" onchange="toggleMovingAvg()" style="accent-color:#4f46e5"> 7일 이동평균
+            <input type="checkbox" id="trendAvgToggle" onchange="toggleMovingAvg()" style="accent-color:var(--primary)"> 7일 이동평균
           </label>
         </div>
         <div id="skelTrend" class="skeleton-chart"></div>
@@ -2138,8 +2138,8 @@
       }).join('');
     }
 
-    // ESC로 비교 모달 닫기
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCompare(); });
+    // ESC로 모달 닫기
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeCompare(); closeSnapDetail(); } });
 
     // ═══ 영업 히스토리 ═══
     let allSnapshots = [];
