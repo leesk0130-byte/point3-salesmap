@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4f46e5">
+<title>오픈소스 라이선스 - Point3 CRM</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #4f46e5;
+    --primary-light: #eef2ff;
+    --bg: #f8fafc;
+    --fg: #1e293b;
+    --card-bg: #fff;
+    --card-border: #e2e8f0;
+    --muted: #f1f5f9;
+    --muted-fg: #64748b;
+    --border: #e2e8f0;
+    --text-secondary: #334155;
+    --transition: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  body.dark {
+    --bg: #0f172a; --fg: #f1f5f9; --card-bg: #1e293b; --card-border: #334155;
+    --muted: #1e293b; --muted-fg: #94a3b8; --border: #334155; --text-secondary: #cbd5e1;
+    --primary: #818cf8; --primary-light: #1e1b4b;
+  }
+
+  body {
+    font-family: 'Pretendard Variable', Pretendard, Inter, 'Noto Sans KR', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: background .2s var(--transition), color .2s var(--transition);
+  }
+
+  .header {
+    background: var(--card-bg);
+    height: 56px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    backdrop-filter: blur(8px);
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    color: var(--muted-fg); text-decoration: none;
+    transition: all .2s var(--transition);
+    border: 1px solid var(--border); background: var(--card-bg);
+  }
+  .back-btn:hover { background: var(--muted); color: var(--fg); }
+  .back-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .header-title { font-size: 16px; font-weight: 700; color: var(--fg); }
+  .dark-toggle {
+    width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card-bg); cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: all .2s var(--transition); color: var(--muted-fg);
+  }
+  .dark-toggle:hover { background: var(--muted); color: var(--fg); }
+  .dark-toggle svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .dark-toggle .icon-sun { display: none; }
+  .dark-toggle .icon-moon { display: block; }
+  body.dark .dark-toggle .icon-sun { display: block; }
+  body.dark .dark-toggle .icon-moon { display: none; }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 32px 24px 64px; }
+  .page-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .page-subtitle { font-size: 14px; color: var(--muted-fg); margin-bottom: 32px; }
+
+  .license-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: background .2s var(--transition), border-color .2s var(--transition);
+  }
+  .license-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .license-header:hover { background: var(--muted); }
+  .license-info { display: flex; flex-direction: column; gap: 4px; }
+  .license-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--fg);
+  }
+  .license-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .license-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .license-link {
+    font-size: 12px;
+    color: var(--muted-fg);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .license-link:hover { color: var(--primary); text-decoration: underline; }
+  .license-toggle {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    transition: transform .2s, background .2s;
+    flex-shrink: 0;
+  }
+  .license-toggle svg {
+    width: 18px; height: 18px;
+    stroke: var(--muted-fg); fill: none; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round;
+    transition: transform .2s;
+  }
+  .license-card.open .license-toggle svg { transform: rotate(180deg); }
+  .license-body {
+    display: none;
+    padding: 0 24px 20px;
+    border-top: 1px solid var(--border);
+  }
+  .license-card.open .license-body { display: block; }
+  .license-text {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--muted);
+    border-radius: 8px;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .footer-note {
+    text-align: center; font-size: 13px; color: var(--muted-fg);
+    padding: 24px 0 0; border-top: 1px solid var(--border); margin-top: 32px;
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 20px 16px 48px; }
+    .page-title { font-size: 22px; }
+    .license-header { padding: 14px 16px; }
+    .license-body { padding: 0 16px 16px; }
+    .license-text { padding: 12px; font-size: 11px; }
+    .header { padding: 0 16px; }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body:not(.light) {
+      --bg: #0f172a; --fg: #f1f5f9; --card-bg: #1e293b; --card-border: #334155;
+      --muted: #1e293b; --muted-fg: #94a3b8; --border: #334155; --text-secondary: #cbd5e1;
+      --primary: #818cf8; --primary-light: #1e1b4b;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <a href="/" class="back-btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      돌아가기
+    </a>
+    <span class="header-title">오픈소스 라이선스</span>
+  </div>
+  <button class="dark-toggle" id="darkToggle" aria-label="다크모드 전환">
+    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+</div>
+
+<div class="container">
+  <h1 class="page-title">오픈소스 라이선스</h1>
+  <p class="page-subtitle">Point3 CRM은 아래의 오픈소스 소프트웨어를 사용하고 있습니다. 각 프로젝트의 저작권자와 기여자에게 감사드립니다.</p>
+
+  <!-- Leaflet.js -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Leaflet.js</span>
+        <div class="license-meta">
+          <span class="license-badge">BSD-2-Clause</span>
+          <a href="https://github.com/Leaflet/Leaflet" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/Leaflet/Leaflet</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">인터랙티브 지도 라이브러리. 가맹점 위치 시각화에 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2010-2024, Volodymyr Agafonkin
+Copyright (c) 2010-2011, CloudMade
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice, this list of
+      conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright notice, this list
+      of conditions and the following disclaimer in the documentation and/or other materials
+      provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</div>
+    </div>
+  </div>
+
+  <!-- Leaflet.heat -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Leaflet.heat</span>
+        <div class="license-meta">
+          <span class="license-badge">BSD-2-Clause</span>
+          <a href="https://github.com/Leaflet/Leaflet.heat" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/Leaflet/Leaflet.heat</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">Leaflet용 히트맵 플러그인. 방문 밀도 시각화에 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2014, Vladimir Agafonkin
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+
+   1. Redistributions of source code must retain the above copyright notice, this list of
+      conditions and the following disclaimer.
+
+   2. Redistributions in binary form must reproduce the above copyright notice, this list
+      of conditions and the following disclaimer in the documentation and/or other materials
+      provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</div>
+    </div>
+  </div>
+
+  <!-- Leaflet.markercluster -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Leaflet.markercluster</span>
+        <div class="license-meta">
+          <span class="license-badge">MIT</span>
+          <a href="https://github.com/Leaflet/Leaflet.markercluster" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/Leaflet/Leaflet.markercluster</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">마커 클러스터링 플러그인. 다수의 가맹점 마커를 그룹화하여 표시합니다.</p>
+      <div class="license-text">Copyright (c) 2012-2017, Dave Leaver
+All rights reserved.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
+to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.</div>
+    </div>
+  </div>
+
+  <!-- Chart.js -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Chart.js</span>
+        <div class="license-meta">
+          <span class="license-badge">MIT</span>
+          <a href="https://github.com/chartjs/Chart.js" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/chartjs/Chart.js</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">차트 라이브러리. 대시보드 통계 그래프에 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2014-2024 Chart.js Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
+to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.</div>
+    </div>
+  </div>
+
+  <!-- Pretendard -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Pretendard</span>
+        <div class="license-meta">
+          <span class="license-badge">OFL-1.1</span>
+          <a href="https://github.com/orioncactus/pretendard" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/orioncactus/pretendard</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">한국어 최적화 웹 폰트. 서비스 전체 기본 폰트로 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2021 Kil Hyung-jin (https://github.com/orioncactus/pretendard)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://openfontlicense.org
+
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide development of
+collaborative font projects, to support the font creation efforts of academic and
+linguistic communities, and to provide a free and open framework in which fonts may be
+shared and improved in partnership with others.
+
+The fonts are free to use, study, modify and redistribute under the terms of this license.
+The fonts, including any derivative works, can be bundled, embedded, redistributed and/or
+sold with any software provided that any reserved names are not used by derivative works.
+
+The requirement for fonts to remain under this license does not apply to any document
+created using the fonts or their derivatives.</div>
+    </div>
+  </div>
+
+  <!-- Google Fonts - Inter -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Inter (Google Fonts)</span>
+        <div class="license-meta">
+          <span class="license-badge">OFL-1.1</span>
+          <a href="https://github.com/rsms/inter" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/rsms/inter</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">인터페이스용 서체. 영문 텍스트 표시에 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: https://openfontlicense.org</div>
+    </div>
+  </div>
+
+  <!-- Google Fonts - Noto Sans KR -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Noto Sans KR (Google Fonts)</span>
+        <div class="license-meta">
+          <span class="license-badge">OFL-1.1</span>
+          <a href="https://github.com/googlefonts/noto-cjk" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/googlefonts/noto-cjk</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">한국어 서체. 시스템 폰트 폴백으로 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Noto'
+Copyright (c) 2014-2021 Google LLC, with Reserved Font Name 'Noto'
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: https://openfontlicense.org</div>
+    </div>
+  </div>
+
+  <!-- Flask -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">Flask</span>
+        <div class="license-meta">
+          <span class="license-badge">BSD-3-Clause</span>
+          <a href="https://github.com/pallets/flask" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">github.com/pallets/flask</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">Python 웹 프레임워크. 서비스 백엔드에 사용됩니다.</p>
+      <div class="license-text">Copyright 2010 Pallets
+
+Redistribution and use in source and binary forms, with or without modification, are
+permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of
+   conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of
+   conditions and the following disclaimer in the documentation and/or other materials
+   provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used
+   to endorse or promote products derived from this software without specific prior written
+   permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</div>
+    </div>
+  </div>
+
+  <!-- openpyxl -->
+  <div class="license-card">
+    <div class="license-header" onclick="this.parentElement.classList.toggle('open')">
+      <div class="license-info">
+        <span class="license-name">openpyxl</span>
+        <div class="license-meta">
+          <span class="license-badge">MIT</span>
+          <a href="https://github.com/theorchard/openpyxl" target="_blank" rel="noopener" class="license-link" onclick="event.stopPropagation()">foss.heptapod.net/openpyxl/openpyxl</a>
+        </div>
+      </div>
+      <div class="license-toggle"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></div>
+    </div>
+    <div class="license-body">
+      <p style="font-size:13px;color:var(--text-secondary);">Excel 파일 처리 라이브러리. 데이터 내보내기/가져오기에 사용됩니다.</p>
+      <div class="license-text">Copyright (c) 2010 openpyxl
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this
+software and associated documentation files (the "Software"), to deal in the Software
+without restriction, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons
+to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or
+substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    시행일: 2026년 4월 11일
+  </div>
+</div>
+
+<script>
+  (function() {
+    var stored = localStorage.getItem('point3-dark');
+    if (stored === 'true') document.body.classList.add('dark');
+    else if (stored === 'false') document.body.classList.add('light');
+  })();
+  document.getElementById('darkToggle').addEventListener('click', function() {
+    var isDark = document.body.classList.toggle('dark');
+    document.body.classList.remove('light');
+    if (!isDark) document.body.classList.add('light');
+    localStorage.setItem('point3-dark', isDark ? 'true' : 'false');
+  });
+</script>
+</body>
+</html>
