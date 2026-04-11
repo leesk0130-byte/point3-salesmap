@@ -369,6 +369,13 @@ def geocode_address(address):
 #  인증 라우트
 # ══════════════════════════════════════════
 
+@app.route("/landing")
+def landing_page():
+    if get_current_user():
+        return redirect("/")
+    return render_template("landing.html")
+
+
 @app.route("/login")
 def login_page():
     if get_current_user():
@@ -2352,6 +2359,132 @@ def licenses_page():
 
 
 # ══════════════════════════════════════════
+#  자동 백업 시스템
+# ══════════════════════════════════════════
+
+BACKUP_DIR = os.path.join(BASE_DIR, "backups")
+if not os.path.exists(BACKUP_DIR):
+    os.makedirs(BACKUP_DIR)
+
+_last_backup_date = {"date": ""}
+
+
+def _run_backup():
+    """Firestore 전체 데이터를 JSON으로 백업"""
+    try:
+        backup_data = {
+            "backup_time": datetime.now().isoformat(),
+            "users": load_users(),
+            "stores": load_stores(),
+            "calendar_notes": fs_get_collection("calendar_notes"),
+            "snapshots": fs_get_collection("snapshots"),
+            "activity_logs": fs_get_collection("activity_logs"),
+        }
+
+        today = datetime.now().strftime("%Y%m%d")
+        filename = f"backup_{today}.json"
+        filepath = os.path.join(BACKUP_DIR, filename)
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(backup_data, f, ensure_ascii=False, indent=2)
+
+        # 7일 이상 된 백업 자동 삭제
+        cutoff = datetime.now().timestamp() - (7 * 86400)
+        for old_file in os.listdir(BACKUP_DIR):
+            if old_file.startswith("backup_") and old_file.endswith(".json"):
+                old_path = os.path.join(BACKUP_DIR, old_file)
+                if os.path.getmtime(old_path) < cutoff:
+                    os.remove(old_path)
+
+        _last_backup_date["date"] = today
+        print(f"[백업 완료] {filename} — users:{len(backup_data['users'])}, stores:{len(backup_data['stores'])}")
+        return True
+    except Exception as e:
+        print(f"[백업 실패] {e}")
+        return False
+
+
+def _auto_backup_loop():
+    """매일 1회 자동 백업 (서버 시작 후 1시간 뒤 첫 실행, 이후 6시간마다 체크)"""
+    time.sleep(3600)  # 서버 시작 1시간 후 첫 백업
+    while True:
+        today = datetime.now().strftime("%Y%m%d")
+        if _last_backup_date["date"] != today:
+            _run_backup()
+        time.sleep(21600)  # 6시간마다 체크
+
+
+@app.route("/api/admin/backup", methods=["POST"])
+@superadmin_required
+def admin_manual_backup():
+    """수동 백업 실행"""
+    success = _run_backup()
+    if success:
+        return jsonify({"message": "백업 완료"})
+    return jsonify({"error": "백업 실패"}), 500
+
+
+@app.route("/api/admin/backup-status")
+@superadmin_required
+def admin_backup_status():
+    """백업 상태 확인"""
+    backups = []
+    if os.path.exists(BACKUP_DIR):
+        for f in sorted(os.listdir(BACKUP_DIR), reverse=True):
+            if f.startswith("backup_") and f.endswith(".json"):
+                fpath = os.path.join(BACKUP_DIR, f)
+                size_kb = os.path.getsize(fpath) / 1024
+                backups.append({
+                    "filename": f,
+                    "date": f.replace("backup_", "").replace(".json", ""),
+                    "size_kb": round(size_kb, 1),
+                    "created": datetime.fromtimestamp(os.path.getmtime(fpath)).isoformat()
+                })
+    return jsonify({"backups": backups, "last_backup": _last_backup_date["date"]})
+
+
+@app.route("/api/admin/backup-download/<filename>")
+@superadmin_required
+def admin_backup_download(filename):
+    """백업 파일 다운로드"""
+    if not filename.startswith("backup_") or not filename.endswith(".json"):
+        return jsonify({"error": "잘못된 파일명"}), 400
+    filepath = os.path.join(BACKUP_DIR, filename)
+    if not os.path.exists(filepath):
+        return jsonify({"error": "파일이 존재하지 않습니다."}), 404
+    return send_file(filepath, as_attachment=True, download_name=filename)
+
+
+@app.route("/api/admin/backup-restore", methods=["POST"])
+@superadmin_required
+def admin_backup_restore():
+    """백업에서 복원 (주의: 기존 데이터 덮어쓰기)"""
+    data = request.get_json()
+    filename = data.get("filename", "")
+    if not filename.startswith("backup_") or not filename.endswith(".json"):
+        return jsonify({"error": "잘못된 파일명"}), 400
+    filepath = os.path.join(BACKUP_DIR, filename)
+    if not os.path.exists(filepath):
+        return jsonify({"error": "파일이 존재하지 않습니다."}), 404
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        backup = json.load(f)
+
+    restored = {"users": 0, "stores": 0}
+    for u in backup.get("users", []):
+        if u.get("id"):
+            fs_set_doc("users", u["id"], u)
+            restored["users"] += 1
+    for s in backup.get("stores", []):
+        if s.get("id"):
+            fs_set_doc("stores", s["id"], s)
+            restored["stores"] += 1
+
+    _invalidate_cache()
+    return jsonify({"message": f"복원 완료 — 유저 {restored['users']}명, 매장 {restored['stores']}개"})
+
+
+# ══════════════════════════════════════════
 #  Keep-alive (Render Free tier 슬립 방지)
 # ══════════════════════════════════════════
 
@@ -2376,6 +2509,10 @@ ensure_superadmin()
 # keep-alive 스레드 시작 (gunicorn에서도 동작)
 _keep_alive_thread = threading.Thread(target=_keep_alive, daemon=True)
 _keep_alive_thread.start()
+
+# 자동 백업 스레드 시작
+_backup_thread = threading.Thread(target=_auto_backup_loop, daemon=True)
+_backup_thread.start()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "true").lower() == "true")

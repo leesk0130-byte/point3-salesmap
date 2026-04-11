@@ -389,6 +389,23 @@
         <div class="loading"><div class="loading-spinner"></div>불러오는 중...</div>
       </div>
     </div>
+
+    <!-- Backup section -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">데이터 백업</div>
+        <div class="badge" id="backupCount">0</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:24px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+          <button onclick="manualBackup()" class="btn-team btn-primary-team" style="width:auto;padding:10px 24px;">지금 백업 실행</button>
+          <span id="lastBackupText" style="font-size:13px;color:var(--fg-muted);">마지막 백업: 확인 중...</span>
+        </div>
+        <div id="backupList" style="display:flex;flex-direction:column;gap:8px;">
+          <div style="text-align:center;padding:20px;color:var(--fg-muted);font-size:13px;">불러오는 중...</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="toast-container" id="toastContainer"></div>
@@ -606,8 +623,75 @@
       overlay.addEventListener('click', closeNav);
     })();
 
+    // Backup functions
+    async function loadBackupStatus() {
+      try {
+        const res = await fetch('/api/admin/backup-status');
+        if (!res.ok) return;
+        const data = await res.json();
+        const list = document.getElementById('backupList');
+        const badge = document.getElementById('backupCount');
+        const lastText = document.getElementById('lastBackupText');
+
+        badge.textContent = data.backups.length;
+        lastText.textContent = data.last_backup
+          ? `마지막 백업: ${data.last_backup.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3')}`
+          : '아직 백업 없음';
+
+        if (data.backups.length === 0) {
+          list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--fg-muted);font-size:13px;">백업 파일이 없습니다. 위 버튼으로 첫 백업을 실행하세요.</div>';
+          return;
+        }
+        list.innerHTML = data.backups.map(b => `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--bg-subtle);border-radius:10px;border:1px solid var(--border);">
+            <div style="flex-shrink:0;width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#4f46e5);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;">&#128190;</div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:14px;font-weight:600;color:var(--fg-secondary);">${b.date.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3')} 백업</div>
+              <div style="font-size:12px;color:var(--fg-muted);">${b.size_kb} KB</div>
+            </div>
+            <button onclick="downloadBackup('${b.filename}')" style="padding:6px 14px;font-size:12px;font-weight:600;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--primary);font-family:inherit;">다운로드</button>
+            <button onclick="restoreBackup('${b.filename}','${b.date}')" style="padding:6px 14px;font-size:12px;font-weight:600;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;cursor:pointer;color:#d97706;font-family:inherit;">복원</button>
+          </div>
+        `).join('');
+      } catch(e) {}
+    }
+
+    async function manualBackup() {
+      try {
+        const res = await fetch('/api/admin/backup', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        showToast(data.message, 'success');
+        await loadBackupStatus();
+      } catch(e) {
+        showToast(e.message || '백업 실패', 'error');
+      }
+    }
+
+    function downloadBackup(filename) {
+      window.location.href = '/api/admin/backup-download/' + filename;
+    }
+
+    async function restoreBackup(filename, date) {
+      const d = date.replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3');
+      if (!confirm(`${d} 백업으로 복원하시겠습니까?\n\n주의: 현재 데이터가 백업 시점으로 덮어씌워집니다.`)) return;
+      if (!confirm('정말로 복원하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+      try {
+        const res = await fetch('/api/admin/backup-restore', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({filename})
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        showToast(data.message, 'success');
+      } catch(e) {
+        showToast(e.message || '복원 실패', 'error');
+      }
+    }
+
     // Init
     loadTeams();
+    loadBackupStatus();
   </script>
 </body>
 </html>
