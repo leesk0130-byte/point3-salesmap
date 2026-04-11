@@ -14,45 +14,45 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #4f46e5;
-      --primary-light: #eef2ff;
-      --success: #059669;
-      --success-light: #ecfdf5;
-      --warning: #d97706;
-      --warning-light: #fffbeb;
-      --danger: #dc2626;
-      --danger-light: #fef2f2;
-      --violet: #7c3aed;
-      --violet-light: #f5f3ff;
-      --bg: #f8fafc;
-      --fg: #1e293b;
-      --card-bg: #fff;
-      --card-border: #e2e8f0;
-      --muted: #f1f5f9;
-      --muted-fg: #64748b;
-      --border: #e2e8f0;
-      --text-secondary: #334155;
+      --primary: #5B5BD6;
+      --primary-light: #F0F0FF;
+      --success: #2D9D78;
+      --success-light: #EEFBF5;
+      --warning: #D4850F;
+      --warning-light: #FFF8EB;
+      --danger: #D64545;
+      --danger-light: #FEF0F0;
+      --violet: #7C4DFF;
+      --violet-light: #F5F0FF;
+      --bg: #FAFBFD;
+      --fg: #1B1F36;
+      --card-bg: #ffffff;
+      --card-border: #E8EBF2;
+      --muted: #F2F4F8;
+      --muted-fg: #6E7491;
+      --border: #E8EBF2;
+      --text-secondary: #3D4260;
       --transition: cubic-bezier(0.4, 0, 0.2, 1);
     }
     body.dark {
-      --bg: #0f172a;
-      --fg: #f1f5f9;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --muted: #1e293b;
-      --muted-fg: #94a3b8;
-      --border: #334155;
-      --text-secondary: #cbd5e1;
-      --primary: #818cf8;
-      --primary-light: #1e1b4b;
-      --success: #34d399;
-      --success-light: #064e3b;
-      --warning: #fbbf24;
-      --warning-light: #78350f;
-      --danger: #f87171;
-      --danger-light: #7f1d1d;
-      --violet: #a78bfa;
-      --violet-light: #4c1d95;
+      --bg: #141520;
+      --fg: #EEEEF0;
+      --card-bg: #1E1F2E;
+      --card-border: #2A2B3D;
+      --muted: #1E1F2E;
+      --muted-fg: #8B8EA4;
+      --border: #2A2B3D;
+      --text-secondary: #C4C6D4;
+      --primary: #8B8BD8;
+      --primary-light: #1E1D35;
+      --success: #4ADE96;
+      --success-light: #0D2818;
+      --warning: #FACC15;
+      --warning-light: #2A1F05;
+      --danger: #F87171;
+      --danger-light: #2D1212;
+      --violet: #A78BFA;
+      --violet-light: #1D1640;
     }
 
     body {
@@ -66,18 +66,19 @@
 
     /* ── 헤더 ── */
     .header {
-      background: var(--card-bg);
+      background: rgba(255,255,255,.85);
       height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 0 24px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(232,235,242,.6);
       position: sticky;
       top: 0;
       z-index: 200;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
     }
+    body.dark .header { background: rgba(20,21,32,.85); border-bottom-color: rgba(42,43,61,.6); }
     .header-brand {
       display: flex;
       align-items: center;
@@ -87,20 +88,20 @@
     .header-brand h1 {
       font-size: 18px;
       font-weight: 700;
-      color: #6366f1;
+      color: #5B5BD6;
       letter-spacing: -0.5px;
     }
-    body.dark .header-brand h1 { color: #818cf8; }
+    body.dark .header-brand h1 { color: #8B8BD8; }
     .header-subtitle {
       font-size: 11px;
       padding: 3px 10px;
-      background: #eef2ff;
+      background: #F0F0FF;
       border-radius: 20px;
-      color: #6366f1;
+      color: #5B5BD6;
       font-weight: 600;
       white-space: nowrap;
     }
-    body.dark .header-subtitle { background: #1e1b4b; color: #a5b4fc; }
+    body.dark .header-subtitle { background: #1E1D35; color: #A0A0E0; }
     .header-nav {
       display: flex;
       gap: 4px;
@@ -277,8 +278,8 @@
     .btn-lg:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
     .btn-lg:active { transform: scale(0.97); }
 
-    .btn-primary { background: linear-gradient(135deg,#4f46e5,#6366f1); color: #fff; box-shadow: 0 2px 6px rgba(79,70,229,.25); }
-    .btn-primary:hover { background: linear-gradient(135deg,#4338ca,#4f46e5); }
+    .btn-primary { background: #5B5BD6; color: #fff; box-shadow: 0 2px 8px rgba(91,91,214,.2); }
+    .btn-primary:hover { background: #4E4EBF; }
     .btn-danger { background: #ef4444; color: #fff; }
     .btn-danger:hover { background: #dc2626; }
     .btn-ghost { background: transparent; color: #991b1b; border: 1px solid #fca5a5; }
@@ -317,12 +318,13 @@
       gap: 16px;
       padding: 12px 20px;
       background: var(--card-bg);
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      border: none;
       margin-bottom: 16px;
       font-size: 13px;
       color: var(--muted-fg);
       flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
     }
     .summary-bar .stat {
       display: flex;
@@ -337,14 +339,14 @@
     .summary-bar .dot { color: var(--border); }
     .summary-bar .status-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
     .summary-bar .status-badge-count { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-    .sbc-미컨택 { background: #fef2f2; color: #dc2626; }
-    .sbc-명함전달 { background: #eef2ff; color: #4f46e5; }
-    .sbc-미팅대기 { background: #fffbeb; color: #d97706; }
-    .sbc-미팅완료 { background: #ecfdf5; color: #059669; }
-    body.dark .sbc-미컨택 { background: var(--danger-light); color: #fca5a5; }
-    body.dark .sbc-명함전달 { background: var(--primary-light); color: #a5b4fc; }
-    body.dark .sbc-미팅대기 { background: var(--warning-light); color: #fcd34d; }
-    body.dark .sbc-미팅완료 { background: var(--success-light); color: #6ee7b7; }
+    .sbc-미컨택 { background: #FEF0F0; color: #D64545; }
+    .sbc-명함전달 { background: #F0F0FF; color: #5B5BD6; }
+    .sbc-미팅대기 { background: #FFF8EB; color: #D4850F; }
+    .sbc-미팅완료 { background: #EEFBF5; color: #2D9D78; }
+    body.dark .sbc-미컨택 { background: var(--danger-light); color: var(--danger); }
+    body.dark .sbc-명함전달 { background: var(--primary-light); color: var(--primary); }
+    body.dark .sbc-미팅대기 { background: var(--warning-light); color: var(--warning); }
+    body.dark .sbc-미팅완료 { background: var(--success-light); color: var(--success); }
 
     .bulk-status-select { padding: 5px 10px; border: 1px solid #fca5a5; border-radius: 6px; font-size: 12px; font-family: inherit; background: #fff; color: #991b1b; cursor: pointer; outline: none; }
 
@@ -355,10 +357,11 @@
       gap: 10px;
       padding: 14px 20px;
       background: var(--card-bg);
-      border-radius: 10px;
-      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      border: none;
       margin-bottom: 16px;
       flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
     }
     .filter-bar input[type="text"] {
       flex: 1;
@@ -452,10 +455,10 @@
     /* ── 테이블 래퍼 ── */
     .table-wrapper {
       background: var(--card-bg);
-      border-radius: 12px;
-      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      border: none;
       overflow-x: auto;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
     }
     table {
       width: 100%;
@@ -483,8 +486,7 @@
     tbody tr:hover {
       background: var(--primary-light);
       border-left-color: var(--primary);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(0,0,0,.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
     }
     tbody tr:last-child { border-bottom: none; }
     tbody td {
@@ -525,10 +527,10 @@
       font-weight: 600;
       white-space: nowrap;
     }
-    .badge-미컨택 { background: #fef2f2; color: #dc2626; }
-    .badge-명함전달 { background: #eef2ff; color: #4f46e5; }
-    .badge-미팅대기 { background: #fffbeb; color: #d97706; }
-    .badge-미팅완료 { background: #ecfdf5; color: #059669; }
+    .badge-미컨택 { background: #FEF0F0; color: #D64545; }
+    .badge-명함전달 { background: #F0F0FF; color: #5B5BD6; }
+    .badge-미팅대기 { background: #FFF8EB; color: #D4850F; }
+    .badge-미팅완료 { background: #EEFBF5; color: #2D9D78; }
 
     /* ── 경과일 ── */
     .days-red { color: #dc2626; font-weight: 600; }
@@ -595,7 +597,7 @@
     .contact-chk input[type="checkbox"] { width:13px; height:13px; margin:0; cursor:pointer; accent-color:var(--primary); }
     .cc-label { font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; user-select:none; white-space:nowrap; }
     .cc-email { background:#dbeafe; color:#1d4ed8; }
-    .cc-li { background:#e0e7ff; color:#4338ca; }
+    .cc-li { background:#E8E8FF; color:#5B5BD6; }
     .cc-rem { background:#fef3c7; color:#92400e; }
     .cc-intro { background:#d1fae5; color:#065f46; }
     .contact-chk input:not(:checked) + .cc-label { opacity:0.4; }
@@ -641,7 +643,7 @@
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15,23,42,.4);
+      background: rgba(20,21,32,.4);
       backdrop-filter: blur(4px);
       z-index: 500;
       justify-content: center;
@@ -650,7 +652,7 @@
     .modal-overlay.active { display: flex; }
     .modal {
       background: var(--card-bg);
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid var(--border);
       box-shadow: 0 20px 60px rgba(0,0,0,.15);
       width: 520px;
@@ -801,9 +803,9 @@
       animation: toastSlideIn .3s var(--transition);
       max-width: 360px;
     }
-    .toast.success { background: #059669; }
-    .toast.error { background: #dc2626; }
-    .toast.info { background: #4f46e5; }
+    .toast.success { background: #2D9D78; }
+    .toast.error { background: #D64545; }
+    .toast.info { background: #5B5BD6; }
     @keyframes toastSlideIn {
       from { opacity: 0; transform: translateX(40px); }
       to { opacity: 1; transform: translateX(0); }
@@ -854,10 +856,10 @@
     .btn-dark-toggle:hover { background: var(--border); }
 
     /* ── 다크모드 배지 오버라이드 ── */
-    body.dark .badge-미컨택 { background: var(--danger-light); color: #fca5a5; }
-    body.dark .badge-명함전달 { background: var(--primary-light); color: #a5b4fc; }
-    body.dark .badge-미팅대기 { background: var(--warning-light); color: #fcd34d; }
-    body.dark .badge-미팅완료 { background: var(--success-light); color: #6ee7b7; }
+    body.dark .badge-미컨택 { background: var(--danger-light); color: var(--danger); }
+    body.dark .badge-명함전달 { background: var(--primary-light); color: var(--primary); }
+    body.dark .badge-미팅대기 { background: var(--warning-light); color: var(--warning); }
+    body.dark .badge-미팅완료 { background: var(--success-light); color: var(--success); }
     body.dark .days-red { color: var(--danger); }
     body.dark .days-orange { color: var(--warning); }
     body.dark .days-green { color: var(--success); }

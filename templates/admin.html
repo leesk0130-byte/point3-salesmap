@@ -13,20 +13,20 @@
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <style>
     :root {
-      --primary: #4f46e5;
-      --primary-light: #6366f1;
-      --primary-hover: #4338ca;
-      --primary-glow: rgba(79, 70, 229, 0.25);
-      --bg: #f9fafb;
+      --primary: #5B5BD6;
+      --primary-light: #8B8BD8;
+      --primary-hover: #4E4EBF;
+      --primary-glow: rgba(91, 91, 214, 0.25);
+      --bg: #FAFBFD;
       --bg-card: #ffffff;
-      --bg-subtle: #f9fafb;
-      --bg-hover: #f3f4f6;
-      --fg: #111827;
-      --fg-secondary: #374151;
-      --fg-muted: #6b7280;
-      --fg-dimmed: #9ca3af;
-      --border: #e5e7eb;
-      --border-input: #d1d5db;
+      --bg-subtle: #F2F4F8;
+      --bg-hover: #ECEEF4;
+      --fg: #1B1F36;
+      --fg-secondary: #3D4260;
+      --fg-muted: #6E7491;
+      --fg-dimmed: #9B9EB5;
+      --border: #E8EBF2;
+      --border-input: #D0D5E0;
       --input-bg: #ffffff;
       --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -52,7 +52,7 @@
     .header-brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: var(--primary-light); }
     .header-brand .subtitle {
       font-size: 12px; font-weight: 500; color: var(--primary-light);
-      padding: 3px 10px; background: #eef2ff; border-radius: 20px;
+      padding: 3px 10px; background: #F0F0FF; border-radius: 20px;
       transition: background var(--transition), color var(--transition);
     }
     .header-right { display: flex; gap: 10px; align-items: center; }
@@ -133,9 +133,9 @@
     /* Card */
     .card {
       background: var(--bg-card); border-radius: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.06); padding: 28px;
-      margin-bottom: 24px; border: 1px solid var(--border);
-      transition: box-shadow var(--transition), background var(--transition), border-color var(--transition);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03); padding: 28px;
+      margin-bottom: 24px; border: none;
+      transition: box-shadow var(--transition), background var(--transition);
     }
     .card-title {
       font-size: 16px; font-weight: 700; color: var(--fg);
@@ -146,7 +146,7 @@
     }
     .card-title::before {
       content: ''; display: inline-block; width: 4px; height: 18px;
-      background: var(--primary-light); border-radius: 2px;
+      background: var(--primary); border-radius: 2px;
     }
 
     /* Form */

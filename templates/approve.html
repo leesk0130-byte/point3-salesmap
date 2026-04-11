@@ -12,18 +12,18 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <style>
     :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --primary-glow: rgba(79, 70, 229, 0.25);
-      --bg: #f8fafc;
+      --primary: #5B5BD6;
+      --primary-hover: #4E4EBF;
+      --primary-glow: rgba(91, 91, 214, 0.25);
+      --bg: #FAFBFD;
       --bg-card: #ffffff;
-      --bg-subtle: #f1f5f9;
-      --fg: #0f172a;
-      --fg-secondary: #1e293b;
-      --fg-muted: #94a3b8;
-      --fg-body: #334155;
-      --border: #e2e8f0;
-      --border-subtle: #f1f5f9;
+      --bg-subtle: #F2F4F8;
+      --fg: #1B1F36;
+      --fg-secondary: #3D4260;
+      --fg-muted: #9B9EB5;
+      --fg-body: #3D4260;
+      --border: #E8EBF2;
+      --border-subtle: #F2F4F8;
       --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -43,8 +43,8 @@
       transition: background var(--transition), border-color var(--transition);
     }
     .header-left { display: flex; align-items: baseline; gap: 12px; }
-    .logo { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; text-decoration: none; }
-    .logo span { color: #818cf8; font-weight: 600; }
+    .logo { font-size: 22px; font-weight: 800; color: #5B5BD6; letter-spacing: -0.5px; text-decoration: none; }
+    .logo span { color: #8B8BD8; font-weight: 600; }
     .header-sub { font-size: 14px; color: #64748b; font-weight: 500; }
     .back-link { font-size: 14px; color: var(--primary); text-decoration: none; font-weight: 600; }
     .back-link:hover { color: var(--primary-hover); }
@@ -122,9 +122,10 @@
     /* Stats */
     .team-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
     .stat-card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 14px; padding: 20px 22px;
-      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition);
+      background: var(--bg-card); border: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
+      border-radius: 16px; padding: 20px 22px;
+      transition: background var(--transition), box-shadow var(--transition);
     }
     .stat-card:hover { box-shadow: 0 4px 20px rgba(79,70,229,0.08); }
     .stat-label { font-size: 12px; font-weight: 600; color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
@@ -140,14 +141,14 @@
       min-width: 24px; height: 24px; padding: 0 8px;
       font-size: 12px; font-weight: 700; border-radius: 12px;
     }
-    .badge-pending { background: #fef3c7; color: #d97706; }
-    .badge-approved { background: #dcfce7; color: #16a34a; }
+    .badge-pending { background: #FFF8EB; color: #D4850F; }
+    .badge-approved { background: #EEFBF5; color: #2D9D78; }
     .badge-inactive { background: #f1f5f9; color: #94a3b8; }
 
     /* Invite banner */
     .invite-banner {
-      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-      border: 1.5px solid #818cf8; border-radius: 14px;
+      background: linear-gradient(135deg, #F0F0FF 0%, #E8E8FF 100%);
+      border: 1.5px solid #8B8BD8; border-radius: 14px;
       padding: 18px 22px; margin-bottom: 28px;
       display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
     }
@@ -192,9 +193,10 @@
 
     /* Member card */
     .member-card {
-      background: var(--bg-card); border: 1px solid var(--border);
+      background: var(--bg-card); border: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
       border-radius: 16px; padding: 22px;
-      transition: background var(--transition), border-color var(--transition), box-shadow var(--transition), transform 0.15s ease;
+      transition: background var(--transition), box-shadow var(--transition), transform 0.15s ease;
       position: relative; overflow: hidden;
     }
     .member-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }

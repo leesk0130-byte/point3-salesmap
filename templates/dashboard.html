@@ -16,45 +16,45 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #4f46e5;
-      --primary-light: #eef2ff;
-      --success: #059669;
-      --success-light: #ecfdf5;
-      --warning: #d97706;
-      --warning-light: #fffbeb;
-      --danger: #dc2626;
-      --danger-light: #fef2f2;
-      --violet: #7c3aed;
-      --violet-light: #f5f3ff;
-      --bg: #f9fafb;
-      --fg: #0f172a;
-      --card-bg: #fff;
-      --card-border: #e5e7eb;
-      --muted: #f3f4f6;
-      --muted-fg: #6b7280;
-      --border: #e5e7eb;
-      --text-secondary: #374151;
+      --primary: #5B5BD6;
+      --primary-light: #F0F0FF;
+      --success: #2D9D78;
+      --success-light: #EEFBF5;
+      --warning: #D4850F;
+      --warning-light: #FFF8EB;
+      --danger: #D64545;
+      --danger-light: #FEF0F0;
+      --violet: #7C4DFF;
+      --violet-light: #F5F0FF;
+      --bg: #FAFBFD;
+      --fg: #1B1F36;
+      --card-bg: #ffffff;
+      --card-border: #E8EBF2;
+      --muted: #F2F4F8;
+      --muted-fg: #6E7491;
+      --border: #E8EBF2;
+      --text-secondary: #3D4260;
       --transition: cubic-bezier(0.4, 0, 0.2, 1);
     }
     body.dark {
-      --bg: #0f172a;
-      --fg: #f1f5f9;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --muted: #1e293b;
-      --muted-fg: #94a3b8;
-      --border: #334155;
-      --text-secondary: #cbd5e1;
-      --primary: #818cf8;
-      --primary-light: #1e1b4b;
-      --success: #34d399;
-      --success-light: #064e3b;
-      --warning: #fbbf24;
-      --warning-light: #78350f;
-      --danger: #f87171;
-      --danger-light: #7f1d1d;
-      --violet: #a78bfa;
-      --violet-light: #4c1d95;
+      --bg: #141520;
+      --fg: #EEEEF0;
+      --card-bg: #1E1F2E;
+      --card-border: #2A2B3D;
+      --muted: #1E1F2E;
+      --muted-fg: #8B8EA4;
+      --border: #2A2B3D;
+      --text-secondary: #C4C6D4;
+      --primary: #8B8BD8;
+      --primary-light: #1E1D35;
+      --success: #4ADE96;
+      --success-light: #0D2818;
+      --warning: #FACC15;
+      --warning-light: #2A1F05;
+      --danger: #F87171;
+      --danger-light: #2D1212;
+      --violet: #A78BFA;
+      --violet-light: #1D1640;
     }
 
     body {
@@ -67,18 +67,19 @@
 
     /* ── 헤더 ── */
     .header {
-      background: var(--card-bg);
+      background: rgba(255,255,255,.85);
       padding: 0 24px;
       height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(232,235,242,.6);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
     }
+    body.dark .header { background: rgba(20,21,32,.85); border-bottom-color: rgba(42,43,61,.6); }
     .header-brand {
       display: flex;
       align-items: baseline;
@@ -88,14 +89,14 @@
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.5px;
-      color: #6366f1;
+      color: #5B5BD6;
     }
     .header-brand .subtitle {
       font-size: 11px;
       font-weight: 500;
-      color: #6366f1;
+      color: #5B5BD6;
       padding: 3px 10px;
-      background: #eef2ff;
+      background: #F0F0FF;
       border-radius: 20px;
       letter-spacing: 0.5px;
     }
@@ -211,7 +212,7 @@
     }
     .kpi-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: none;
       border-radius: 14px;
       padding: 20px 24px;
       display: flex;
@@ -220,6 +221,7 @@
       transition: all .2s var(--transition);
       position: relative;
       overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
     }
     .kpi-card::before {
       content: '';
@@ -229,22 +231,21 @@
       border-radius: 14px 14px 0 0;
     }
     .kpi-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,.08);
-      border-color: transparent;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04);
     }
-    .kpi-card.primary { background: linear-gradient(135deg, var(--card-bg) 0%, #eef2ff 100%); }
-    .kpi-card.primary::before { background: linear-gradient(90deg, #4f46e5, #818cf8); }
-    .kpi-card.success { background: linear-gradient(135deg, var(--card-bg) 0%, #ecfdf5 100%); }
-    .kpi-card.success::before { background: linear-gradient(90deg, #059669, #34d399); }
-    .kpi-card.danger { background: linear-gradient(135deg, var(--card-bg) 0%, #fef2f2 100%); }
-    .kpi-card.danger::before { background: linear-gradient(90deg, #dc2626, #f87171); }
-    .kpi-card.violet { background: linear-gradient(135deg, var(--card-bg) 0%, #f5f3ff 100%); }
-    .kpi-card.violet::before { background: linear-gradient(90deg, #7c3aed, #a78bfa); }
-    body.dark .kpi-card.primary { background: linear-gradient(135deg, var(--card-bg) 0%, #1e1b4b 100%); }
-    body.dark .kpi-card.success { background: linear-gradient(135deg, var(--card-bg) 0%, #064e3b 100%); }
-    body.dark .kpi-card.danger { background: linear-gradient(135deg, var(--card-bg) 0%, #7f1d1d 100%); }
-    body.dark .kpi-card.violet { background: linear-gradient(135deg, var(--card-bg) 0%, #4c1d95 100%); }
+    .kpi-card.primary { background: linear-gradient(135deg, var(--card-bg) 0%, #F0F0FF 100%); }
+    .kpi-card.primary::before { background: linear-gradient(90deg, #5B5BD6, #8B8BD8); }
+    .kpi-card.success { background: linear-gradient(135deg, var(--card-bg) 0%, #EEFBF5 100%); }
+    .kpi-card.success::before { background: linear-gradient(90deg, #2D9D78, #4ADE96); }
+    .kpi-card.danger { background: linear-gradient(135deg, var(--card-bg) 0%, #FEF0F0 100%); }
+    .kpi-card.danger::before { background: linear-gradient(90deg, #D64545, #F87171); }
+    .kpi-card.violet { background: linear-gradient(135deg, var(--card-bg) 0%, #F5F0FF 100%); }
+    .kpi-card.violet::before { background: linear-gradient(90deg, #7C4DFF, #A78BFA); }
+    body.dark .kpi-card.primary { background: linear-gradient(135deg, var(--card-bg) 0%, #1E1D35 100%); }
+    body.dark .kpi-card.success { background: linear-gradient(135deg, var(--card-bg) 0%, #0D2818 100%); }
+    body.dark .kpi-card.danger { background: linear-gradient(135deg, var(--card-bg) 0%, #2D1212 100%); }
+    body.dark .kpi-card.violet { background: linear-gradient(135deg, var(--card-bg) 0%, #1D1640 100%); }
     .kpi-header { display: flex; align-items: center; justify-content: space-between; }
     .kpi-icon { opacity: 0.7; flex-shrink: 0; }
     .kpi-label {
@@ -280,15 +281,15 @@
     }
     .chart-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: none;
       border-radius: 14px;
       padding: 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
       transition: all .2s var(--transition);
     }
     .chart-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,.10);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04);
     }
     .chart-card.full { grid-column: 1 / -1; }
     .chart-title {
@@ -334,10 +335,10 @@
     /* ── 이번 주 활동 요약 CSS 바차트 ── */
     .weekly-summary {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: none;
       border-radius: 14px;
       padding: 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
       margin-bottom: 28px;
     }
     .weekly-title {
@@ -389,11 +390,11 @@
     /* ── 히스토리 섹션 ── */
     .history-section {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: none;
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
     }
     .history-header {
       display: flex;
@@ -626,11 +627,11 @@
     /* ── 매장 테이블 ── */
     .table-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: none;
       border-radius: 14px;
       padding: 24px;
       margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
     }
     .table-header {
       display: flex;

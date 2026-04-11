@@ -17,53 +17,52 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --primary: #4f46e5;
-      --primary-light: #eef2ff;
-      --success: #059669;
-      --success-light: #ecfdf5;
-      --warning: #d97706;
-      --warning-light: #fffbeb;
-      --danger: #dc2626;
-      --danger-light: #fef2f2;
-      --violet: #7c3aed;
-      --violet-light: #f5f3ff;
-      --bg: #f9fafb;
-      --fg: #111827;
-      --card-bg: #fff;
-      --card-border: #e5e7eb;
-      --muted: #f3f4f6;
-      --muted-fg: #6b7280;
-      --border: #e5e7eb;
-      --text-secondary: #374151;
+      --primary: #5B5BD6;
+      --primary-light: #F0F0FF;
+      --success: #2D9D78;
+      --success-light: #EEFBF5;
+      --warning: #D4850F;
+      --warning-light: #FFF8EB;
+      --danger: #D64545;
+      --danger-light: #FEF0F0;
+      --violet: #7C4DFF;
+      --violet-light: #F5F0FF;
+      --bg: #FAFBFD;
+      --fg: #1B1F36;
+      --card-bg: #ffffff;
+      --card-border: #E8EBF2;
+      --muted: #F2F4F8;
+      --muted-fg: #6E7491;
+      --border: #E8EBF2;
+      --text-secondary: #3D4260;
       --transition: cubic-bezier(0.4, 0, 0.2, 1);
-      /* heatmap colors */
       --heat-0: transparent;
       --heat-1: #dcfce7;
       --heat-2: #86efac;
       --heat-3: #22c55e;
     }
     body.dark {
-      --bg: #0f172a;
-      --fg: #f1f5f9;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --muted: #1e293b;
-      --muted-fg: #94a3b8;
-      --border: #334155;
-      --text-secondary: #cbd5e1;
-      --primary: #818cf8;
-      --primary-light: #1e1b4b;
-      --success: #34d399;
-      --success-light: #064e3b;
-      --warning: #fbbf24;
-      --warning-light: #78350f;
-      --danger: #f87171;
-      --danger-light: #7f1d1d;
-      --violet: #a78bfa;
-      --violet-light: #4c1d95;
-      --heat-1: #064e3b;
-      --heat-2: #065f46;
-      --heat-3: #047857;
+      --bg: #141520;
+      --fg: #EEEEF0;
+      --card-bg: #1E1F2E;
+      --card-border: #2A2B3D;
+      --muted: #1E1F2E;
+      --muted-fg: #8B8EA4;
+      --border: #2A2B3D;
+      --text-secondary: #C4C6D4;
+      --primary: #8B8BD8;
+      --primary-light: #1E1D35;
+      --success: #4ADE96;
+      --success-light: #0D2818;
+      --warning: #FACC15;
+      --warning-light: #2A1F05;
+      --danger: #F87171;
+      --danger-light: #2D1212;
+      --violet: #A78BFA;
+      --violet-light: #1D1640;
+      --heat-1: #0D2818;
+      --heat-2: #0D3320;
+      --heat-3: #0D6C3C;
     }
 
     body {
@@ -76,18 +75,19 @@
 
     /* ── 헤더 ── */
     .header {
-      background: var(--card-bg);
+      background: rgba(255,255,255,.85);
       padding: 0 24px;
       height: 56px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid rgba(232,235,242,.6);
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(12px);
     }
+    body.dark .header { background: rgba(20,21,32,.85); border-bottom-color: rgba(42,43,61,.6); }
     .header-brand {
       display: flex;
       align-items: baseline;
@@ -97,14 +97,14 @@
       font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.5px;
-      color: #6366f1;
+      color: #5B5BD6;
     }
     .header-brand .subtitle {
       font-size: 11px;
       font-weight: 500;
       color: var(--primary);
       padding: 3px 10px;
-      background: #eef2ff;
+      background: #F0F0FF;
       border-radius: 20px;
       letter-spacing: 0.5px;
     }
@@ -224,8 +224,8 @@
     .card {
       background: var(--card-bg);
       border-radius: 14px;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      border: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
       transition: box-shadow .2s var(--transition);
     }
     .card-header {
@@ -293,11 +293,12 @@
     }
     .stat-card {
       background: var(--muted);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      border: none;
+      border-radius: 14px;
       padding: 14px 16px;
       text-align: center;
       transition: all .2s var(--transition);
+      box-shadow: 0 2px 12px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.03);
     }
     .stat-card:hover {
       transform: translateY(-2px);
@@ -406,11 +407,12 @@
     .calendar-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-      border-radius: 10px;
+      gap: 1px;
+      border-radius: 14px;
       overflow: hidden;
-      background: var(--border);
+      background: rgba(0,0,0,.06);
     }
+    body.dark .calendar-grid { background: rgba(255,255,255,.06); }
     .cal-weekday {
       padding: 10px 4px;
       text-align: center;
