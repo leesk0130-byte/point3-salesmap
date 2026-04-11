@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
     <style>
@@ -995,13 +995,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,.08);
         }
 
-        /* ═══════════════════════════════════════
-           HEATMAP TOGGLE
-           ═══════════════════════════════════════ */
-        .map-ctrl-btn.heatmap-active {
-            background: #f97316; border-color: #f97316; color: #fff;
-        }
-        .map-ctrl-btn.heatmap-active:hover { background: #ea580c; }
 
         /* ═══════════════════════════════════════
            PIE CHART CLUSTER ICONS
@@ -1510,10 +1503,7 @@
 
     <div class="map-controls">
         <button class="dark-toggle" id="darkToggle" title="다크모드 전환">&#9728;</button>
-        <button class="map-ctrl-btn" id="heatmapToggle" title="히트맵 보기">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" opacity=".3"/><circle cx="8" cy="8" r="5" opacity=".5"/><circle cx="8" cy="8" r="3" opacity=".8"/></svg>
-            히트맵
-        </button>
+
         <a href="/dashboard" class="map-ctrl-btn" title="대시보드">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="4" rx="1"/><rect x="9" y="7" width="6" height="8" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/></svg>
             대시보드
@@ -2509,38 +2499,6 @@
             }
         }).catch(()=>{});
 
-        // ══════════════════════════════════════
-        //  1. HEATMAP TOGGLE
-        // ══════════════════════════════════════
-        let heatLayer = null;
-        let heatmapOn = false;
-
-        document.getElementById('heatmapToggle').addEventListener('click', function() {
-            heatmapOn = !heatmapOn;
-            this.classList.toggle('heatmap-active', heatmapOn);
-            if (heatmapOn) {
-                // Hide marker cluster, show heatmap
-                map.removeLayer(markerGroup);
-                const pts = getFilteredForMap().map(s => [s.lat, s.lng, 1]);
-                heatLayer = L.heatLayer(pts, { radius: 25, blur: 15, maxZoom: 15, gradient: { 0.2: '#3b82f6', 0.4: '#22d3ee', 0.6: '#facc15', 0.8: '#f97316', 1.0: '#ef4444' } }).addTo(map);
-            } else {
-                // Remove heatmap, show markers
-                if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
-                map.addLayer(markerGroup);
-            }
-        });
-
-        // Update heatmap when data changes
-        const _origRender = render;
-        render = function() {
-            _origRender();
-            if (heatmapOn && heatLayer) {
-                map.removeLayer(heatLayer);
-                const pts = getFilteredForMap().map(s => [s.lat, s.lng, 1]);
-                heatLayer = L.heatLayer(pts, { radius: 25, blur: 15, maxZoom: 15, gradient: { 0.2: '#3b82f6', 0.4: '#22d3ee', 0.6: '#facc15', 0.8: '#f97316', 1.0: '#ef4444' } }).addTo(map);
-                map.removeLayer(markerGroup);
-            }
-        };
 
         // ══════════════════════════════════════
         //  3. MAP FILTER PANEL
