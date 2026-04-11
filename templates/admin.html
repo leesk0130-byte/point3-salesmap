@@ -11,6 +11,8 @@
   <title>{{ team_name }} CRM - 가맹점 등록</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
   <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --primary: #4f46e5;
@@ -203,7 +205,7 @@
 
     /* Minimap */
     .minimap-container {
-      width: 100%; height: 200px; border-radius: 12px;
+      width: 100%; height: 250px; border-radius: 12px;
       border: 1px solid var(--border); overflow: hidden;
       background: var(--bg-subtle); display: flex;
       align-items: center; justify-content: center;
@@ -211,6 +213,12 @@
       margin-top: 8px; position: relative;
     }
     .minimap-container img { width: 100%; height: 100%; object-fit: cover; }
+    .minimap-hint {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      background: rgba(79,70,229,.85); color: #fff; font-size: 11px; font-weight: 600;
+      padding: 4px 12px; border-radius: 20px; z-index: 999; pointer-events: none;
+      white-space: nowrap;
+    }
 
     .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 8px; }
 
@@ -661,12 +669,38 @@ async function checkDuplicate(name) {
   } catch (e) {}
 }
 
-/* ============= Minimap ============= */
+/* ============= Minimap (Leaflet 인터랙티브) ============= */
+let miniMap = null;
+let miniMarker = null;
+
 function updateMinimap(lat, lng) {
   const container = document.getElementById('minimapContainer');
-  // Backend proxy for Kakao Static Map API (no API key exposed)
-  const url = `/api/kakao-staticmap?lat=${lat}&lng=${lng}&width=600&height=200`;
-  container.innerHTML = `<img src="${url}" alt="지도" onerror="this.parentElement.innerHTML='지도를 불러올 수 없습니다'">`;
+  container.innerHTML = '<div id="minimapLeaflet" style="width:100%;height:100%;"></div><div class="minimap-hint">마커를 드래그해서 정확한 위치로 이동하세요</div>';
+
+  if (miniMap) { miniMap.remove(); miniMap = null; miniMarker = null; }
+
+  miniMap = L.map('minimapLeaflet', { zoomControl: true, attributionControl: false }).setView([lat, lng], 17);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(miniMap);
+
+  miniMarker = L.marker([lat, lng], { draggable: true }).addTo(miniMap);
+  miniMarker.bindTooltip('드래그하여 위치 보정', { direction: 'top', offset: [0, -10] });
+
+  miniMarker.on('dragend', function(e) {
+    const pos = e.target.getLatLng();
+    document.getElementById('storeLat').value = pos.lat;
+    document.getElementById('storeLng').value = pos.lng;
+    showToast('위치가 보정되었습니다', 'success');
+  });
+
+  // 지도 클릭으로도 마커 이동 가능
+  miniMap.on('click', function(e) {
+    miniMarker.setLatLng(e.latlng);
+    document.getElementById('storeLat').value = e.latlng.lat;
+    document.getElementById('storeLng').value = e.latlng.lng;
+    showToast('위치가 보정되었습니다', 'success');
+  });
+
+  setTimeout(function() { miniMap.invalidateSize(); }, 100);
 }
 
 /* ============= Address Search (Daum Postcode) ============= */
