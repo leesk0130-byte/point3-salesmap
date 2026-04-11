@@ -1604,12 +1604,6 @@
                 <textarea class="dp-input" id="dpMemo"></textarea>
             </div>
             <div class="dp-field">
-                <div class="dp-label">위치 보정 <span style="font-size:11px;color:var(--muted-fg);font-weight:400;">(마커 드래그 또는 클릭)</span></div>
-                <div id="dpMinimap" style="width:100%;height:200px;border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-top:6px;background:var(--bg);position:relative;"></div>
-                <input type="hidden" id="dpLat">
-                <input type="hidden" id="dpLng">
-            </div>
-            <div class="dp-field">
                 <div class="dp-label">지도 표시</div>
                 <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin-top:4px;">
                     <input type="checkbox" id="dpShowOnMap" checked style="accent-color:var(--success);width:18px;height:18px;">
@@ -2343,14 +2337,10 @@
                 b.style.color = d ? '#fff' : 'var(--fg)';
                 b.style.borderColor = d ? 'var(--primary)' : 'var(--border)';
             });
-            document.getElementById('dpLat').value = s.lat || '';
-            document.getElementById('dpLng').value = s.lng || '';
             renderDetailVisits(s);
             document.getElementById('detailOverlay').classList.add('active');
             document.getElementById('detailPanel').classList.add('open');
             map.closePopup();
-            // 위치 보정 미니맵
-            setTimeout(function() { initDpMinimap(s.lat, s.lng); }, 200);
         }
         function closeDetail() {
             document.getElementById('detailOverlay').classList.remove('active');
@@ -2376,42 +2366,14 @@
                 </div>`;
             }).join('');
         }
-        // ── 상세패널 위치 보정 미니맵 ──
-        var dpMap = null, dpMarker = null;
-        function initDpMinimap(lat, lng) {
-            var el = document.getElementById('dpMinimap');
-            if (dpMap) { dpMap.remove(); dpMap = null; dpMarker = null; }
-            if (!lat || !lng) { el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted-fg);font-size:12px;">좌표 없음</div>'; return; }
-            dpMap = L.map(el, { zoomControl: true, attributionControl: false }).setView([lat, lng], 17);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(dpMap);
-            dpMarker = L.marker([lat, lng], { draggable: true }).addTo(dpMap);
-            dpMarker.on('dragend', function(e) {
-                var pos = e.target.getLatLng();
-                document.getElementById('dpLat').value = pos.lat;
-                document.getElementById('dpLng').value = pos.lng;
-                showToast('위치 보정됨');
-            });
-            dpMap.on('click', function(e) {
-                dpMarker.setLatLng(e.latlng);
-                document.getElementById('dpLat').value = e.latlng.lat;
-                document.getElementById('dpLng').value = e.latlng.lng;
-                showToast('위치 보정됨');
-            });
-            dpMap.invalidateSize();
-        }
-
         async function saveDetail() {
             const id = document.getElementById('dpId').value;
-            const latVal = document.getElementById('dpLat').value;
-            const lngVal = document.getElementById('dpLng').value;
             const payload = {
                 name: document.getElementById('dpName').value.trim(),
                 address: document.getElementById('dpAddress').value.trim(),
                 memo: document.getElementById('dpMemo').value.trim(),
                 showOnMap: document.getElementById('dpShowOnMap').checked,
             };
-            if (latVal) payload.lat = parseFloat(latVal);
-            if (lngVal) payload.lng = parseFloat(lngVal);
             if (!payload.name || !payload.address) { alert('가맹점명과 주소는 필수입니다.'); return; }
             try {
                 const res = await fetch(`/api/stores/${id}`, {

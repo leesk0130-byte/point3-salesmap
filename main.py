@@ -331,29 +331,83 @@ def get_last_visit(store):
 # ── 카카오 지오코딩 함수 ──
 KAKAO_API_KEY = os.environ.get("KAKAO_API_KEY", "12a6d5580904db14be2b073e8e114a4f")
 
-def geocode_address(address):
+def _normalize_address(address):
+    """주소 정규화: 괄호/상세주소/건물명 제거 → 순수 도로명/지번 주소"""
+    import re
+    addr = address.strip()
+    # 괄호 안 내용 제거 (서초동), 패스트파이브 등
+    addr = re.sub(r'\s*\([^)]*\)', '', addr)
+    # 건물명/상세주소 제거 (숫자 뒤 한글 시작 부분)
+    # ex) "가산디지털2로 107 에이스하이엔드타워" → "가산디지털2로 107"
+    m = re.match(r'^(.+\d+(?:-\d+)?)\s+[가-힣]', addr)
+    if m:
+        addr = m.group(1)
+    return addr.strip()
+
+
+def geocode_address(address, store_name=None):
     """
     주소를 위도/경도로 변환 (카카오 로컬 API 사용)
-    주소 검색 실패 시 키워드 검색으로 fallback
+    3단계 검색으로 정확도 극대화:
+      1) 주소 검색 (정규화된 주소, analyze_type=exact)
+      2) 키워드 검색 (가맹점명 + 주소 조합 → POI 매칭)
+      3) 키워드 검색 (주소만)
     """
     headers = {"Authorization": f"KakaoAK {KAKAO_API_KEY}"}
+    clean_addr = _normalize_address(address)
 
-    # 1차: 주소 검색
+    # 1차: 주소 검색 (정규화 + exact 모드)
     try:
         url = "https://dapi.kakao.com/v2/local/search/address.json"
-        resp = requests.get(url, headers=headers, params={"query": address}, timeout=10)
+        resp = requests.get(url, headers=headers,
+                            params={"query": clean_addr, "analyze_type": "exact"}, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         if data.get("documents"):
             doc = data["documents"][0]
+            # road_address가 있으면 더 정밀한 좌표 사용
+            ra = doc.get("road_address")
+            if ra and ra.get("x") and ra.get("y"):
+                return float(ra["y"]), float(ra["x"])
             return float(doc["y"]), float(doc["x"])
     except Exception as e:
-        print(f"[지오코딩 오류] {address}: {e}")
+        print(f"[지오코딩-주소검색 오류] {address}: {e}")
 
-    # 2차: 키워드 검색 (건물명 등)
+    # 1-b: 정규화 안 한 원본으로 재시도 (similar 모드)
+    if clean_addr != address.strip():
+        try:
+            resp = requests.get("https://dapi.kakao.com/v2/local/search/address.json",
+                                headers=headers, params={"query": address.strip()}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("documents"):
+                doc = data["documents"][0]
+                ra = doc.get("road_address")
+                if ra and ra.get("x") and ra.get("y"):
+                    return float(ra["y"]), float(ra["x"])
+                return float(doc["y"]), float(doc["x"])
+        except Exception as e:
+            print(f"[지오코딩-원본주소 오류] {address}: {e}")
+
+    # 2차: 키워드 검색 (가맹점명 + 주소 → POI 기반 정확 좌표)
+    if store_name:
+        try:
+            url = "https://dapi.kakao.com/v2/local/search/keyword.json"
+            resp = requests.get(url, headers=headers,
+                                params={"query": f"{store_name} {clean_addr}"}, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            if data.get("documents"):
+                doc = data["documents"][0]
+                return float(doc["y"]), float(doc["x"])
+        except Exception as e:
+            print(f"[키워드 검색(이름+주소) 오류] {address}: {e}")
+
+    # 3차: 키워드 검색 (주소만)
     try:
         url = "https://dapi.kakao.com/v2/local/search/keyword.json"
-        resp = requests.get(url, headers=headers, params={"query": address}, timeout=10)
+        resp = requests.get(url, headers=headers,
+                            params={"query": address.strip()}, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         if data.get("documents"):
@@ -1052,7 +1106,7 @@ def add_store():
 
     # 위도/경도가 없으면 자동 지오코딩
     if store["lat"] is None or store["lng"] is None:
-        lat, lng = geocode_address(store["address"])
+        lat, lng = geocode_address(store["address"], store_name=store.get("name"))
         if lat is None or lng is None:
             return jsonify({"error": "주소를 지도 좌표로 변환할 수 없습니다. 정확한 주소인지 확인해주세요."}), 400
         store["lat"] = lat
@@ -1086,9 +1140,14 @@ def update_store(store_id):
                          "contact_intro", "showOnMap", "website"]:
                 if key in data:
                     stores[i][key] = data[key]
-            # 주소가 변경되면 district 재추출
+            # 주소가 변경되면 district 재추출 + 좌표 재지오코딩
             if "address" in data:
                 stores[i]["district"] = extract_district(data["address"])
+                if "lat" not in data and "lng" not in data:
+                    new_lat, new_lng = geocode_address(data["address"], store_name=stores[i].get("name"))
+                    if new_lat is not None:
+                        stores[i]["lat"] = new_lat
+                        stores[i]["lng"] = new_lng
             if not save_store(stores[i]):
                 return jsonify({"error": "저장 중 오류가 발생했습니다."}), 500
             changed_keys = [k for k in data if k in ["name","address","memo","notes","contact_email","contact_linkedin","contact_remember","contact_intro","showOnMap","website"]]
@@ -1098,6 +1157,36 @@ def update_store(store_id):
             return jsonify(stores[i])
 
     return jsonify({"error": "매장을 찾을 수 없습니다."}), 404
+
+
+@app.route("/api/stores/regeocode-all", methods=["POST"])
+@login_required
+def regeocode_all_stores():
+    """팀의 전체 가맹점 좌표를 재지오코딩 (정확도 개선)"""
+    user = get_current_user()
+    team = user.get("teamName", "")
+    stores = load_stores()
+    updated = 0
+    failed = []
+
+    for store in stores:
+        if store.get("teamName") != team:
+            continue
+        addr = store.get("address", "")
+        if not addr:
+            continue
+        new_lat, new_lng = geocode_address(addr, store_name=store.get("name"))
+        if new_lat is not None:
+            old_lat, old_lng = store.get("lat"), store.get("lng")
+            store["lat"] = new_lat
+            store["lng"] = new_lng
+            save_store(store)
+            if old_lat != new_lat or old_lng != new_lng:
+                updated += 1
+        else:
+            failed.append(store.get("name", "?"))
+
+    return jsonify({"updated": updated, "failed": failed, "total": updated + len(failed)})
 
 
 @app.route("/api/stores/<store_id>", methods=["DELETE"])
@@ -1179,7 +1268,8 @@ def upload_excel():
 
         # 카카오 지오코딩
         address_str = str(address)
-        lat, lng = geocode_address(address_str)
+        name_str = str(name)
+        lat, lng = geocode_address(address_str, store_name=name_str)
 
         store = {
             "id": str(uuid.uuid4()),
@@ -1354,7 +1444,7 @@ def get_stats():
                     vd = datetime.strptime(v.get("date", ""), "%Y-%m-%d").date()
                     if (today - vd).days <= 7:
                         recent_7d += 1
-                except:
+                except (ValueError, TypeError):
                     pass
     return jsonify({"total": total, "visited": visited, "not_visited": total - visited,
                     "status_counts": status_counts, "recent_7d_visits": recent_7d})
@@ -1367,10 +1457,14 @@ def get_stats():
 @app.route("/api/districts", methods=["GET"])
 @login_required
 def get_districts():
-    """모든 매장의 지역구 목록과 개수 조회"""
+    """팀 소속 매장의 지역구 목록과 개수 조회"""
+    user = get_current_user()
+    team = user.get("teamName", "")
     stores = load_stores()
     district_counts = {}
     for store in stores:
+        if store.get("teamName") != team:
+            continue
         district = store.get("district", "기타")
         district_counts[district] = district_counts.get(district, 0) + 1
 
