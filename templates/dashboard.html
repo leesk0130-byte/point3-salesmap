@@ -912,111 +912,6 @@
       .kpi-value { font-size: 22px; }
     }
 
-    /* ── 월 목표 설정 카드 ── */
-    .goal-section {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 28px;
-      box-shadow: 0 1px 3px rgba(0,0,0,.04);
-    }
-    .goal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .goal-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--fg);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .goal-remaining {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--muted-fg);
-      background: var(--muted);
-      padding: 4px 12px;
-      border-radius: 20px;
-    }
-    .goal-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    .goal-item {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .goal-item-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .goal-item-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-secondary);
-    }
-    .goal-item-value {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--primary);
-    }
-    .goal-progress-bg {
-      height: 12px;
-      background: var(--muted);
-      border-radius: 6px;
-      overflow: hidden;
-      position: relative;
-    }
-    .goal-progress-fill {
-      height: 100%;
-      border-radius: 6px;
-      transition: width .6s cubic-bezier(0.4, 0, 0.2, 1);
-      min-width: 0;
-    }
-    .goal-progress-fill.activity { background: linear-gradient(90deg, #4f46e5, #818cf8); }
-    .goal-progress-fill.contact { background: linear-gradient(90deg, #059669, #34d399); }
-    .goal-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .goal-input {
-      width: 80px;
-      padding: 5px 10px;
-      border: 1.5px solid var(--border);
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: inherit;
-      color: var(--text-secondary);
-      background: var(--muted);
-      outline: none;
-      text-align: center;
-    }
-    .goal-input:focus { border-color: var(--primary); }
-    .goal-set-btn {
-      padding: 5px 12px;
-      border: 1px solid var(--primary);
-      background: var(--primary);
-      color: #fff;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all .2s;
-    }
-    .goal-set-btn:hover { opacity: .85; }
-    @media (max-width: 768px) {
-      .goal-grid { grid-template-columns: 1fr; }
-    }
-
     /* ── 기간 비교 모달 ── */
     .compare-overlay {
       position: fixed;
@@ -1332,45 +1227,6 @@
       </div>
     </div>
 
-    <!-- 월 목표 설정 & 진행률 -->
-    <div class="goal-section">
-      <div class="goal-header">
-        <div class="goal-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-          이번 달 영업 목표
-        </div>
-        <span class="goal-remaining" id="goalRemaining">-</span>
-      </div>
-      <div class="goal-grid">
-        <div class="goal-item">
-          <div class="goal-item-header">
-            <span class="goal-item-label">활동 건수 목표</span>
-            <span class="goal-item-value" id="goalActivityText">0 / 0건</span>
-          </div>
-          <div class="goal-progress-bg">
-            <div class="goal-progress-fill activity" id="goalActivityBar" style="width:0%"></div>
-          </div>
-          <div class="goal-input-row">
-            <input type="number" class="goal-input" id="goalActivityInput" min="0" placeholder="목표">
-            <button class="goal-set-btn" onclick="saveGoal()">설정</button>
-          </div>
-        </div>
-        <div class="goal-item">
-          <div class="goal-item-header">
-            <span class="goal-item-label">컨택율 목표</span>
-            <span class="goal-item-value" id="goalContactText">0% / 0%</span>
-          </div>
-          <div class="goal-progress-bg">
-            <div class="goal-progress-fill contact" id="goalContactBar" style="width:0%"></div>
-          </div>
-          <div class="goal-input-row">
-            <input type="number" class="goal-input" id="goalContactInput" min="0" max="100" placeholder="%" >
-            <span style="font-size:12px;color:var(--muted-fg)">%</span>
-            <button class="goal-set-btn" onclick="saveGoal()">설정</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- 차트 -->
     <div class="chart-grid">
@@ -1976,9 +1832,6 @@
       // ── 전체 매장 테이블 렌더링 ──
       renderStoreTable();
 
-      // ── 목표 진행률 업데이트 ──
-      updateGoalProgress(stores);
-
       // ── 팀원별 활동 로드 ──
       loadMemberStats();
     }
@@ -2175,68 +2028,6 @@
           }
         }
       });
-    }
-
-    // ═══ 월 목표 설정 & 진행률 ═══
-    function getGoalKey() {
-      const now = new Date();
-      return `point3-goal-${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    }
-
-    function loadGoal() {
-      const key = getGoalKey();
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e) {}
-      }
-      return { activity: 0, contact: 0 };
-    }
-
-    function saveGoal() {
-      const activity = parseInt(document.getElementById('goalActivityInput').value) || 0;
-      const contact = parseInt(document.getElementById('goalContactInput').value) || 0;
-      const key = getGoalKey();
-      localStorage.setItem(key, JSON.stringify({ activity, contact }));
-      if (allStoresCache.length > 0) updateGoalProgress(allStoresCache);
-      showToast('목표 설정 완료', 'success');
-    }
-
-    function updateGoalProgress(stores) {
-      const goal = loadGoal();
-      document.getElementById('goalActivityInput').value = goal.activity || '';
-      document.getElementById('goalContactInput').value = goal.contact || '';
-
-      // 이번 달 활동 건수 계산
-      const now = new Date();
-      const monthStart = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-01';
-      let monthActivities = 0;
-      stores.forEach(s => {
-        (s.visits || []).forEach(v => {
-          const vDate = (v.date || '').slice(0, 10);
-          if (vDate >= monthStart) monthActivities++;
-        });
-      });
-
-      // 컨택율 계산
-      const totalStores = stores.length;
-      const noContact = stores.filter(s => getStoreStatus(s) === '미컨택').length;
-      const contacted = totalStores - noContact;
-      const contactRate = totalStores > 0 ? ((contacted / totalStores) * 100) : 0;
-
-      // 활동 진행률
-      const actPct = goal.activity > 0 ? Math.min((monthActivities / goal.activity) * 100, 100) : 0;
-      document.getElementById('goalActivityBar').style.width = actPct.toFixed(1) + '%';
-      document.getElementById('goalActivityText').textContent = monthActivities + ' / ' + (goal.activity || '-') + '건 (' + actPct.toFixed(0) + '%)';
-
-      // 컨택율 진행률
-      const conPct = goal.contact > 0 ? Math.min((contactRate / goal.contact) * 100, 100) : 0;
-      document.getElementById('goalContactBar').style.width = conPct.toFixed(1) + '%';
-      document.getElementById('goalContactText').textContent = contactRate.toFixed(1) + '% / ' + (goal.contact || '-') + '% (' + conPct.toFixed(0) + '%)';
-
-      // 남은 일수
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      const remaining = lastDay - now.getDate();
-      document.getElementById('goalRemaining').textContent = '이번 달 남은 일수: ' + remaining + '일';
     }
 
     // ═══ 기간 비교 ═══
