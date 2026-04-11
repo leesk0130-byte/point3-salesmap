@@ -1078,57 +1078,7 @@
             }
         }
 
-        /* ═══════════════════════════════════════
-           ROUTE OPTIMIZATION
-           ═══════════════════════════════════════ */
-        .route-mode-banner {
-            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
-            z-index: 1200;
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: #fff; padding: 10px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(79,70,229,.4);
-            font: 600 13px/1.4 inherit;
-            display: none; align-items: center; gap: 12px;
-            animation: slideDown .3s ease;
-        }
-        .route-mode-banner.active { display: flex; }
-        @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
-
-        .route-btn-calc {
-            padding: 6px 14px; border-radius: 8px;
-            background: #fff; color: #4f46e5;
-            border: none; font: 700 12px/1 inherit; cursor: pointer;
-        }
-        .route-btn-calc:hover { background: #eef2ff; }
-        .route-btn-cancel {
-            padding: 6px 14px; border-radius: 8px;
-            background: rgba(255,255,255,.2); color: #fff;
-            border: 1px solid rgba(255,255,255,.3);
-            font: 600 12px/1 inherit; cursor: pointer;
-        }
-        .route-btn-cancel:hover { background: rgba(255,255,255,.3); }
-
-        .route-number-marker {
-            display: flex; align-items: center; justify-content: center;
-            width: 28px; height: 28px;
-            background: linear-gradient(135deg, #4f46e5, #6366f1);
-            color: #fff; border-radius: 50%;
-            font: 800 13px/1 'Inter', sans-serif;
-            border: 2.5px solid #fff;
-            box-shadow: 0 2px 8px rgba(79,70,229,.5);
-        }
-
-        .route-check-marker {
-            position: absolute; top: -4px; left: -4px;
-            width: 18px; height: 18px; border-radius: 50%;
-            background: #4f46e5; color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; font-weight: 700;
-            border: 2px solid #fff;
-            box-shadow: 0 1px 4px rgba(0,0,0,.3);
-            z-index: 10;
-        }
+        /* ROUTE OPTIMIZATION — removed */
 
         /* ═══════════════════════════════════════
            GLOBAL SEARCH (Cmd+K)
@@ -1564,10 +1514,6 @@
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="7" opacity=".3"/><circle cx="8" cy="8" r="5" opacity=".5"/><circle cx="8" cy="8" r="3" opacity=".8"/></svg>
             히트맵
         </button>
-        <button class="map-ctrl-btn" id="routeModeBtn" title="최적 경로">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13L8 3l5 10"/><line x1="5" y1="9" x2="11" y2="9"/></svg>
-            경로
-        </button>
         <a href="/dashboard" class="map-ctrl-btn" title="대시보드">
             <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="4" rx="1"/><rect x="9" y="7" width="6" height="8" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/></svg>
             대시보드
@@ -1642,12 +1588,6 @@
         </div>
     </div>
 
-    <!-- ═══ ROUTE MODE BANNER ═══ -->
-    <div class="route-mode-banner" id="routeBanner">
-        <span id="routeSelectedCount">0개 선택</span>
-        <button class="route-btn-calc" id="routeCalcBtn" onclick="calculateRoute()">최적 경로 계산</button>
-        <button class="route-btn-cancel" onclick="exitRouteMode()">취소</button>
-    </div>
 
     <!-- ═══ STORE DETAIL PANEL ═══ -->
     <div class="detail-overlay" id="detailOverlay" onclick="closeDetail()"></div>
@@ -2656,168 +2596,6 @@
             });
         };
 
-        // ══════════════════════════════════════
-        //  4. ROUTE OPTIMIZATION
-        // ══════════════════════════════════════
-        let routeMode = false;
-        let routeSelected = []; // store IDs
-        let routePolyline = null;
-        let routeNumberMarkers = [];
-
-        document.getElementById('routeModeBtn').addEventListener('click', function() {
-            if (routeMode) { exitRouteMode(); return; }
-            enterRouteMode();
-        });
-
-        function enterRouteMode() {
-            routeMode = true;
-            routeSelected = [];
-            document.getElementById('routeModeBtn').classList.add('active');
-            document.getElementById('routeBanner').classList.add('active');
-            updateRouteCount();
-            showToast('지도에서 방문할 가맹점을 클릭하세요');
-
-            // Add click handlers to markers
-            Object.keys(markers).forEach(id => {
-                markers[id]._routeClick = function() {
-                    if (!routeMode) return;
-                    const idx = routeSelected.indexOf(id);
-                    if (idx >= 0) {
-                        routeSelected.splice(idx, 1);
-                        removeRouteCheck(id);
-                    } else {
-                        routeSelected.push(id);
-                        addRouteCheck(id, routeSelected.length);
-                    }
-                    updateRouteCount();
-                };
-                markers[id].on('click', markers[id]._routeClick);
-            });
-        }
-
-        function exitRouteMode() {
-            routeMode = false;
-            document.getElementById('routeModeBtn').classList.remove('active');
-            document.getElementById('routeBanner').classList.remove('active');
-            clearRouteDisplay();
-            // Remove click handlers
-            Object.keys(markers).forEach(id => {
-                if (markers[id]._routeClick) {
-                    markers[id].off('click', markers[id]._routeClick);
-                    delete markers[id]._routeClick;
-                }
-            });
-            routeSelected = [];
-        }
-
-        function updateRouteCount() {
-            document.getElementById('routeSelectedCount').textContent = routeSelected.length + '개 선택';
-        }
-
-        function addRouteCheck(id, num) {
-            const m = markers[id];
-            if (!m) return;
-            const el = m.getElement();
-            if (!el) return;
-            // Remove existing check if any
-            const old = el.querySelector('.route-check-marker');
-            if (old) old.remove();
-            const chk = document.createElement('div');
-            chk.className = 'route-check-marker';
-            chk.textContent = num;
-            el.style.position = 'relative';
-            el.appendChild(chk);
-        }
-
-        function removeRouteCheck(id) {
-            const m = markers[id];
-            if (!m) return;
-            const el = m.getElement();
-            if (!el) return;
-            const chk = el.querySelector('.route-check-marker');
-            if (chk) chk.remove();
-            // Renumber remaining
-            routeSelected.forEach((sid, i) => {
-                const me = markers[sid] && markers[sid].getElement();
-                if (me) {
-                    const c = me.querySelector('.route-check-marker');
-                    if (c) c.textContent = i + 1;
-                }
-            });
-        }
-
-        function clearRouteDisplay() {
-            if (routePolyline) { map.removeLayer(routePolyline); routePolyline = null; }
-            routeNumberMarkers.forEach(m => map.removeLayer(m));
-            routeNumberMarkers = [];
-            // Remove all check markers
-            Object.keys(markers).forEach(id => {
-                const el = markers[id].getElement();
-                if (el) {
-                    const chk = el.querySelector('.route-check-marker');
-                    if (chk) chk.remove();
-                }
-            });
-        }
-
-        function calculateRoute() {
-            if (routeSelected.length < 2) {
-                showToast('2개 이상 가맹점을 선택하세요', true);
-                return;
-            }
-            clearRouteDisplay();
-
-            // Gather coords
-            const points = routeSelected.map(id => {
-                const s = allStores.find(x => x.id === id);
-                return { id, lat: s.lat, lng: s.lng, name: s.name };
-            });
-
-            // Nearest Neighbor TSP
-            const visited = [0];
-            const remaining = new Set(points.map((_, i) => i));
-            remaining.delete(0);
-
-            while (remaining.size > 0) {
-                const last = visited[visited.length - 1];
-                let nearest = -1, nearestDist = Infinity;
-                remaining.forEach(i => {
-                    const d = Math.sqrt(Math.pow(points[last].lat - points[i].lat, 2) + Math.pow(points[last].lng - points[i].lng, 2));
-                    if (d < nearestDist) { nearestDist = d; nearest = i; }
-                });
-                visited.push(nearest);
-                remaining.delete(nearest);
-            }
-
-            // Draw route
-            const orderedPts = visited.map(i => points[i]);
-            const latlngs = orderedPts.map(p => [p.lat, p.lng]);
-
-            routePolyline = L.polyline(latlngs, {
-                color: '#4f46e5', weight: 4, opacity: 0.8,
-                dashArray: '10, 8',
-                lineCap: 'round'
-            }).addTo(map);
-
-            // Number markers
-            orderedPts.forEach((p, i) => {
-                const icon = L.divIcon({
-                    html: `<div class="route-number-marker">${i + 1}</div>`,
-                    className: '',
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
-                });
-                const nm = L.marker([p.lat, p.lng], { icon, zIndexOffset: 5000 }).addTo(map);
-                nm.bindTooltip(`${i + 1}. ${p.name}`, { direction: 'top', offset: [0, -16], className: 'premium-tooltip' });
-                routeNumberMarkers.push(nm);
-            });
-
-            map.fitBounds(routePolyline.getBounds(), { padding: [60, 60] });
-
-            // Build route summary
-            const names = orderedPts.map((p, i) => `${i + 1}. ${p.name}`).join(' → ');
-            showToast(`최적 경로: ${names}`);
-        }
 
         // ══════════════════════════════════════
         //  NOTIFICATION CENTER

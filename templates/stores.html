@@ -591,9 +591,9 @@
     .store-info-card .si-visit-item { padding:6px 10px; margin:4px 0; background:var(--muted); border-radius:8px; font-size:12px; }
     .store-info-card .si-visit-date { font-weight:600; color:var(--primary); margin-right:8px; }
 
-    .contact-chk { display:inline-flex; align-items:center; gap:2px; margin-right:2px; margin-bottom:2px; cursor:pointer; vertical-align:middle; }
+    .contact-chk { display:inline-flex; align-items:center; gap:3px; margin-right:4px; margin-bottom:3px; cursor:pointer; vertical-align:middle; }
     .contact-chk input[type="checkbox"] { width:13px; height:13px; margin:0; cursor:pointer; accent-color:#4f46e5; }
-    .cc-label { font-size:11px; font-weight:600; padding:2px 5px; border-radius:4px; user-select:none; white-space:nowrap; }
+    .cc-label { font-size:11px; font-weight:600; padding:2px 6px; border-radius:4px; user-select:none; white-space:nowrap; }
     .cc-email { background:#dbeafe; color:#1d4ed8; }
     .cc-li { background:#e0e7ff; color:#4338ca; }
     .cc-rem { background:#fef3c7; color:#92400e; }
@@ -1266,7 +1266,7 @@
           <th>가맹점</th>
           <th style="width:36px;text-align:center;">사이트</th>
           <th class="col-district">지역구</th>
-          <th style="min-width:165px;">연락수단</th>
+          <th style="min-width:230px;">연락수단</th>
           <th>상태</th>
           <th>최근방문</th>
           <th class="col-memo">메모</th>
@@ -1684,10 +1684,10 @@ function renderTable(list) {
       <td class="col-name"><a href="#" class="store-name-link" onclick="event.preventDefault();showStoreInfo('${escAttr(s.id)}')">${esc(s.name)}</a></td>
       <td style="text-align:center;">${s.website ? `<a href="${escAttr(s.website)}" target="_blank" rel="noopener" class="site-link" title="${escAttr(s.website)}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg></a>` : '<span style="color:var(--muted-fg);font-size:11px;">-</span>'}</td>
       <td class="col-district">${esc(s.district || '기타')}</td>
-      <td style="font-size:12px;"><div style="display:flex;flex-wrap:wrap;gap:3px 2px;min-width:160px;">
+      <td style="font-size:12px;"><div style="display:flex;flex-wrap:wrap;gap:4px 4px;min-width:220px;">
         <label class="contact-chk" title="이메일"><input type="checkbox" ${s.contact_email ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_email',this.checked)"><span class="cc-label cc-email">메일</span></label>
-        <label class="contact-chk" title="링크드인"><input type="checkbox" ${s.contact_linkedin ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_linkedin',this.checked)"><span class="cc-label cc-li">LI</span></label>
-        <label class="contact-chk" title="리멤버"><input type="checkbox" ${s.contact_remember ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_remember',this.checked)"><span class="cc-label cc-rem">리멤</span></label>
+        <label class="contact-chk" title="링크드인"><input type="checkbox" ${s.contact_linkedin ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_linkedin',this.checked)"><span class="cc-label cc-li">링크드인</span></label>
+        <label class="contact-chk" title="리멤버"><input type="checkbox" ${s.contact_remember ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_remember',this.checked)"><span class="cc-label cc-rem">리멤버</span></label>
         <label class="contact-chk" title="소개"><input type="checkbox" ${s.contact_intro ? 'checked' : ''} onchange="toggleContact('${escAttr(s.id)}','contact_intro',this.checked)"><span class="cc-label cc-intro">소개</span></label>
       </div></td>
       <td>
@@ -2435,7 +2435,7 @@ function renderMobileCards() {
       </div>
       <div class="msc-meta">
         <span>${esc(s.district || '기타')}</span>
-        ${s.contact_email ? '<span>메일</span>' : ''}${s.contact_linkedin ? '<span>LI</span>' : ''}${s.contact_remember ? '<span>리멤</span>' : ''}${s.contact_intro ? '<span>소개</span>' : ''}
+        ${s.contact_email ? '<span>메일</span>' : ''}${s.contact_linkedin ? '<span>링크드인</span>' : ''}${s.contact_remember ? '<span>리멤버</span>' : ''}${s.contact_intro ? '<span>소개</span>' : ''}
         <span>최근: ${esc(daysText)}</span>
       </div>
       <div class="msc-actions">
